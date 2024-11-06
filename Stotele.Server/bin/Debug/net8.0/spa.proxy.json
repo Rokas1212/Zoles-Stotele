@@ -1,0 +1,10 @@
+{
+"SpaProxyServer": {
+"ServerUrl": "https://localhost:5173",
+"RedirectUrl": "",
+"LaunchCommand": "npm run dev",
+"WorkingDirectory": "/mnt/c/Users/Rokas/Desktop/ISP/Stotele.Server/../stotele.client",
+"MaxTimeoutInSeconds": "120",
+"KeepRunning": "false"
+}
+}
