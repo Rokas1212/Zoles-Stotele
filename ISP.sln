@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.002.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stotele.Server", "Stotele.Server\Stotele.Server.csproj", "{F5F894B8-3342-453D-8495-1DA3AA2AE255}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F5F894B8-3342-453D-8495-1DA3AA2AE255}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5F894B8-3342-453D-8495-1DA3AA2AE255}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5F894B8-3342-453D-8495-1DA3AA2AE255}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5F894B8-3342-453D-8495-1DA3AA2AE255}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {03F20ACB-7058-4EE8-877D-27464F133D06}
+	EndGlobalSection
+EndGlobal
