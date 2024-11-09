@@ -17,6 +17,9 @@ import PrekiuKategorijos from "./pages/Prekes/PrekiuKategorijos";
 import RedaguotiProfili from "./pages/Profilis/RedaguotiProfili";
 import BlokuotosRekomendacijos from "./pages/Rekomendacijos/BlokuotosRekomendacijos";
 import MegstamosKategorijos from "./pages/Rekomendacijos/MegstamosKategorijos";
+import PridetiPreke from "./pages/Prekes/PridetiPreke";
+import PridetiKategorija from "./pages/Prekes/PridetiKategorija";
+import Profiliai from "./pages/Profilis/Profiliai";
 
 function App() {
   return (
@@ -33,7 +36,11 @@ function App() {
         <Route path="/apmokejimas" element={<Apmokejimas />} />
         <Route path="/nuolaida" element={<Nuolaida />} />
         <Route path="/nuolaidos" element={<Nuolaidos />} />
-        <Route path="/prideti-nuolaida" element={<PridetiNuolaida />} />
+        <Route path="/administratorius/profiliai" element={<Profiliai />} />
+        <Route
+          path="/administratorius/prideti-nuolaida"
+          element={<PridetiNuolaida />}
+        />
         <Route path="/preke" element={<Preke />} />
         <Route path="/prekes" element={<Prekes />} />
         <Route path="/prekiu-kategorijos" element={<PrekiuKategorijos />} />
@@ -46,6 +53,11 @@ function App() {
           path="/megstamos-kategorijos"
           element={<MegstamosKategorijos />}
         />
+        <Route
+          path="vadybininkas/prideti-kategorija"
+          element={<PridetiKategorija />}
+        />
+        <Route path="vadybininkas/prideti-preke" element={<PridetiPreke />} />
       </Routes>
     </Router>
   );
