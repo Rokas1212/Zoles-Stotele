@@ -1,13 +1,23 @@
-#  Informacinė sistema žolės stotelė.
+# Informacinė sistema žolės stotelė.
+
 ## Informacinių Sistemų Pagrindų moduliui - KTU
+
 ### Komandos Nariai:
-* Rokas Čiuplinskas
-* Domantas Bieliūnas
-* Gvidas Valionis
-* Giedrius Navickas
+
+- Rokas Čiuplinskas
+- Domantas Bieliūnas
+- Gvidas Valionis
+- Giedrius Navickas
 
 ### Naudotos Technologijos
-* React.ts
-* Bootstrap
-* C# .NET
 
+- React.ts
+- Bootstrap
+- C# .NET
+
+### Kaip pasileisti front'ą
+
+cd stotele.client
+npm install
+npm run dev
+viskas

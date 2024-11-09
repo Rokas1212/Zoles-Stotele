@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Stotele.Server")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8ada3f784ef5dd24dc6d67d8c0bd6766db39a83a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ead95de491bc1623e6c1790e87de8de3b97a74d5")]
 [assembly: System.Reflection.AssemblyProductAttribute("Stotele.Server")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Stotele.Server")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

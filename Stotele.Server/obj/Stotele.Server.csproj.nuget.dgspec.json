@@ -1,25 +1,28 @@
 {
   "format": 1,
   "restore": {
-    "/mnt/c/Users/Rokas/Desktop/ISP/Stotele.Server/Stotele.Server.csproj": {}
+    "C:\\Users\\Rokas\\Desktop\\ISP\\Stotele.Server\\Stotele.Server.csproj": {}
   },
   "projects": {
-    "/mnt/c/Users/Rokas/Desktop/ISP/Stotele.Server/Stotele.Server.csproj": {
+    "C:\\Users\\Rokas\\Desktop\\ISP\\Stotele.Server\\Stotele.Server.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/mnt/c/Users/Rokas/Desktop/ISP/Stotele.Server/Stotele.Server.csproj",
+        "projectUniqueName": "C:\\Users\\Rokas\\Desktop\\ISP\\Stotele.Server\\Stotele.Server.csproj",
         "projectName": "Stotele.Server",
-        "projectPath": "/mnt/c/Users/Rokas/Desktop/ISP/Stotele.Server/Stotele.Server.csproj",
-        "packagesPath": "/home/rokas/.nuget/packages/",
-        "outputPath": "/mnt/c/Users/Rokas/Desktop/ISP/Stotele.Server/obj/",
+        "projectPath": "C:\\Users\\Rokas\\Desktop\\ISP\\Stotele.Server\\Stotele.Server.csproj",
+        "packagesPath": "C:\\Users\\Rokas\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Rokas\\Desktop\\ISP\\Stotele.Server\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/home/rokas/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\Rokas\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -32,6 +35,11 @@
           "warnAsError": [
             "NU1605"
           ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
         }
       },
       "frameworks": {
@@ -84,7 +92,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/8.0.110/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.303/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
