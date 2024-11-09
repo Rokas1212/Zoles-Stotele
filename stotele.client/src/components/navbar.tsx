@@ -1,44 +1,43 @@
 import React from "react";
-import "./Navbar.css"; // Custom CSS file for additional styling
+import { Navbar, Nav, NavDropdown } from "react-bootstrap";
+import "./Navbar.css";
+import "bootstrap/dist/css/bootstrap.min.css";
 
-const Navbar: React.FC = () => {
+const CustomNavbar: React.FC = () => {
   return (
-    <nav className="navbar navbar-expand-lg navbar-light bg-light">
-      <a className="navbar-brand" href="/">
-        ŽS
-      </a>
-      <button
-        className="navbar-toggler"
-        type="button"
-        data-toggle="collapse"
-        data-target="#navbarNav"
-        aria-controls="navbarNav"
-        aria-expanded="false"
-        aria-label="Toggle navigation"
-      >
-        <span className="navbar-toggler-icon"></span>
-      </button>
-      <div className="collapse navbar-collapse" id="navbarNav">
-        <ul className="navbar-nav ml-auto">
-          <li className="nav-item">
-            <a className="nav-link" href="/prisijungimas">
-              Prisijungimas
-            </a>
-          </li>
-          <li className="nav-item">
-            <a className="nav-link" href="/registracija">
-              Registracija
-            </a>
-          </li>
-          <li className="nav-item">
-            <a className="nav-link" href="/profilis">
-              Profilis
-            </a>
-          </li>
-        </ul>
-      </div>
-    </nav>
+    <Navbar bg="light" expand="lg" className="mb-3">
+      <Navbar.Brand href="/">ŽS</Navbar.Brand>
+      <Navbar.Toggle aria-controls="basic-navbar-nav" />
+      <Navbar.Collapse id="basic-navbar-nav">
+        <Nav className="ml-auto">
+          <Nav.Link href="/prisijungimas">Prisijungimas</Nav.Link>
+          <Nav.Link href="/registracija">Registracija</Nav.Link>
+          <Nav.Link href="/profilis">Profilis</Nav.Link>
+
+          <NavDropdown
+            title="Administratoriaus Meniu"
+            id="administratorius-dropdown"
+          >
+            <NavDropdown.Item href="/administratorius/profiliai">
+              Profiliai
+            </NavDropdown.Item>
+            <NavDropdown.Item href="/administratorius/prideti-nuolaida">
+              Pridėti nuolaidą
+            </NavDropdown.Item>
+          </NavDropdown>
+
+          <NavDropdown title="Vadybininko Meniu" id="vadybininkas-dropdown">
+            <NavDropdown.Item href="/vadybininkas/prideti-preke">
+              Pridėti prekę
+            </NavDropdown.Item>
+            <NavDropdown.Item href="/vadybininkas/prideti-kategorija">
+              Pridėti kategoriją
+            </NavDropdown.Item>
+          </NavDropdown>
+        </Nav>
+      </Navbar.Collapse>
+    </Navbar>
   );
 };
 
-export default Navbar;
+export default CustomNavbar;
