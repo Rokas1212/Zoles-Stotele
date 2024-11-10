@@ -16,6 +16,7 @@ const MegstamosKategorijos = () => {
             <th>ID</th>
             <th>Kategorija</th>
             <th>Pridėjimo data</th>
+            <th>Veiksmas</th>
           </tr>
         </thead>
         <tbody>
@@ -24,6 +25,9 @@ const MegstamosKategorijos = () => {
               <td>{item.id}</td>
               <td>{item.kategorija}</td>
               <td>{item.dateAdded}</td>
+              <td>
+                <button>Pašalinti</button>
+              </td>
             </tr>
           ))}
         </tbody>
