@@ -30,6 +30,11 @@ const Pagrindinis = () => {
             Nuolaidos
           </a>
         </li>
+        <li className="list-group-item">
+          <a href="/visos-kategorijos" className="nav-link">
+            Kategorijos
+          </a>
+        </li>
       </ul>
 
       <h2>Rekomenduojamos prekės</h2>

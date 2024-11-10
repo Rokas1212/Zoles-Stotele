@@ -14,6 +14,7 @@ import PridetiNuolaida from "./pages/Lojalumas/PridetiNuolaida";
 import Preke from "./pages/Prekes/Preke";
 import Prekes from "./pages/Prekes/Prekes";
 import PrekiuKategorijos from "./pages/Prekes/PrekiuKategorijos";
+import VisosKategorijos from "./pages/Prekes/VisosKategorijos";
 import RedaguotiProfili from "./pages/Profilis/RedaguotiProfili";
 import BlokuotosRekomendacijos from "./pages/Rekomendacijos/BlokuotosRekomendacijos";
 import MegstamosKategorijos from "./pages/Rekomendacijos/MegstamosKategorijos";
@@ -37,6 +38,7 @@ function App() {
         <Route path="/nuolaida" element={<Nuolaida />} />
         <Route path="/nuolaidos" element={<Nuolaidos />} />
         <Route path="/administratorius/profiliai" element={<Profiliai />} />
+        <Route path="/visos-kategorijos" element={<VisosKategorijos />} />
         <Route
           path="/administratorius/prideti-nuolaida"
           element={<PridetiNuolaida />}
