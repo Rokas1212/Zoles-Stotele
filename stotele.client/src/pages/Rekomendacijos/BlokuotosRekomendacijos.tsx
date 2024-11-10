@@ -16,6 +16,7 @@ const BlokuotosRekomendacijos = () => {
             <th>ID</th>
             <th>Prekė</th>
             <th>Pridėjimo data</th>
+            <th>Veiksmas</th>
           </tr>
         </thead>
         <tbody>
@@ -24,6 +25,9 @@ const BlokuotosRekomendacijos = () => {
               <td>{item.id}</td>
               <td>{item.preke}</td>
               <td>{item.dateAdded}</td>
+              <td>
+                <button>Pašalinti</button>
+              </td>
             </tr>
           ))}
         </tbody>
