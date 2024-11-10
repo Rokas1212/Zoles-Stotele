@@ -19,6 +19,8 @@ const Pagrindinis = () => {
           <a href="/nuolaidos" className="nav-link">
             Nuolaidos
           </a>
+        </li>
+        <li className="list-group-item">
           <a href="/uzsakymai" className="nav-link">
             Užsakymai
           </a>
