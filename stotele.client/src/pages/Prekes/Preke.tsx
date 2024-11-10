@@ -1,10 +1,7 @@
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
 
 const Preke = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const searchParams = new URLSearchParams(location.search);
+  const searchParams = new URLSearchParams(window.location.search);
   const id = searchParams.get("id");
 
   const products = [
@@ -19,15 +16,13 @@ const Preke = () => {
     return <div>Prekė nerasta</div>;
   }
 
-  const handleEdit = () => {
-    navigate(`/redaguoti-preke?id=${product.id}`);
-  };
-
   return (
     <div>
       <h1>{product.name}</h1>
       <p>Kaina: {product.price}</p>
-      <button onClick={handleEdit}>Redaguoti</button>
+      <a href={`/redaguoti-preke?id=${product.id}`}>
+        <button>Redaguoti</button>
+      </a>
     </div>
   );
 };

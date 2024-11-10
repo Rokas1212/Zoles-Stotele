@@ -1,21 +1,19 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 const PridetiNuolaida = () => {
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const navigate = useNavigate();
+  const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("New Discount:", { title, amount, startDate, endDate });
     setTitle("");
     setAmount("");
     setStartDate("");
     setEndDate("");
-    navigate("/nuolaidos");
+    setSubmitted(true);
   };
 
   return (
@@ -58,6 +56,12 @@ const PridetiNuolaida = () => {
         </div>
         <button type="submit">Pridėti Nuolaidą</button>
       </form>
+
+      {submitted && (
+        <p>
+          Nuolaida pridėta! <a href="/nuolaidos">Grįžti į Nuolaidų sąrašą</a>
+        </p>
+      )}
     </div>
   );
 };
