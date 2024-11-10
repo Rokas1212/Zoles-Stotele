@@ -7,6 +7,7 @@ const PrisijungimoLangas = () => {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Logging in with:", username, password);
+    window.location.href = "/";
   };
 
   return (
@@ -33,6 +34,7 @@ const PrisijungimoLangas = () => {
         </div>
         <button type="submit">Prisijungti</button>
       </form>
+      <a href="/registracija">Registracija</a>
     </div>
   );
 };

@@ -9,6 +9,8 @@ const RegistracijosLangas = () => {
     e.preventDefault();
     // Add registration logic here
     console.log("Registering with:", username, email, password);
+    // redirect to pagrindinis
+    window.location.href = "/";
   };
 
   return (
