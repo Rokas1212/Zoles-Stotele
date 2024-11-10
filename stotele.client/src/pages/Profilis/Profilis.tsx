@@ -11,12 +11,12 @@ const Profilis = () => {
           </a>
         </li>
         <li className="list-group-item">
-          <a href="/" className="nav-link">
+          <a href="/blokuotos-rekomendacijos" className="nav-link">
             Blokuotos Rekomendacijos
           </a>
         </li>
         <li className="list-group-item">
-          <a href="/" className="nav-link">
+          <a href="/megstamos-kategorijos" className="nav-link">
             Mėgstamos kategorijos
           </a>
         </li>
