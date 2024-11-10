@@ -1,19 +1,37 @@
 import React from "react";
 
 const BlokuotosRekomendacijos = () => {
-  const products = ["Žoliapjovė", "Laistymo žarna", "Trąšų maišas", "Sodo kastuvas"];
+  const blockedItems = [
+    { id: 1, preke: "Albaniška žolė", dateAdded: "2024-11-01" },
+    { id: 2, preke: "Gruziniška veja", dateAdded: "2024-10-25" },
+    { id: 3, preke: "Žolytės suktinukai ALBANIA", dateAdded: "2024-09-15" },
+  ];
 
   return (
     <div>
       <h1>Blokuotos rekomendacijos</h1>
-      <ul>
-        {products.map((product, index) => (
-          <li key={index}>
-            {product}
-            <button style={{ marginLeft: "10px" }}>Pašalinti</button>
-          </li>
-        ))}
-      </ul>
+      <table className="table table-striped">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Prekė</th>
+            <th>Pridėjimo data</th>
+            <th>Veiksmas</th>
+          </tr>
+        </thead>
+        <tbody>
+          {blockedItems.map((item) => (
+            <tr key={item.id}>
+              <td>{item.id}</td>
+              <td>{item.preke}</td>
+              <td>{item.dateAdded}</td>
+              <td>
+                <button>Pašalinti</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };

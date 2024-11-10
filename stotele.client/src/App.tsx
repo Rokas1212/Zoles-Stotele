@@ -20,6 +20,7 @@ import MegstamosKategorijos from "./pages/Rekomendacijos/MegstamosKategorijos";
 import PridetiPreke from "./pages/Prekes/PridetiPreke";
 import PridetiKategorija from "./pages/Prekes/PridetiKategorija";
 import Profiliai from "./pages/Profilis/Profiliai";
+import RedaguotiPreke from "./pages/Prekes/RedaguotiPreke";
 
 function App() {
   return (
@@ -44,7 +45,8 @@ function App() {
         <Route path="/preke" element={<Preke />} />
         <Route path="/prekes" element={<Prekes />} />
         <Route path="/prekiu-kategorijos" element={<PrekiuKategorijos />} />
-        <Route path="/redaguoti-profilį" element={<RedaguotiProfili />} />
+        <Route path="/redaguoti-profili" element={<RedaguotiProfili />} />
+        <Route path="/redaguoti-preke" element={<RedaguotiPreke />} />
         <Route
           path="/blokuotos-rekomendacijos"
           element={<BlokuotosRekomendacijos />}

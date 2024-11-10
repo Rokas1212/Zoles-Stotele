@@ -21,7 +21,7 @@ const Profilis = () => {
           </a>
         </li>
         <li className="list-group-item">
-          <a href="/" className="nav-link">
+          <a href="/redaguoti-profili" className="nav-link">
             Redaguoti profilį
           </a>
         </li>
