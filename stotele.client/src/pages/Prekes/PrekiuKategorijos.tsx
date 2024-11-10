@@ -27,6 +27,9 @@ const PrekiuKategorijos = () => {
               <td>
                 {category.icon} {category.name}
               </td>
+              <td>
+                <button>Pridėti prie mėgstamų</button>
+              </td>
             </tr>
           ))}
         </tbody>
