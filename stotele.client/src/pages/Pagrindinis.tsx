@@ -4,26 +4,6 @@ const Pagrindinis = () => {
       <h1>Pagrindinis</h1>
       <ul className="list-group">
         <li className="list-group-item">
-          <a href="/uzsakymai" className="nav-link">
-            Užsakymai
-          </a>
-        </li>
-        <li className="list-group-item">
-          <a href="/" className="nav-link">
-            Blokuotos Rekomendacijos
-          </a>
-        </li>
-        <li className="list-group-item">
-          <a href="/" className="nav-link">
-            Mėgstamos kategorijos
-          </a>
-        </li>
-        <li className="list-group-item">
-          <a href="/" className="nav-link">
-            Redaguoti profilį
-          </a>
-        </li>
-        <li className="list-group-item">
           <a href="/krepselis" className="nav-link">
             Krepšelis
           </a>
@@ -31,6 +11,16 @@ const Pagrindinis = () => {
         <li className="list-group-item">
           <a href="/nuolaidos" className="nav-link">
             Nuolaidos
+          </a>
+        </li>
+        <li className="list-group-item">
+          <a href="/prekes" className="nav-link">
+            Prekės
+          </a>
+        </li>
+        <li className="list-group-item">
+          <a href="/prekiu-kategorijos" className="nav-link">
+            Visos kategorijos
           </a>
         </li>
       </ul>
