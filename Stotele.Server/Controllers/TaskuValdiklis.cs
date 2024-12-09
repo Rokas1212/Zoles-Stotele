@@ -1,0 +1,1 @@
+// Tasku valdiklis - points controller

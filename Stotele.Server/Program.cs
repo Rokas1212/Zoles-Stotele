@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Stotele.Server.Models.ApplicationDbContexts;
+
 namespace Stotele.Server
 {
     public class Program
