@@ -21,6 +21,21 @@ namespace Stotele.Server
 
             var app = builder.Build();
 
+            // Test the database connection
+            using (var scope = app.Services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                try
+                {
+                    dbContext.Database.CanConnect();
+                    Console.WriteLine("Database connection successful.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Database connection failed: {ex.Message}");
+                }
+            }
+
             app.UseDefaultFiles();
             app.UseStaticFiles();
 
