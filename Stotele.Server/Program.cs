@@ -13,9 +13,20 @@ namespace Stotele.Server
 
             builder.Services.AddControllers();
 
-            builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+            // Read the environment variable
+            var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
+            if (string.IsNullOrEmpty(dbPassword))
+            {
+                throw new InvalidOperationException("DB_PASSWORD environment variable is not set.");
+            }
 
+            // Build the connection string dynamically
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+                .Replace("${DB_PASSWORD}", dbPassword);
+
+            // Register ApplicationDbContext
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseNpgsql(connectionString));
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
