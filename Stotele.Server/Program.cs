@@ -13,6 +13,15 @@ namespace Stotele.Server
 
             builder.Services.AddControllers();
 
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowReactApp", 
+                    builder => builder
+                        .WithOrigins("https://127.0.0.1:5173")
+                        .AllowAnyMethod()
+                        .AllowAnyHeader());
+            });
+
             // Read the environment variable
             var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
             if (string.IsNullOrEmpty(dbPassword))
@@ -58,6 +67,8 @@ namespace Stotele.Server
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+
+            app.UseCors("AllowReactApp");
 
             app.UseAuthorization();
 
