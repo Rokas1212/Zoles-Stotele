@@ -23,6 +23,7 @@ const Nuolaida = () => {
       <p><strong>Nuolaidos dydis:</strong> {discount.amount}%</p>
       <p><strong>Galiojimo pradžia:</strong> {discount.startDate}</p>
       <p><strong>Galiojimo pabaiga:</strong> {discount.endDate}</p>
+      <button>Ištrinti nuolaidą</button>
     </div>
   );
 };

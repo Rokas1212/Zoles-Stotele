@@ -6,6 +6,10 @@ const discounts = [
 ];
 
 const Nuolaidos = () => {
+  const handleAddDiscount = () => {
+    window.location.href = "/administratorius/prideti-nuolaida";
+  };
+
   return (
     <div>
       <h1>Nuolaidos</h1>
@@ -37,6 +41,7 @@ const Nuolaidos = () => {
           ))}
         </tbody>
       </table>
+      <button onClick={handleAddDiscount}>Pridėti nuolaidą</button>
     </div>
   );
 };
