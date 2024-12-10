@@ -71,11 +71,14 @@ namespace Stotele.Server
             app.UseDefaultFiles();
             app.UseStaticFiles();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
-                app.UseSwaggerUI();
+                app.UseSwaggerUI(options =>
+                {
+                    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Stotele API V1");
+                    options.RoutePrefix = string.Empty; // Access Swagger UI at the root
+                });
             }
 
             app.UseCors("AllowReactApp");

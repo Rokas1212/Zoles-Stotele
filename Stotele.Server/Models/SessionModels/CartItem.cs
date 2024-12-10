@@ -2,9 +2,9 @@ namespace Stotele.Server.Models.SessionModels
 {
     public class CartItem
     {
-        public string ProductId { get; set; }
-        public string Name { get; set; }
-        public int Quantity { get; set; }
-        public decimal Price { get; set; }
+        public string id { get; set; }
+        public string pavadinimas { get; set; }
+        public int kiekis { get; set; }
+        public double kaina { get; set; }
     }
 }

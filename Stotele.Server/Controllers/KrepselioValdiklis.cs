@@ -2,11 +2,24 @@
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Stotele.Server.Models.SessionModels;
+using Stotele.Server.Models.ApplicationDbContexts;
+
+
+public class AddToCartPayload
+{
+    public string id { get; set; }
+}
 
 [ApiController]
 [Route("api/[controller]")]
 public class KrepselioController : ControllerBase
 {
+    private readonly ApplicationDbContext _dbContext;
+
+    public KrepselioController(ApplicationDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
     private const string CartSessionKey = "ShoppingCart";
 
     [HttpGet]
@@ -17,30 +30,48 @@ public class KrepselioController : ControllerBase
     }
 
     [HttpPost("add")]
-    public ActionResult AddToCart([FromBody] CartItem item)
+    public ActionResult AddToCart([FromBody] AddToCartPayload payload)
     {
-        var cart = GetCartFromSession();
-        var existingItem = cart.Find(i => i.ProductId == item.ProductId);
+        string productId = payload.id;
 
+        // Fetch product details from the database
+        var product = _dbContext.Prekes.FirstOrDefault(p => p.Id.ToString() == productId);
+        if (product == null)
+        {
+            return NotFound($"Produktas su tokiu ID: {productId} nerastas.");
+        }
+
+        // Retrieve the current cart from session
+        var cart = GetCartFromSession();
+
+        // Check if the product is already in the cart
+        var existingItem = cart.FirstOrDefault(i => i.id == productId);
         if (existingItem != null)
         {
-            existingItem.Quantity += item.Quantity;
+            existingItem.kiekis++;
         }
         else
         {
-            cart.Add(item);
+            cart.Add(new CartItem
+            {
+                id = product.Id.ToString(),
+                pavadinimas = product.Pavadinimas,
+                kaina = product.Kaina,
+                kiekis = 1
+            });
         }
 
-        cart.ForEach(i => Console.WriteLine($"Product: {i.Name}, Quantity: {i.Quantity}, Price: {i.Price}, ProductId: {i.ProductId}"));
+        // Save the updated cart to session
         SaveCartToSession(cart);
-        return Ok(cart);
+
+        return Ok(cart); // Return updated cart
     }
 
     [HttpPost("remove")]
-    public ActionResult RemoveFromCart([FromBody] string productId)
+    public ActionResult RemoveFromCart([FromBody] string id)
     {
         var cart = GetCartFromSession();
-        cart.RemoveAll(i => i.ProductId == productId);
+        cart.RemoveAll(i => i.id == id);
         SaveCartToSession(cart);
         return Ok(cart);
     }

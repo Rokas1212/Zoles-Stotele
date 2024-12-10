@@ -10,7 +10,7 @@ const Krepselis = () => {
         const cartData = await fetchCart();
         setCart(cartData);
       } catch (error) {
-        console.error("Error fetching cart:", error);
+        console.error("Klaida:", error);
       }
     };
 
@@ -18,7 +18,7 @@ const Krepselis = () => {
   }, []);
 
   const getTotalPrice = () => {
-    return cart.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2);
+    return cart.reduce((total, item) => total + item.kaina * item.kiekis, 0).toFixed(2);
   };
 
   return (
@@ -37,11 +37,11 @@ const Krepselis = () => {
             </thead>
             <tbody>
               {cart.map((item) => (
-                <tr key={item.productId}>
-                  <td>{item.name}</td>
-                  <td>€{item.price.toFixed(2)}</td>
-                  <td>{item.quantity}</td>
-                  <td>€{(item.price * item.quantity).toFixed(2)}</td>
+                <tr key={item.id}>
+                  <td>{item.pavadinimas}</td>
+                  <td>€{item.kaina.toFixed(2)}</td>
+                  <td>{item.kiekis}</td>
+                  <td>€{(item.kaina * item.kiekis).toFixed(2)}</td>
                 </tr>
               ))}
             </tbody>
