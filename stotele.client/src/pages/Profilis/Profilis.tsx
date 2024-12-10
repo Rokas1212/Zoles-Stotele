@@ -25,6 +25,9 @@ const Profilis = () => {
             Redaguoti profilį
           </a>
         </li>
+        <li className="list-group-item">
+          <button className="btn btn-warning">Pridėti taškų</button>
+        </li>
       </ul>
     </div>
   );

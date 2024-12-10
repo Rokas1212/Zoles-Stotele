@@ -1,42 +1,91 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import Loading from "../../components/loading";
+import "./nuolaidos.css"; // Create this file for styles
 
-const discounts = [
-  { id: "1", name: "Žolės šventės nuolaida", amount: 10, startDate: "2021-10-10", endDate: "2021-10-20" },
-  { id: "2", name: "Black friday", amount: 20, startDate: "2021-11-11", endDate: "2021-11-31" },
-];
+interface Discount {
+  id: number;
+  procentai: number;
+  galiojimoPabaiga: string;
+  prekesPavadinimas: string;
+}
 
-const Nuolaidos = () => {
+const Nuolaidos: React.FC = () => {
+  const [discounts, setDiscounts] = useState<Discount[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDiscounts = async () => {
+      try {
+        const response = await fetch("http://localhost:5210/api/Nuolaida");
+        if (!response.ok) {
+          throw new Error(
+            `Failed to fetch discounts: ${response.status} - ${response.statusText}`
+          );
+        }
+        const data: Discount[] = await response.json();
+
+        const formattedData = data.map((discount) => ({
+          ...discount,
+          galiojimoPabaiga: new Date(discount.galiojimoPabaiga).toISOString(),
+        }));
+
+        setDiscounts(formattedData);
+      } catch (err: any) {
+        console.error("Error fetching discounts:", err);
+        setError(err.message || "An unknown error occurred");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDiscounts();
+  }, []);
+
+  const handleAddDiscount = () => {
+    window.location.href = "/administratorius/prideti-nuolaida";
+  };
+
+  if (loading) {
+    return <Loading />;
+  }
+
+  if (error) {
+    return <div className="error-message">Error: {error}</div>;
+  }
+
   return (
-    <div>
-      <h1>Nuolaidos</h1>
-      <table className="table table-striped">
-        <thead>
-          <tr>
-            <th>Nuolaidos kodas</th>
-            <th>Nuolaidos pavadinimas</th>
-            <th>Nuolaidos dydis (%)</th>
-            <th>Galiojimo pradžia</th>
-            <th>Galiojimo pabaiga</th>
-            <th>Veiksmai</th>
-          </tr>
-        </thead>
-        <tbody>
-          {discounts.map((discount) => (
-            <tr key={discount.id}>
-              <td>
-                <a href={`/nuolaida?id=${discount.id}`}>{discount.id}</a>
-              </td>
-              <td>{discount.name}</td>
-              <td>{discount.amount}</td>
-              <td>{discount.startDate}</td>
-              <td>{discount.endDate}</td>
-              <td>
-                <a href={`/nuolaida?id=${discount.id}`}>Peržiūrėti</a>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="nuolaidos-container">
+      <h1 className="title">Nuolaidos</h1>
+      <table className="table">
+  <thead>
+    <tr>
+      <th>Nuolaidos kodas</th>
+      <th>Nuolaidos dydis (%)</th>
+      <th>Galiojimo pabaiga</th>
+      <th>Prekės pavadinimas</th>
+      <th>Veiksmai</th>
+    </tr>
+  </thead>
+  <tbody>
+    {discounts.map((discount) => (
+      <tr key={discount.id}>
+        <td>
+          <a href={`/nuolaida?id=${discount.id}`}>{discount.id}</a>
+        </td>
+        <td>{discount.procentai}</td>
+        <td>{new Date(discount.galiojimoPabaiga).toLocaleDateString()}</td>
+        <td>{discount.prekesPavadinimas || "N/A"}</td>
+        <td>
+          <a href={`/nuolaida?id=${discount.id}`}>Peržiūrėti</a>
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+
+      <button className="add-discount-button" onClick={handleAddDiscount}>
+        Pridėti nuolaidą
+      </button>
     </div>
   );
 };

@@ -1,0 +1,58 @@
+/* Main Container */
+.nuolaida-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    border: 2px solid #10802c;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Title */
+  .nuolaida-container h1 {
+    color: #10802c;
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 20px;
+  }
+  
+  /* Text */
+  .nuolaida-container p {
+    font-size: 1rem;
+    margin: 10px 0;
+    color: #333;
+  }
+  
+  .nuolaida-container p strong {
+    color: #10802c;
+  }
+  
+  /* Delete Button */
+  .delete-button {
+    display: block;
+    width: 100%;
+    background-color: #10802c;
+    color: white;
+    border: none;
+    padding: 12px;
+    font-size: 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 20px;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+  
+  .delete-button:hover {
+    background-color: #0c6a24;
+  }
+  
+  /* Success Message */
+  .success-message {
+    color: #10802c;
+    margin-top: 20px;
+    font-weight: bold;
+    text-align: center;
+  }
+  

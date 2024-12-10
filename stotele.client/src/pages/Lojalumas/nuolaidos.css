@@ -1,0 +1,100 @@
+.nuolaidos-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .title {
+    text-align: center;
+    color: #10802c;
+    margin-bottom: 20px;
+  }
+  
+  .styled-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 16px;
+    text-align: left;
+  }
+  
+  .styled-table th,
+  .styled-table td {
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+  }
+  
+  .styled-table thead {
+    background-color: #10802c;
+    color: white;
+  }
+  
+  .styled-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  
+  .styled-table tr:hover {
+    background-color: #f1f1f1;
+  }
+  
+  .link,
+  .view-link {
+    text-decoration: none;
+    font-weight: bold;
+  }
+  
+  .view-link {
+    color: #10802c;
+  }
+  
+  .add-discount-button {
+    display: block;
+    margin: 20px auto;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    background-color: #10802c;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .add-discount-button:hover {
+    background-color: #086922;
+  }
+  
+  .error-message {
+    color: red;
+    text-align: center;
+  }
+
+  .table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  
+  .table th {
+    background-color: #10802c;
+    color: white;
+  }
+  
+  .table tr:hover:not(:first-child) {
+    background-color: #f2f2f2;
+  }
+  
+  .table td a {
+    color: #10802c;
+    text-decoration: none;
+  }
+  
+  .table td a:hover {
+    text-decoration: underline;
+  }
+  
