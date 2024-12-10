@@ -1,49 +1,83 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import Loading from "../../components/loading";
 
-const Profiliai = () => {
+interface Profile {
+  id: number;
+  vardas: string;
+  pavarde: string;
+  elektroninisPastas: string;
+}
+
+const Profiliai: React.FC = () => {
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      try {
+        const response = await fetch("http://localhost:5210/api/Profilis");
+        if (!response.ok) {
+          throw new Error("Klaida gaunant profilį");
+        }
+        const data = await response.json();
+
+        // Sort profiles by id in ascending order
+        const sortedData = data.sort((a: Profile, b: Profile) => a.id - b.id);
+
+        setProfiles(sortedData);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfiles();
+  }, []);
+
+  if (loading) {
+    return <Loading />;
+  }
+
+  if (error) {
+    return <div className="container mt-5 alert alert-danger">Klaida: {error}</div>;
+  }
+
   return (
-    <div>
-      <h1 className="display-4">Naudotojų profiliai</h1>
-      <table className="table table-striped">
-        <thead>
-          <tr>
-            <th>Naudotojo ID</th>
-            <th>Vardas</th>
-            <th>Pavardė</th>
-            <th>El. paštas</th>
-            <th>Veiksmai</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>1</td>
-            <td>Jonas</td>
-            <td>Jonaitis</td>
-            <td>joncee@gmail.com</td>
-            <td>
-              <a href="/profilis?id=1">Peržiūrėti</a>
-            </td>
-          </tr>
-          <tr>
-            <td>2</td>
-            <td>Ona</td>
-            <td>Onaitė</td>
-            <td>poniaona@siksiksik.com</td>
-            <td>
-              <a href="/profilis?id=2">Peržiūrėti</a>
-            </td>
-          </tr>
-          <tr>
-            <td>3</td>
-            <td>Petras</td>
-            <td>Dovydaitis</td>
-            <td>petras@garaziniai.lt</td>
-            <td>
-              <a href="/profilis?id=3">Peržiūrėti</a>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <div className="container mt-5 mb-5">
+      <h1 className="display-5 mb-4 text-center">Naudotojų profiliai</h1>
+      <div className="table-responsive shadow rounded">
+        <table className="table table-hover table-bordered align-middle">
+          <thead className="table-success">
+            <tr>
+              <th className="text-center">Naudotojo ID</th>
+              <th>Vardas</th>
+              <th>Pavardė</th>
+              <th>El. paštas</th>
+              <th className="text-center">Veiksmai</th>
+            </tr>
+          </thead>
+          <tbody>
+            {profiles.map((profile) => (
+              <tr key={profile.id}>
+                <td className="text-center">{profile.id}</td>
+                <td>{profile.vardas}</td>
+                <td>{profile.pavarde}</td>
+                <td>{profile.elektroninisPastas}</td>
+                <td className="text-center">
+                  <a
+                    href={`/profilis?id=${profile.id}`}
+                    className="btn btn-sm btn-outline-success"
+                  >
+                    Peržiūrėti
+                  </a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
