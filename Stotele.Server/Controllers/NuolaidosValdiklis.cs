@@ -2,9 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Stotele.Server.Models;
 using Stotele.Server.Models.ApplicationDbContexts;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Stotele.Server.Controllers
 {
@@ -17,26 +14,6 @@ namespace Stotele.Server.Controllers
         public NuolaidaController(ApplicationDbContext context)
         {
             _context = context;
-        }
-
-        // Define the DTO class here
-        public class NuolaidaDTO
-        {
-            public int Id { get; set; }
-            public int Procentai { get; set; }
-            public DateTime GaliojimoPabaiga { get; set; }
-            public string PrekesPavadinimas { get; set; }
-            public double PrekesKaina { get; set; }
-            public double PrekesKainaPoNuolaidos => PrekesKaina * (100 - Procentai) / 100;
-        }
-
-        public class CreateNuolaidaDTO
-        {
-            public int Procentai { get; set; }
-            public DateTime GaliojimoPradzia { get; set; } // Start Date
-            public DateTime GaliojimoPabaiga { get; set; } // End Date
-            public int PrekeId { get; set; }
-            public int? UzsakymasId { get; set; }
         }
 
         // GET: api/Nuolaida
@@ -67,7 +44,7 @@ namespace Stotele.Server.Controllers
                 {
                     Id = n.Id,
                     Procentai = n.Procentai,
-                    GaliojimoPabaiga = n.PabaigosData,    // Include End Date
+                    GaliojimoPabaiga = n.PabaigosData,
                     PrekesPavadinimas = n.Preke.Pavadinimas,
                     PrekesKaina = n.Preke.Kaina
                 })
@@ -83,7 +60,7 @@ namespace Stotele.Server.Controllers
 
         // POST: api/Nuolaida
         [HttpPost]
-        public async Task<ActionResult<Nuolaida>> CreateNuolaida(CreateNuolaidaDTO dto)
+        public async Task<ActionResult<Nuolaida>> CreateNuolaida(SukurtiNuolaidaDTO dto)
         {
             var preke = await _context.Prekes.FindAsync(dto.PrekeId);
 
@@ -95,7 +72,6 @@ namespace Stotele.Server.Controllers
             var nuolaida = new Nuolaida
             {
                 Procentai = dto.Procentai,
-                // Ensure the DateTime is in UTC
                 PabaigosData = DateTime.SpecifyKind(dto.GaliojimoPabaiga, DateTimeKind.Utc),
                 PrekeId = dto.PrekeId,
                 UzsakymasId = dto.UzsakymasId
