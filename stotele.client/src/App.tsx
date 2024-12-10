@@ -28,6 +28,8 @@ function App() {
       <Navbar />
       <Routes>
         <Route path="/" element={<Pagrindinis />} />
+        <Route path="/success" element={<Pagrindinis />} />
+        <Route path="/cancel" element={<Pagrindinis />} />
         <Route path="/profilis" element={<Profilis />} />
         <Route path="/prisijungimas" element={<Prisijungimas />} />
         <Route path="/registracija" element={<Registracija />} />
