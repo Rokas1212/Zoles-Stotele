@@ -20,7 +20,7 @@ const PridetiNuolaida: React.FC = () => {
   useEffect(() => {
     const fetchPrekes = async () => {
       try {
-        const response = await fetch("http://localhost:5210/api/Preke");
+        const response = await fetch("https://localhost:5120/api/Preke");
         if (!response.ok) {
           throw new Error("Nepavyko gauti prekių sąrašo.");
         }
@@ -53,7 +53,7 @@ const PridetiNuolaida: React.FC = () => {
     };
 
     try {
-      const response = await fetch("http://localhost:5210/api/Nuolaida", {
+      const response = await fetch("https://localhost:5120/api/Nuolaida", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

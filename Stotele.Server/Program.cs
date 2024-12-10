@@ -12,14 +12,24 @@ namespace Stotele.Server
             // Add services to the container.
 
             builder.Services.AddControllers();
-
+            // For session state
+            builder.Services.AddDistributedMemoryCache();
+            builder.Services.AddSession(options =>
+            {
+                options.Cookie.HttpOnly = true; // Keeps the cookie secure from client-side JavaScript
+                options.Cookie.IsEssential = true; // Required for GDPR compliance
+                options.Cookie.SameSite = SameSiteMode.None; // Allows cross-origin cookies
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Ensures cookies are sent only over HTTPS
+                options.IdleTimeout = TimeSpan.FromMinutes(30); // Set session timeout
+            });
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy("AllowReactApp", 
+                options.AddPolicy("AllowReactApp",
                     builder => builder
-                        .WithOrigins("https://127.0.0.1:5173")
+                        .WithOrigins("https://localhost:5173")
                         .AllowAnyMethod()
-                        .AllowAnyHeader());
+                        .AllowAnyHeader()
+                        .AllowCredentials());
             });
 
             // Read the environment variable
@@ -69,7 +79,7 @@ namespace Stotele.Server
             }
 
             app.UseCors("AllowReactApp");
-
+            app.UseSession();
             app.UseAuthorization();
 
 
