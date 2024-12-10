@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Stotele.Server.Models;
 using Stotele.Server.Models.ApplicationDbContexts;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Stotele.Server.Controllers
 {
@@ -16,24 +19,59 @@ namespace Stotele.Server.Controllers
             _context = context;
         }
 
+        // Define the DTO class here
+        public class NuolaidaDTO
+        {
+            public int Id { get; set; }
+            public int Procentai { get; set; }
+            public DateTime GaliojimoPabaiga { get; set; }
+            public string PrekesPavadinimas { get; set; }
+            public double PrekesKaina { get; set; }
+            public double PrekesKainaPoNuolaidos => PrekesKaina * (100 - Procentai) / 100;
+        }
+
+        public class CreateNuolaidaDTO
+        {
+            public int Procentai { get; set; }
+            public DateTime GaliojimoPradzia { get; set; } // Start Date
+            public DateTime GaliojimoPabaiga { get; set; } // End Date
+            public int PrekeId { get; set; }
+            public int? UzsakymasId { get; set; }
+        }
+
         // GET: api/Nuolaida
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Nuolaida>>> GetNuolaidos()
+        public async Task<ActionResult<IEnumerable<NuolaidaDTO>>> GetNuolaidos()
         {
             return await _context.Nuolaidos
-                .Include(n => n.Uzsakymas)
                 .Include(n => n.Preke)
+                .Select(n => new NuolaidaDTO
+                {
+                    Id = n.Id,
+                    Procentai = n.Procentai,
+                    GaliojimoPabaiga = n.PabaigosData,
+                    PrekesPavadinimas = n.Preke.Pavadinimas,
+                    PrekesKaina = n.Preke.Kaina
+                })
                 .ToListAsync();
         }
 
         // GET: api/Nuolaida/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Nuolaida>> GetNuolaida(int id)
+        public async Task<ActionResult<NuolaidaDTO>> GetNuolaida(int id)
         {
             var nuolaida = await _context.Nuolaidos
-                .Include(n => n.Uzsakymas)
                 .Include(n => n.Preke)
-                .FirstOrDefaultAsync(n => n.Id == id);
+                .Where(n => n.Id == id)
+                .Select(n => new NuolaidaDTO
+                {
+                    Id = n.Id,
+                    Procentai = n.Procentai,
+                    GaliojimoPabaiga = n.PabaigosData,    // Include End Date
+                    PrekesPavadinimas = n.Preke.Pavadinimas,
+                    PrekesKaina = n.Preke.Kaina
+                })
+                .FirstOrDefaultAsync();
 
             if (nuolaida == null)
             {
@@ -43,17 +81,32 @@ namespace Stotele.Server.Controllers
             return nuolaida;
         }
 
-
-
         // POST: api/Nuolaida
         [HttpPost]
-        public async Task<ActionResult<Nuolaida>> CreateNuolaida(Nuolaida nuolaida)
+        public async Task<ActionResult<Nuolaida>> CreateNuolaida(CreateNuolaidaDTO dto)
         {
+            var preke = await _context.Prekes.FindAsync(dto.PrekeId);
+
+            if (preke == null)
+            {
+                return BadRequest($"Preke with ID {dto.PrekeId} does not exist.");
+            }
+
+            var nuolaida = new Nuolaida
+            {
+                Procentai = dto.Procentai,
+                // Ensure the DateTime is in UTC
+                PabaigosData = DateTime.SpecifyKind(dto.GaliojimoPabaiga, DateTimeKind.Utc),
+                PrekeId = dto.PrekeId,
+                UzsakymasId = dto.UzsakymasId
+            };
+
             _context.Nuolaidos.Add(nuolaida);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetNuolaida), new { id = nuolaida.Id }, nuolaida);
         }
+
 
         // PUT: api/Nuolaida/{id}
         [HttpPut("{id}")]
@@ -99,6 +152,7 @@ namespace Stotele.Server.Controllers
 
             return NoContent();
         }
+
 
         private bool NuolaidaExists(int id)
         {

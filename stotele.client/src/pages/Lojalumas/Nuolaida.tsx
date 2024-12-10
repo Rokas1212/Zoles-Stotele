@@ -1,31 +1,25 @@
 import React, { useState, useEffect } from "react";
+import ConfirmationModal from "../../components/confirmationModal";
+import "./nuolaida.css"; // Import the CSS file for styling
 
-// Adjust this interface to match your actual Nuolaida model fields
 interface INuolaida {
   id: number;
   procentai: number;
-  pabaigosData: string; // Assuming your API returns ISO date strings
-  uzsakymas?: {
-    id: number;
-    data: string;
-    suma: number;
-  };
-  preke?: {
-    id: number;
-    kaina: number;
-    pavadinimas: string;
-    kodas: number;
-    galiojimoData: string;
-  };
+  galiojimoPabaiga: string;
+  prekesPavadinimas: string;
+  prekesKaina: number;
+  prekesKainaPoNuolaidos: number;
 }
 
 const Nuolaida: React.FC = () => {
-  const searchParams = new URLSearchParams(window.location.search); // Get query parameters
-  const id = searchParams.get("id"); // Extract the "id" parameter
+  const searchParams = new URLSearchParams(window.location.search);
+  const id = searchParams.get("id");
 
   const [nuolaida, setNuolaida] = useState<INuolaida | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) {
@@ -38,7 +32,9 @@ const Nuolaida: React.FC = () => {
       try {
         const response = await fetch(`http://localhost:5210/api/Nuolaida/${id}`);
         if (!response.ok) {
-          throw new Error(`Failed to fetch nuolaida: ${response.status} - ${response.statusText}`);
+          throw new Error(
+            `Failed to fetch nuolaida: ${response.status} - ${response.statusText}`
+          );
         }
 
         const data: INuolaida = await response.json();
@@ -54,6 +50,28 @@ const Nuolaida: React.FC = () => {
     fetchNuolaida();
   }, [id]);
 
+  const handleDelete = async () => {
+    try {
+      const response = await fetch(`http://localhost:5210/api/Nuolaida/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to delete nuolaida: ${response.status} - ${response.statusText}`
+        );
+      }
+
+      setSuccessMessage("Nuolaida sėkmingai ištrinta!");
+      setTimeout(() => {
+        window.location.href = "/nuolaidos"; // Redirect after a short delay
+      }, 2000);
+    } catch (err: any) {
+      console.error("Error deleting nuolaida:", err);
+      setError(err.message || "Nepavyko ištrinti nuolaidos. Bandykite dar kartą.");
+    }
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -67,26 +85,45 @@ const Nuolaida: React.FC = () => {
   }
 
   return (
-    <div>
+    <div className="nuolaida-container">
       <h1>Nuolaida</h1>
-      <p><strong>Nuolaidos kodas:</strong> {nuolaida.id}</p>
-      <p><strong>Nuolaidos dydis (%):</strong> {nuolaida.procentai}%</p>
-      <p><strong>Galiojimo pabaiga:</strong> {new Date(nuolaida.pabaigosData).toLocaleDateString()}</p>
-      {nuolaida.preke && (
-        <div>
-          <p><strong>Prekės pavadinimas:</strong> {nuolaida.preke.pavadinimas}</p>
-          <p><strong>Prekės kaina:</strong> {nuolaida.preke.kaina}</p>
-        </div>
-      )}
-      {nuolaida.uzsakymas && (
-        <div>
-          <p><strong>Užsakymo suma:</strong> {nuolaida.uzsakymas.suma}</p>
-          <p><strong>Užsakymo data:</strong> {new Date(nuolaida.uzsakymas.data).toLocaleDateString()}</p>
-        </div>
-      )}
-      <button onClick={() => alert("Delete functionality not implemented yet")}>
+      <p>
+        <strong>Nuolaidos kodas:</strong> {nuolaida.id}
+      </p>
+      <p>
+        <strong>Nuolaidos dydis (%):</strong> {nuolaida.procentai}%
+      </p>
+      <p>
+        <strong>Galiojimo pabaiga:</strong>{" "}
+        {new Date(nuolaida.galiojimoPabaiga).toLocaleDateString()}
+      </p>
+      <p>
+        <strong>Prekės pavadinimas:</strong> {nuolaida.prekesPavadinimas}
+      </p>
+      <p>
+        <strong>Prekės kaina (prieš nuolaidą):</strong> {nuolaida.prekesKaina.toFixed(2)} €
+      </p>
+      <p>
+        <strong>Prekės kaina (po nuolaidos):</strong> {nuolaida.prekesKainaPoNuolaidos.toFixed(2)} €
+      </p>
+      <button className="delete-button" onClick={() => setShowModal(true)}>
         Ištrinti nuolaidą
       </button>
+
+      {showModal && (
+        <ConfirmationModal
+          message="Ar tikrai norite ištrinti šią nuolaidą?"
+          onConfirm={() => {
+            setShowModal(false);
+            handleDelete();
+          }}
+          onCancel={() => setShowModal(false)}
+        />
+      )}
+
+      {successMessage && (
+        <p className="success-message">{successMessage}</p>
+      )}
     </div>
   );
 };
