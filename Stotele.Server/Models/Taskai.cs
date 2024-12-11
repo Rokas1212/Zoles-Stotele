@@ -7,7 +7,7 @@ namespace Stotele.Server.Models
         public int Kiekis { get; set; }
         public int KlientasId { get; set; }
         public Klientas Klientas { get; set; }
-        public int ApmokejimasId { get; set; }
+        public int? ApmokejimasId { get; set; }
         public Apmokejimas Apmokejimas { get; set; }
     }
 }

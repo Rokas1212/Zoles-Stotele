@@ -16,7 +16,7 @@ const Profiliai: React.FC = () => {
   useEffect(() => {
     const fetchProfiles = async () => {
       try {
-        const response = await fetch("http://localhost:5210/api/Profilis");
+        const response = await fetch("https://localhost:5210/api/Profilis");
         if (!response.ok) {
           throw new Error("Klaida gaunant profilį");
         }

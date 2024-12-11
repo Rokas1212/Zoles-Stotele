@@ -28,15 +28,17 @@ namespace Stotele.Server
                 options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Ensures cookies are sent only over HTTPS
                 options.IdleTimeout = TimeSpan.FromMinutes(30); // Set session timeout
             });
+
+            
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowReactApp",
                     builder => builder
-                        .WithOrigins("https://localhost:5173")
+                        .AllowAnyOrigin()
                         .AllowAnyMethod()
-                        .AllowAnyHeader()
-                        .AllowCredentials());
+                        .AllowAnyHeader());
             });
+
 
             // Read the environment variable
             var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
