@@ -1,5 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Stotele.Server.Models.ApplicationDbContexts;
+using Stotele.Server.Models;
+using DotNetEnv;
+using Stripe;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Stotele.Server
 {
@@ -7,6 +11,8 @@ namespace Stotele.Server
     {
         public static void Main(string[] args)
         {
+            Env.Load();
+
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
@@ -46,6 +52,21 @@ namespace Stotele.Server
             // Register ApplicationDbContext
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(connectionString));
+
+
+            // Configure Stripe
+            var stripeSecretKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY");
+            if (string.IsNullOrEmpty(stripeSecretKey))
+            {
+                throw new InvalidOperationException("STRIPE_SECRET_KEY environment variable is not set.");
+            }
+
+            builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+            StripeConfiguration.ApiKey = stripeSecretKey;
+
+            Console.WriteLine($"Stripe Secret Key: {stripeSecretKey}");
+            // Replace placeholder in configuration
+            builder.Configuration["Stripe:SecretKey"] = stripeSecretKey;
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();

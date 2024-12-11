@@ -1,7 +1,70 @@
+import React from 'react';
+import { loadStripe } from '@stripe/stripe-js';
+import axios from 'axios';
+
+// Load your Stripe publishable key
+const stripePromise = loadStripe('pk_test_51BrUMKBUtGUmzKJGptzSuF8yfO5pzm83qFs6We6l7ZM7l3ko9vmbrwBdkCNlBeBWzIyMQpcmVsoslM3pFTBm7HJw00f9qd9h0J');
+
 const Apmokejimas = () => {
+  const handleCheckout = async () => {
+    const stripe = await stripePromise;
+
+    if (!stripe) {
+      console.error('Stripe failed to initialize.');
+      return;
+    }
+
+    // Replace with your session ID from the backend
+    const response = await axios.post('http://localhost:5210/api/uzsakymu/create-checkout-session');
+    const sessionId = response.data.sessionId;
+
+    // Redirect to the Stripe Checkout page
+    const { error } = await stripe.redirectToCheckout({
+      sessionId,
+    });
+
+    if (error) {
+      console.error('Error redirecting to checkout:', error.message);
+    }
+  };
+
+  const handleCashPayment = () => {
+    alert('Pasirinkote mokėti grynais, apmokėti galėsite atvykus kurjeriui.');
+  };
+
+  const handleBankTransfer = () => {
+    alert('Apmokėjimo instrukcijos :).');
+  };
+
   return (
     <div>
       <h1>Apmokėjimas</h1>
+      <p>Pasirinkite apmokėjimo būdą:</p>
+      <div style={{ display: 'flex', gap: '10px' }}>
+        {/* Button for card payment */}
+        <button
+          onClick={handleCheckout}
+          style={{ padding: '10px 20px', fontSize: '16px', cursor: 'pointer' }}
+        >
+          Mokėti Kortele
+        </button>
+
+        {/* Button for cash payment */}
+        <button
+          onClick={handleCashPayment}
+          style={{ padding: '10px 20px', fontSize: '16px', cursor: 'pointer' }}
+        >
+          Mokėti Grynaisias
+        </button>
+
+        {/* Button for bank transfer */}
+        <button
+          onClick={handleBankTransfer}
+          style={{ padding: '10px 20px', fontSize: '16px', cursor: 'pointer' }}
+        >
+          Mokėti Banko Pavedimu
+        </button>
+      </div>
     </div>
   );
 };
