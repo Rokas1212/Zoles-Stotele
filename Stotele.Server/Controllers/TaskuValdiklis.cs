@@ -18,35 +18,76 @@ namespace Stotele.Server.Controllers
 
         // GET: api/Taskai
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Taskai>>> GetTaskai()
+        public async Task<ActionResult<IEnumerable<TaskaiDTO>>> GetTaskai()
         {
-            return await _context.Taskai
+            var taskai = await _context.Taskai
                 .Include(t => t.Klientas)
+                    .ThenInclude(k => k.Naudotojas)
                 .Include(t => t.Apmokejimas)
+                .Select(t => new TaskaiDTO
+                {
+                    Id = t.Id,
+                    PabaigosData = t.PabaigosData,
+                    Kiekis = t.Kiekis,
+                    KlientasId = t.KlientasId,
+                    KlientasVardas = t.Klientas.Naudotojas.Vardas,
+                    KlientasPavarde = t.Klientas.Naudotojas.Pavarde,
+                    ApmokejimasId = t.ApmokejimasId,
+                    GalutineSuma = t.Apmokejimas != null ? (decimal?)t.Apmokejimas.GalutineSuma : null
+                })
                 .ToListAsync();
+
+            return Ok(taskai);
         }
 
         // GET: api/Taskai/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Taskai>> GetTaskai(int id)
+        public async Task<ActionResult<TaskaiDTO>> GetTaskai(int id)
         {
             var taskai = await _context.Taskai
                 .Include(t => t.Klientas)
+                    .ThenInclude(k => k.Naudotojas)
                 .Include(t => t.Apmokejimas)
-                .FirstOrDefaultAsync(t => t.Id == id);
+                .Where(t => t.Id == id)
+                .Select(t => new TaskaiDTO
+                {
+                    Id = t.Id,
+                    PabaigosData = t.PabaigosData,
+                    Kiekis = t.Kiekis,
+                    KlientasId = t.KlientasId,
+                    KlientasVardas = t.Klientas.Naudotojas.Vardas,
+                    KlientasPavarde = t.Klientas.Naudotojas.Pavarde,
+                    ApmokejimasId = t.ApmokejimasId,
+                    GalutineSuma = t.Apmokejimas != null ? (decimal?)t.Apmokejimas.GalutineSuma : null
+                })
+                .FirstOrDefaultAsync();
 
             if (taskai == null)
             {
                 return NotFound();
             }
 
-            return taskai;
+            return Ok(taskai);
         }
 
         // POST: api/Taskai
         [HttpPost]
-        public async Task<ActionResult<Taskai>> CreateTaskai(Taskai taskai)
+        public async Task<ActionResult<Taskai>> SukurtiTaskus(SukurtiTaskusDTO dto)
         {
+            var klientas = await _context.Klientai.FindAsync(dto.KlientasId);
+            if (klientas == null)
+            {
+                return BadRequest("Invalid KlientasId.");
+            }
+
+            Taskai taskai = new()
+            {
+                PabaigosData = dto.PabaigosData,
+                Kiekis = dto.Kiekis,
+                KlientasId = dto.KlientasId,
+                ApmokejimasId = dto.ApmokejimasId ?? 0
+            };
+
             _context.Taskai.Add(taskai);
             await _context.SaveChangesAsync();
 
@@ -55,27 +96,27 @@ namespace Stotele.Server.Controllers
 
         // PUT: api/Taskai/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateTaskai(int id, Taskai taskai)
+        public async Task<IActionResult> UpdateTaskai(int id, SukurtiTaskusDTO dto)
         {
-            if (id != taskai.Id)
+            var taskai = await _context.Taskai.FindAsync(id);
+            if (taskai == null)
             {
-                return BadRequest();
+                return NotFound();
             }
+
+            var klientas = await _context.Klientai.FindAsync(dto.KlientasId);
+            if (klientas == null)
+            {
+                return BadRequest("Invalid KlientasId.");
+            }
+
+            taskai.PabaigosData = dto.PabaigosData;
+            taskai.Kiekis = dto.Kiekis;
+            taskai.KlientasId = dto.KlientasId;
+            taskai.ApmokejimasId = dto.ApmokejimasId ?? 0;
 
             _context.Entry(taskai).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!TaskaiExists(id))
-                {
-                    return NotFound();
-                }
-                throw;
-            }
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
@@ -85,7 +126,6 @@ namespace Stotele.Server.Controllers
         public async Task<IActionResult> DeleteTaskai(int id)
         {
             var taskai = await _context.Taskai.FindAsync(id);
-
             if (taskai == null)
             {
                 return NotFound();
@@ -95,11 +135,6 @@ namespace Stotele.Server.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
-        }
-
-        private bool TaskaiExists(int id)
-        {
-            return _context.Taskai.Any(t => t.Id == id);
         }
     }
 }
