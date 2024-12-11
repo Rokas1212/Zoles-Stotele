@@ -30,6 +30,11 @@ namespace Stotele.Server.Models.ApplicationDbContexts
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Configure PrekesUzsakymas -> Uzsakymas relationship
+            modelBuilder.Entity<PrekesUzsakymas>()
+                .HasOne(pu => pu.Uzsakymas)
+                .WithMany(u => u.PrekesUzsakymai)
+                .HasForeignKey(pu => pu.UzsakymasId);
         }
     }
 }

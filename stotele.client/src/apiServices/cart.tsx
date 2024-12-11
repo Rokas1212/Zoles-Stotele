@@ -38,3 +38,18 @@ export async function clearCart() {
         credentials: "include",
     });
 }
+
+export async function createOrder(cartItems: CartItem[]) {
+    const response = await fetch("https://localhost:5210/api/uzsakymu/sukurti-uzsakyma", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(cartItems),
+        credentials: "include",
+    });
+
+    if (!response.ok) {
+        throw new Error("Nepavyko sukurti užsakymo.");
+    }
+
+    return await response.json();
+}

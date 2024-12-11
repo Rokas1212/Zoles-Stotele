@@ -34,7 +34,7 @@ function App() {
         <Route path="/prisijungimas" element={<Prisijungimas />} />
         <Route path="/registracija" element={<Registracija />} />
         <Route path="/uzsakymai" element={<Uzsakymai />} />
-        <Route path="/uzsakymas" element={<Uzsakymas />} />
+        <Route path="/uzsakymas/:orderId" element={<Uzsakymas />} />
         <Route path="/krepselis" element={<Krepselis />} />
         <Route path="/apmokejimas" element={<Apmokejimas />} />
         <Route path="/nuolaida" element={<Nuolaida />} />

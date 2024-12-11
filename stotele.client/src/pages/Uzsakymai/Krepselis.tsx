@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { fetchCart, CartItem } from "../../apiServices/cart";
+import { useEffect, useState } from "react";
+import { fetchCart, createOrder, CartItem } from "../../apiServices/cart";
+import { useNavigate } from "react-router-dom"; // For navigation
 
 const Krepselis = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const navigate = useNavigate(); // Hook for navigation
 
   useEffect(() => {
     const loadCart = async () => {
@@ -19,6 +21,17 @@ const Krepselis = () => {
 
   const getTotalPrice = () => {
     return cart.reduce((total, item) => total + item.kaina * item.kiekis, 0).toFixed(2);
+  };
+
+  const handleCreateOrder = async () => {
+    try {
+      const response = await createOrder(cart);
+      alert("Užsakymas sukurtas sėkmingai!");
+      navigate(`/uzsakymas/${response.OrderId}`);
+    } catch (error) {
+      console.error("Klaida:", error);
+      alert("Nepavyko sukurti užsakymo.");
+    }
   };
 
   return (
@@ -47,9 +60,9 @@ const Krepselis = () => {
             </tbody>
           </table>
           <h3>Bendra suma: €{getTotalPrice()}</h3>
-          <a href="/uzsakymas" className="btn btn-primary">
+          <button onClick={handleCreateOrder} className="btn btn-primary">
             Sukurti Užsakymą
-          </a>
+          </button>
         </div>
       ) : (
         <p>Krepšelis tuščias.</p>
