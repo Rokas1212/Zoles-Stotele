@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 
 const Uzsakymas = () => {
   const { orderId } = useParams(); // Get the orderId from the URL
   const [order, setOrder] = useState<any>(null); // State to store the order details
   const [loading, setLoading] = useState<boolean>(true); // Loading state
   const [error, setError] = useState<string | null>(null); // Error state
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -63,9 +64,9 @@ const Uzsakymas = () => {
           ))}
         </tbody>
       </table>
-      <Link to={`/apmokejimas?id=${order.id}`} className="btn btn-primary">
-        Apmokėti
-      </Link>
+      <button onClick={() => navigate(`/apmokejimas/${order?.id}`)} className="btn btn-primary">
+        Patvirtinti užsakymą
+      </button>
     </div>
   );
 };

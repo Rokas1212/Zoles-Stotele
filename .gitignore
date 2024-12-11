@@ -195,3 +195,5 @@ obj/
 /Stotele.Server/bin/
 /Stotele.Server/obj/
 /stotele.client/obj/
+
+.env
