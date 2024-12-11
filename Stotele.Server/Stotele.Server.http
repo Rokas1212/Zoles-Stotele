@@ -1,4 +1,4 @@
-@Stotele.Server_HostAddress = https://localhost:5120
+@Stotele.Server_HostAddress = https://localhost:5210
 
 GET {{Stotele.Server_HostAddress}}/weatherforecast/
 Accept: application/json

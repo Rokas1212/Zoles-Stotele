@@ -1,10 +1,10 @@
-const apiUrl = "https://localhost:5120/api/krepselio";
+const apiUrl = "https://localhost:5210/api/krepselio";
 
 export interface CartItem {
-    productId: string;
-    name: string;
-    price: number;
-    quantity: number;
+    id: string;
+    pavadinimas: string;
+    kaina: number;
+    kiekis: number;
 }
 
 export async function fetchCart() {
@@ -14,20 +14,20 @@ export async function fetchCart() {
     return response.json();
 }
 
-export async function addToCart(item: { productId: string; name: string; quantity: number; price: number }) {
-    await fetch(`${apiUrl}/add`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(item),
-        credentials: "include",
+export async function addToCart(id: string) {
+    await fetch("https://localhost:5210/api/krepselio/add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: id.toString() }),
+      credentials: "include", // Include session cookie
     });
-}
+  }
 
-export async function removeFromCart(productId: string) {
+export async function removeFromCart(id: string) {
     await fetch(`${apiUrl}/remove`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(productId),
+        body: JSON.stringify(id),
         credentials: "include",
     });
 }

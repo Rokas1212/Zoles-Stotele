@@ -17,7 +17,7 @@ const Nuolaidos: React.FC = () => {
   useEffect(() => {
     const fetchDiscounts = async () => {
       try {
-        const response = await fetch("https://localhost:5120/api/Nuolaida");
+        const response = await fetch("https://localhost:5210/api/Nuolaida");
         if (!response.ok) {
           throw new Error(
             `Failed to fetch discounts: ${response.status} - ${response.statusText}`
