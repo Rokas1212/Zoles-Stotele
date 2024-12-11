@@ -29,14 +29,14 @@ namespace Stotele.Server
                 options.IdleTimeout = TimeSpan.FromMinutes(30); // Set session timeout
             });
 
-            
+
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowReactApp",
-                    builder => builder
-                        .AllowAnyOrigin()
+                    builder => builder.WithOrigins("https://localhost:5173")
                         .AllowAnyMethod()
-                        .AllowAnyHeader());
+                        .AllowAnyHeader()
+                        .AllowCredentials());
             });
 
 
