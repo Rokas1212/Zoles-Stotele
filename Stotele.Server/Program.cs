@@ -18,14 +18,24 @@ namespace Stotele.Server
             // Add services to the container.
 
             builder.Services.AddControllers();
-
+            // For session state
+            builder.Services.AddDistributedMemoryCache();
+            builder.Services.AddSession(options =>
+            {
+                options.Cookie.HttpOnly = true; // Keeps the cookie secure from client-side JavaScript
+                options.Cookie.IsEssential = true; // Required for GDPR compliance
+                options.Cookie.SameSite = SameSiteMode.None; // Allows cross-origin cookies
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Ensures cookies are sent only over HTTPS
+                options.IdleTimeout = TimeSpan.FromMinutes(30); // Set session timeout
+            });
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowReactApp",
                     builder => builder
                         .WithOrigins("https://localhost:5173")
                         .AllowAnyMethod()
-                        .AllowAnyHeader());
+                        .AllowAnyHeader()
+                        .AllowCredentials());
             });
 
             // Read the environment variable
@@ -82,15 +92,18 @@ namespace Stotele.Server
             app.UseDefaultFiles();
             app.UseStaticFiles();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
-                app.UseSwaggerUI();
+                app.UseSwaggerUI(options =>
+                {
+                    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Stotele API V1");
+                    options.RoutePrefix = string.Empty; // Access Swagger UI at the root
+                });
             }
 
             app.UseCors("AllowReactApp");
-
+            app.UseSession();
             app.UseAuthorization();
 
 

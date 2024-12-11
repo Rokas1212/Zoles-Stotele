@@ -30,7 +30,7 @@ const Nuolaida: React.FC = () => {
 
     const fetchNuolaida = async () => {
       try {
-        const response = await fetch(`http://localhost:5210/api/Nuolaida/${id}`);
+        const response = await fetch(`https://localhost:5210/api/Nuolaida/${id}`);
         if (!response.ok) {
           throw new Error(
             `Failed to fetch nuolaida: ${response.status} - ${response.statusText}`
@@ -52,7 +52,7 @@ const Nuolaida: React.FC = () => {
 
   const handleDelete = async () => {
     try {
-      const response = await fetch(`http://localhost:5210/api/Nuolaida/${id}`, {
+      const response = await fetch(`https://localhost:5210/api/Nuolaida/${id}`, {
         method: "DELETE",
       });
 

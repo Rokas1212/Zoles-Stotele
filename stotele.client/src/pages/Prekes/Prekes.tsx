@@ -1,11 +1,52 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { addToCart } from "../../apiServices/cart";
 
 const Prekes = () => {
-  const products = [
-    { id: "1", name: "Albaniška žolė", price: "€10.00" },
-    { id: "2", name: "Žolės stotelės firminė žolė", price: "€15.00" },
-    { id: "3", name: "Piktžolių veja", price: "€20.00" },
-  ];
+  const [products, setProducts] = useState<any[]>([]); // State to hold the list of Prekes
+  const [loading, setLoading] = useState<boolean>(true); // Loading state
+  const [error, setError] = useState<string | null>(null); // Error state
+
+  // Fetch the list of Prekes from the backend
+  useEffect(() => {
+    const fetchPrekes = async () => {
+      try {
+        const response = await fetch("https://localhost:5210/api/Preke/PrekesList", {
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          throw new Error("Nepavyko gauti prekių.");
+        }
+        const data = await response.json();
+        setProducts(data);
+      } catch (error) {
+        console.error("Klaida:", error);
+        setError("Nepavyko gauti prekių.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPrekes();
+  }, []);
+
+  const handleAddToCart = async (id: string) => {
+    try {
+      await addToCart(id);
+      alert(`Prekė su ID ${id} pridėta į krepšelį.`);
+    } catch (error) {
+      console.error("Klaida: ", error);
+      alert("Nepavyko pridėti prekės į krepšelį.");
+    }
+  };
+
+  if (loading) {
+    return <div>Kraunama...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
 
   return (
     <div>
@@ -25,10 +66,15 @@ const Prekes = () => {
               <td>
                 <a href={`/preke?id=${product.id}`}>{product.id}</a>
               </td>
-              <td>{product.name}</td>
-              <td>{product.price}</td>
+              <td>{product.pavadinimas}</td>
+              <td>€{product.kaina.toFixed(2)}</td>
               <td>
-                <a href={`/preke?id=${product.id}`}>Peržiūrėti</a>
+                <button
+                  onClick={() => handleAddToCart(product.id)}
+                  className="btn btn-primary"
+                >
+                  Add to Cart
+                </button>
               </td>
             </tr>
           ))}
