@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { addToCart } from "../../apiServices/cart";
+import Loading from "../../components/loading";
 
 const Prekes = () => {
   const [products, setProducts] = useState<any[]>([]); // State to hold the list of Prekes
@@ -41,7 +42,7 @@ const Prekes = () => {
   };
 
   if (loading) {
-    return <div>Kraunama...</div>;
+    return <Loading />;
   }
 
   if (error) {

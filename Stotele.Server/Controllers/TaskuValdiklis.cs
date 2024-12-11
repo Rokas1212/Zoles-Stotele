@@ -18,64 +18,163 @@ namespace Stotele.Server.Controllers
 
         // GET: api/Taskai
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Taskai>>> GetTaskai()
+        public async Task<ActionResult<IEnumerable<TaskaiDTO>>> GetTaskai()
         {
-            return await _context.Taskai
+            var taskai = await _context.Taskai
                 .Include(t => t.Klientas)
+                    .ThenInclude(k => k.Naudotojas)
                 .Include(t => t.Apmokejimas)
+                .Select(t => new TaskaiDTO
+                {
+                    Id = t.Id,
+                    PabaigosData = t.PabaigosData,
+                    Kiekis = t.Kiekis,
+                    KlientasId = t.KlientasId,
+                    KlientasVardas = t.Klientas.Naudotojas.Vardas,
+                    KlientasPavarde = t.Klientas.Naudotojas.Pavarde,
+                    ApmokejimasId = t.ApmokejimasId,
+                    GalutineSuma = t.Apmokejimas != null ? (decimal?)t.Apmokejimas.GalutineSuma : null
+                })
                 .ToListAsync();
+
+            return Ok(taskai);
+        }
+
+        // GET: api/Taskai/Naudotojas/{naudotojasId}
+        [HttpGet("Naudotojas/{naudotojasId}")]
+        public async Task<ActionResult<IEnumerable<TaskaiDTO>>> GetTaskaiByNaudotojasId(int naudotojasId)
+        {
+            var taskai = await _context.Taskai
+                .Include(t => t.Klientas)
+                    .ThenInclude(k => k.Naudotojas)
+                .Include(t => t.Apmokejimas)
+                .Where(t => t.Klientas.NaudotojasId == naudotojasId)
+                .Select(t => new TaskaiDTO
+                {
+                    Id = t.Id,
+                    PabaigosData = t.PabaigosData,
+                    Kiekis = t.Kiekis,
+                    KlientasId = t.KlientasId,
+                    KlientasVardas = t.Klientas.Naudotojas.Vardas,
+                    KlientasPavarde = t.Klientas.Naudotojas.Pavarde,
+                    ApmokejimasId = t.ApmokejimasId,
+                    GalutineSuma = t.Apmokejimas != null ? (decimal?)t.Apmokejimas.GalutineSuma : null
+                })
+                .ToListAsync();
+
+            return Ok(taskai);
         }
 
         // GET: api/Taskai/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Taskai>> GetTaskai(int id)
+        public async Task<ActionResult<TaskaiDTO>> GetTaskai(int id)
         {
             var taskai = await _context.Taskai
                 .Include(t => t.Klientas)
+                    .ThenInclude(k => k.Naudotojas)
                 .Include(t => t.Apmokejimas)
-                .FirstOrDefaultAsync(t => t.Id == id);
+                .Where(t => t.Id == id)
+                .Select(t => new TaskaiDTO
+                {
+                    Id = t.Id,
+                    PabaigosData = t.PabaigosData,
+                    Kiekis = t.Kiekis,
+                    KlientasId = t.KlientasId,
+                    KlientasVardas = t.Klientas.Naudotojas.Vardas,
+                    KlientasPavarde = t.Klientas.Naudotojas.Pavarde,
+                    ApmokejimasId = t.ApmokejimasId,
+                    GalutineSuma = t.Apmokejimas != null ? (decimal?)t.Apmokejimas.GalutineSuma : null
+                })
+                .FirstOrDefaultAsync();
 
             if (taskai == null)
             {
                 return NotFound();
             }
 
-            return taskai;
+            return Ok(taskai);
         }
 
         // POST: api/Taskai
         [HttpPost]
-        public async Task<ActionResult<Taskai>> CreateTaskai(Taskai taskai)
+        public async Task<ActionResult<Taskai>> SukurtiTaskus(SukurtiTaskusDTO dto)
         {
+            var klientas = await _context.Klientai.Include(k => k.Naudotojas).FirstOrDefaultAsync(k => k.NaudotojasId == dto.KlientasId);
+            if (klientas == null)
+            {
+                return BadRequest("Invalid NaudotojasId.");
+            }
+
+            Taskai taskai = new()
+            {
+                PabaigosData = dto.PabaigosData,
+                Kiekis = dto.Kiekis,
+                KlientasId = klientas.Id,
+                ApmokejimasId = dto.ApmokejimasId // Nullable, can be null
+            };
+
             _context.Taskai.Add(taskai);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetTaskai), new { id = taskai.Id }, taskai);
         }
 
+        // POST: api/Taskai/AddPoints
+        [HttpPost("AddPoints")]
+    public async Task<ActionResult<Taskai>> AddPointsToUser(PridetiTaskusDTO dto)
+    {
+        if (dto == null)
+        {
+            return BadRequest("Request body is null.");
+        }
+
+        var klientas = await _context.Klientai
+            .Include(k => k.Naudotojas)
+            .FirstOrDefaultAsync(k => k.NaudotojasId == dto.NaudotojasId);
+
+        if (klientas == null)
+        {
+            return BadRequest("Invalid NaudotojasId.");
+        }
+
+        Taskai taskai = new()
+        {
+            PabaigosData = DateTime.UtcNow.AddMonths(1),
+            Kiekis = dto.Kiekis,
+            KlientasId = klientas.Id,
+        };
+
+        _context.Taskai.Add(taskai);
+        await _context.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(GetTaskai), new { id = taskai.Id }, taskai);
+    }
+
+
+
         // PUT: api/Taskai/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateTaskai(int id, Taskai taskai)
+        public async Task<IActionResult> UpdateTaskai(int id, SukurtiTaskusDTO dto)
         {
-            if (id != taskai.Id)
+            var taskai = await _context.Taskai.FindAsync(id);
+            if (taskai == null)
             {
-                return BadRequest();
+                return NotFound();
             }
+
+            var klientas = await _context.Klientai.Include(k => k.Naudotojas).FirstOrDefaultAsync(k => k.NaudotojasId == dto.KlientasId);
+            if (klientas == null)
+            {
+                return BadRequest("Invalid NaudotojasId.");
+            }
+
+            taskai.PabaigosData = dto.PabaigosData;
+            taskai.Kiekis = dto.Kiekis;
+            taskai.KlientasId = klientas.Id;
+            taskai.ApmokejimasId = dto.ApmokejimasId; // Nullable, can be null
 
             _context.Entry(taskai).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!TaskaiExists(id))
-                {
-                    return NotFound();
-                }
-                throw;
-            }
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
@@ -85,7 +184,6 @@ namespace Stotele.Server.Controllers
         public async Task<IActionResult> DeleteTaskai(int id)
         {
             var taskai = await _context.Taskai.FindAsync(id);
-
             if (taskai == null)
             {
                 return NotFound();
@@ -95,11 +193,6 @@ namespace Stotele.Server.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
-        }
-
-        private bool TaskaiExists(int id)
-        {
-            return _context.Taskai.Any(t => t.Id == id);
         }
     }
 }

@@ -2,9 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Stotele.Server.Models;
 using Stotele.Server.Models.ApplicationDbContexts;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Stotele.Server.Controllers
 {
@@ -17,31 +14,6 @@ namespace Stotele.Server.Controllers
         public PrekeController(ApplicationDbContext context)
         {
             _context = context;
-        }
-
-        // DTO for fetching a simplified Preke
-        public class PrekeDTO
-        {
-            public int Id { get; set; }
-            public string Pavadinimas { get; set; }
-            public double Kaina { get; set; }
-        }
-
-        // DTO for creating/updating Preke
-        public class CreateOrUpdatePrekeDTO
-        {
-            public double Kaina { get; set; }
-            public string Pavadinimas { get; set; }
-            public int Kodas { get; set; }
-            public DateTime GaliojimoData { get; set; }
-            public int Kiekis { get; set; }
-            public string Ismatavimai { get; set; }
-            public string NuotraukosUrl { get; set; }
-            public DateTime GarantinisLaikotarpis { get; set; }
-            public string Aprasymas { get; set; }
-            public double RekomendacijosSvoris { get; set; }
-            public double Mase { get; set; }
-            public int VadybininkasId { get; set; } // Only ID of the Vadybininkas
         }
 
         // GET: api/Preke
@@ -81,16 +53,14 @@ namespace Stotele.Server.Controllers
 
         // POST: api/Preke
         [HttpPost]
-        public async Task<ActionResult<Preke>> CreatePreke(CreateOrUpdatePrekeDTO dto)
+        public async Task<ActionResult<Preke>> CreatePreke(KurtiArKoreguotiPrekeDTO dto)
         {
-            // Check if the related Vadybininkas exists
             var vadybininkas = await _context.Vadybininkai.FindAsync(dto.VadybininkasId);
             if (vadybininkas == null)
             {
                 return BadRequest($"Vadybininkas with ID {dto.VadybininkasId} does not exist.");
             }
 
-            // Create a new Preke instance
             var preke = new Preke
             {
                 Kaina = dto.Kaina,
@@ -104,7 +74,7 @@ namespace Stotele.Server.Controllers
                 Aprasymas = dto.Aprasymas,
                 RekomendacijosSvoris = dto.RekomendacijosSvoris,
                 Mase = dto.Mase,
-                VadybininkasId = dto.VadybininkasId // Only set the ID
+                VadybininkasId = dto.VadybininkasId
             };
 
             _context.Prekes.Add(preke);
@@ -115,7 +85,7 @@ namespace Stotele.Server.Controllers
 
         // PUT: api/Preke/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdatePreke(int id, CreateOrUpdatePrekeDTO dto)
+        public async Task<IActionResult> UpdatePreke(int id, KurtiArKoreguotiPrekeDTO dto)
         {
             var preke = await _context.Prekes.FindAsync(id);
 
@@ -124,7 +94,6 @@ namespace Stotele.Server.Controllers
                 return NotFound();
             }
 
-            // Update fields
             preke.Kaina = dto.Kaina;
             preke.Pavadinimas = dto.Pavadinimas;
             preke.Kodas = dto.Kodas;
@@ -136,7 +105,7 @@ namespace Stotele.Server.Controllers
             preke.Aprasymas = dto.Aprasymas;
             preke.RekomendacijosSvoris = dto.RekomendacijosSvoris;
             preke.Mase = dto.Mase;
-            preke.VadybininkasId = dto.VadybininkasId; // Only set the ID
+            preke.VadybininkasId = dto.VadybininkasId;
 
             _context.Entry(preke).State = EntityState.Modified;
 

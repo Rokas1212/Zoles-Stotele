@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Loading from "../../components/loading";
-import "./nuolaidos.css"; // Create this file for styles
+import "./nuolaidos.css";
 
 interface Discount {
   id: number;
