@@ -26,8 +26,8 @@ const Krepselis = () => {
   const handleCreateOrder = async () => {
     try {
       const response = await createOrder(cart);
-      alert("Užsakymas sukurtas sėkmingai!");
-      navigate(`/uzsakymas/${response.OrderId}`);
+      alert(`Užsakymas ${response.orderId} sukurtas sėkmingai!`);
+      navigate(`/uzsakymas/${response.orderId}`);
     } catch (error) {
       console.error("Klaida:", error);
       alert("Nepavyko sukurti užsakymo.");
