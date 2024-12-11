@@ -142,6 +142,13 @@ namespace Stotele.Server.Controllers
             return NoContent();
         }
 
+        // GET List of Prekes: api/Preke/PrekesList
+        [HttpGet("PrekesList")]
+        public async Task<ActionResult<IEnumerable<Preke>>> GetPrekesList()
+        {
+            return await _context.Prekes.ToListAsync();
+        }
+
         private bool PrekeExists(int id)
         {
             return _context.Prekes.Any(p => p.Id == id);
