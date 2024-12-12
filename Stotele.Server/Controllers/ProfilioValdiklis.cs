@@ -32,7 +32,6 @@ namespace Stotele.Server.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegistruotiNaudotojaDTO dto)
         {
-            // Check if email already exists
             var existingUser = await _context.Naudotojai.FirstOrDefaultAsync(n => n.ElektroninisPastas == dto.ElektroninisPastas);
             if (existingUser != null)
             {
@@ -114,7 +113,6 @@ namespace Stotele.Server.Controllers
                 })
                 .ToListAsync();
 
-            // Add users who are not administrators, clients, or managers
             var others = await _context.Naudotojai
                 .Where(n => !n.Administratorius && !_context.Klientai.Any(k => k.NaudotojasId == n.Id) 
                             && !_context.Vadybininkai.Any(v => v.NaudotojasId == n.Id))
@@ -134,7 +132,7 @@ namespace Stotele.Server.Controllers
                 .Concat(managers)
                 .Concat(others)
                 .GroupBy(p => p.Id)
-                .Select(g => g.First()) // Ensure unique profiles
+                .Select(g => g.First())
                 .ToList();
 
             return Ok(allProfiles);
@@ -260,6 +258,28 @@ namespace Stotele.Server.Controllers
 
             return CreatedAtAction(nameof(GetProfile), new { id = naudotojas.Id }, naudotojas);
         }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(PrisijungtiDTO dto)
+        {
+            var naudotojas = await _context.Naudotojai
+                .FirstOrDefaultAsync(n => n.Slapyvardis == dto.Slapyvardis);
+
+            if (naudotojas == null || naudotojas.Slaptazodis != HashPassword(dto.Slaptazodis))
+            {
+                return Unauthorized("Neteisingas naudotojo vardas arba slaptažodis.");
+            }
+
+            return Ok(new
+            {
+                naudotojas.Id,
+                naudotojas.Vardas,
+                naudotojas.Pavarde,
+                naudotojas.ElektroninisPastas,
+                naudotojas.Administratorius
+            });
+        }
+
 
         // PUT: api/Profilis/{id}
         [HttpPut("{id}")]
