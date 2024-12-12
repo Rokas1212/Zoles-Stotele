@@ -28,6 +28,42 @@ namespace Stotele.Server.Controllers
             }
         }
 
+        // POST: api/Profilis/register
+        [HttpPost("register")]
+        public async Task<IActionResult> Register(RegistruotiNaudotojaDTO dto)
+        {
+            // Check if email already exists
+            var existingUser = await _context.Naudotojai.FirstOrDefaultAsync(n => n.ElektroninisPastas == dto.ElektroninisPastas);
+            if (existingUser != null)
+            {
+                return BadRequest("Naudotojas su tokiu el. paštu jau egzistuoja.");
+            }
+
+            var naudotojas = new Naudotojas
+            {
+                Lytis = dto.Lytis,
+                ElektroninisPastas = dto.ElektroninisPastas,
+                Slaptazodis = HashPassword(dto.Slaptazodis), 
+                Vardas = dto.Vardas,
+                Slapyvardis = dto.Slapyvardis,
+                Pavarde = dto.Pavarde,
+                Administratorius = false 
+            };
+
+
+            _context.Naudotojai.Add(naudotojas);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetProfile), new { id = naudotojas.Id }, new
+            {
+                naudotojas.Id,
+                naudotojas.Vardas,
+                naudotojas.Pavarde,
+                naudotojas.ElektroninisPastas
+            });
+        }
+
+
         // GET: api/Profilis
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProfilisDTO>>> GetAllProfiles()
@@ -42,7 +78,6 @@ namespace Stotele.Server.Controllers
                     Vardas = n.Vardas,
                     Slapyvardis = n.Slapyvardis,
                     Pavarde = n.Pavarde,
-                    Role = "Administratorius"
                 })
                 .ToListAsync();
 
@@ -60,7 +95,6 @@ namespace Stotele.Server.Controllers
                     Miestas = k.Miestas,
                     GimimoData = k.GimimoData,
                     Adresas = k.Adresas,
-                    Role = "Klientas"
                 })
                 .ToListAsync();
 
@@ -77,19 +111,35 @@ namespace Stotele.Server.Controllers
                     Pavarde = v.Naudotojas.Pavarde,
                     Skyrius = v.Skyrius,
                     ParduotuveId = v.ParduotuveId,
-                    Role = "Vadybininkas"
+                })
+                .ToListAsync();
+
+            // Add users who are not administrators, clients, or managers
+            var others = await _context.Naudotojai
+                .Where(n => !n.Administratorius && !_context.Klientai.Any(k => k.NaudotojasId == n.Id) 
+                            && !_context.Vadybininkai.Any(v => v.NaudotojasId == n.Id))
+                .Select(n => new ProfilisDTO
+                {
+                    Id = n.Id,
+                    Lytis = n.Lytis,
+                    ElektroninisPastas = n.ElektroninisPastas,
+                    Vardas = n.Vardas,
+                    Slapyvardis = n.Slapyvardis,
+                    Pavarde = n.Pavarde,
                 })
                 .ToListAsync();
 
             var allProfiles = administrators
                 .Concat(clients)
                 .Concat(managers)
+                .Concat(others)
                 .GroupBy(p => p.Id)
-                .Select(g => g.First()) 
+                .Select(g => g.First()) // Ensure unique profiles
                 .ToList();
 
             return Ok(allProfiles);
         }
+
 
 
 
