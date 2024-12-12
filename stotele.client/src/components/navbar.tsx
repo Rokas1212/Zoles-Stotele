@@ -56,7 +56,9 @@ const CustomNavbar: React.FC = () => {
                       Pridėti nuolaidą
                     </NavDropdown.Item>
                   </NavDropdown>
-                ) : null}
+                ) : (
+                  <></>
+                )}
               </>
             )}
 
