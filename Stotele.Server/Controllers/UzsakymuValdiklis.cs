@@ -99,31 +99,41 @@ namespace Stotele.Server.Controllers
             });
         }
 
-        [HttpPost("create-checkout-session")]
-        public ActionResult CreateCheckoutSession()
+        [HttpPost("create-checkout-session/{orderId}")]
+        public ActionResult CreateCheckoutSession(int orderId)
         {
+            var order = _dbContext.Uzsakymai
+                .Include(o => o.PrekesUzsakymai)
+                .ThenInclude(pu => pu.Preke)
+                .FirstOrDefault(o => o.Id == orderId);
+
+            if (order == null)
+            {
+                return NotFound($"Užsakymas su ID: {orderId} nerastas.");
+            }
+
+            // Create line items for each product in the order
+            var lineItems = order.PrekesUzsakymai.Select(item => new SessionLineItemOptions
+            {
+                PriceData = new SessionLineItemPriceDataOptions
+                {
+                    UnitAmount = (long)(item.Preke.Kaina * 100),
+                    Currency = "eur",
+                    ProductData = new SessionLineItemPriceDataProductDataOptions
+                    {
+                        Name = item.Preke.Pavadinimas,
+                    },
+                },
+                Quantity = item.Kiekis,
+            }).ToList();
+
             var options = new SessionCreateOptions
             {
                 PaymentMethodTypes = new List<string>
                 {
                     "card",
                 },
-                LineItems = new List<SessionLineItemOptions>
-                {
-                    new SessionLineItemOptions
-                    {
-                        PriceData = new SessionLineItemPriceDataOptions
-                        {
-                            UnitAmount = 2000, // Amount in cents
-                            Currency = "usd",
-                            ProductData = new SessionLineItemPriceDataProductDataOptions
-                            {
-                                Name = "Sample Product",
-                            },
-                        },
-                        Quantity = 1,
-                    },
-                },
+                LineItems = lineItems,
                 Mode = "payment",
                 SuccessUrl = "https://localhost:5173/success",
                 CancelUrl = "https://localhost:5173/cancel",

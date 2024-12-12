@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom"; // For navigation
 
 const Krepselis = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
-  const navigate = useNavigate(); // Hook for navigation
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadCart = async () => {

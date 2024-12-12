@@ -36,7 +36,7 @@ function App() {
         <Route path="/uzsakymai" element={<Uzsakymai />} />
         <Route path="/uzsakymas/:orderId" element={<Uzsakymas />} />
         <Route path="/krepselis" element={<Krepselis />} />
-        <Route path="/apmokejimas" element={<Apmokejimas />} />
+        <Route path="/apmokejimas/:orderId" element={<Apmokejimas />} />
         <Route path="/nuolaida" element={<Nuolaida />} />
         <Route path="/nuolaidos" element={<Nuolaidos />} />
         <Route path="/administratorius/profiliai" element={<Profiliai />} />
