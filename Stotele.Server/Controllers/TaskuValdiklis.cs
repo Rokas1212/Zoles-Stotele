@@ -119,14 +119,17 @@ namespace Stotele.Server.Controllers
             return CreatedAtAction(nameof(GetTaskai), new { id = taskai.Id }, taskai);
         }
 
-        // POST: api/Taskai/AddPoints
-        [HttpPost("AddPoints")]
+    // POST: api/Taskai/AddPoints
+    [HttpPost("AddPoints")]
     public async Task<ActionResult<Taskai>> AddPointsToUser(PridetiTaskusDTO dto)
     {
         if (dto == null)
         {
+            Console.WriteLine("Request body is null.");
             return BadRequest("Request body is null.");
         }
+
+        Console.WriteLine($"Received request to add points: NaudotojasId = {dto.NaudotojasId}, Kiekis = {dto.Kiekis}");
 
         var klientas = await _context.Klientai
             .Include(k => k.Naudotojas)
@@ -134,21 +137,33 @@ namespace Stotele.Server.Controllers
 
         if (klientas == null)
         {
+            Console.WriteLine($"No Klientas found for NaudotojasId: {dto.NaudotojasId}");
             return BadRequest("Invalid NaudotojasId.");
         }
 
-        Taskai taskai = new()
+        try
         {
-            PabaigosData = DateTime.UtcNow.AddMonths(1),
-            Kiekis = dto.Kiekis,
-            KlientasId = klientas.Id,
-        };
+            Taskai taskai = new()
+            {
+                PabaigosData = DateTime.UtcNow.AddMonths(1),
+                Kiekis = dto.Kiekis,
+                KlientasId = klientas.Id,
+            };
 
-        _context.Taskai.Add(taskai);
-        await _context.SaveChangesAsync();
+            _context.Taskai.Add(taskai);
+            await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetTaskai), new { id = taskai.Id }, taskai);
+            Console.WriteLine($"Successfully added points: {taskai.Kiekis} for KlientasId: {klientas.Id}");
+            return CreatedAtAction(nameof(GetTaskai), new { id = taskai.Id }, taskai);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error adding points: {ex.Message}");
+            return StatusCode(500, "Internal server error occurred.");
+        }
     }
+
+
 
 
 
