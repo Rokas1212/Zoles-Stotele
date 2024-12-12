@@ -3,7 +3,9 @@ using Stotele.Server.Models.ApplicationDbContexts;
 using Stotele.Server.Models;
 using DotNetEnv;
 using Stripe;
-using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace Stotele.Server
 {
@@ -12,6 +14,7 @@ namespace Stotele.Server
         public static void Main(string[] args)
         {
             Env.Load();
+
 
             var builder = WebApplication.CreateBuilder(args);
 
@@ -74,6 +77,31 @@ namespace Stotele.Server
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            // JWT Authentication
+            var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET");
+            if (string.IsNullOrEmpty(jwtSecret) || jwtSecret.Length < 16)
+            {
+                throw new InvalidOperationException("JWT_SECRET is not set or is less than 128 bits.");
+            }
+            builder.Configuration["JwtSettings:Key"] = jwtSecret;
+
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+                        ValidAudience = builder.Configuration["JwtSettings:Audience"],
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]))
+                    };
+                });
+
+
+
             var app = builder.Build();
 
             // Test the database connection
@@ -100,12 +128,13 @@ namespace Stotele.Server
                 app.UseSwaggerUI(options =>
                 {
                     options.SwaggerEndpoint("/swagger/v1/swagger.json", "Stotele API V1");
-                    options.RoutePrefix = string.Empty; // Access Swagger UI at the root
+                    options.RoutePrefix = string.Empty;
                 });
             }
 
             app.UseCors("AllowReactApp");
             app.UseSession();
+            app.UseAuthentication();
             app.UseAuthorization();
 
 
