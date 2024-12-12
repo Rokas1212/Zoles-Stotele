@@ -64,7 +64,13 @@ namespace Stotele.Server.Controllers
             var existingUser = await _context.Naudotojai.FirstOrDefaultAsync(n => n.ElektroninisPastas == dto.ElektroninisPastas);
             if (existingUser != null)
             {
-                return BadRequest("Naudotojas su tokiu el. paštu jau egzistuoja.");
+                return BadRequest(new { message = "Naudotojas su tokiu el. paštu jau egzistuoja." });
+            }
+
+            var existingUsername = await _context.Naudotojai.FirstOrDefaultAsync(n => n.Slapyvardis == dto.Slapyvardis);
+            if (existingUsername != null)
+            {
+                return BadRequest(new { message = "Naudotojas su tokiu slapyvardžiu jau egzistuoja." });
             }
 
             var naudotojas = new Naudotojas
@@ -101,9 +107,6 @@ namespace Stotele.Server.Controllers
                 naudotojas.ElektroninisPastas
             });
         }
-
-
-
 
         // POST: api/Profilis/login
         [HttpPost("login")]

@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./registracija.css";
 
 const RegistracijosLangas = () => {
@@ -13,14 +15,56 @@ const RegistracijosLangas = () => {
   const [address, setAddress] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [birthDate, setBirthDate] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+
+  const resetForm = () => {
+    setUsername("");
+    setEmail("");
+    setPassword("");
+    setFirstName("");
+    setLastName("");
+    setGender("Vyras");
+    setCity("");
+    setAddress("");
+    setPostalCode("");
+    setBirthDate("");
+    setErrorMessage("");
+  };
+
+  const validateForm = () => {
+    if (
+      !username.trim() ||
+      !email.trim() ||
+      !password.trim() ||
+      !firstName.trim() ||
+      !lastName.trim() ||
+      !city.trim() ||
+      !address.trim() ||
+      !postalCode.trim() ||
+      !birthDate
+    ) {
+      setErrorMessage("Visi laukeliai yra privalomi.");
+      return false;
+    }
+
+    if (!email.includes("@") || !email.includes(".")) {
+      setErrorMessage("Nurodykite teisingą el. pašto adresą.");
+      return false;
+    }
+
+    if (isNaN(parseInt(postalCode, 10))) {
+      setErrorMessage("Pašto kodas turi būti skaičius.");
+      return false;
+    }
+
+    setErrorMessage("");
+    return true;
+  };
 
   const handleRegistration = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!birthDate) {
-      setErrorMessage("Gimimo data yra privaloma.");
+    if (!validateForm()) {
       return;
     }
 
@@ -38,40 +82,30 @@ const RegistracijosLangas = () => {
     };
 
     try {
-      await axios.post("https://localhost:5210/api/Profilis/register", registrationData);
+      await axios.post(
+        "https://localhost:5210/api/Profilis/register",
+        registrationData
+      );
 
-      setSuccessMessage("Registracija sėkminga! Jūs galite prisijungti.");
-      setErrorMessage("");
+      // Show success toast message
+      toast.success("Sėkminga registracija!");
 
-      // Clear the form
-      setUsername("");
-      setEmail("");
-      setPassword("");
-      setFirstName("");
-      setLastName("");
-      setGender("Vyras");
-      setCity("");
-      setAddress("");
-      setPostalCode("");
-      setBirthDate("");
+      resetForm();
 
-      // Redirect after success
+      // Optionally, redirect after success
       setTimeout(() => {
         window.location.href = "/";
-      }, 500);
+      }, 3000);
     } catch (error: any) {
-      setSuccessMessage("");
-      setErrorMessage(
-        "Registracija nepavyko: " +
-          (error.response?.data || error.message || "Klaida")
-      );
+      const backendMessage =
+        error.response?.data?.message || "Nežinoma klaida iš serverio.";
+      setErrorMessage(`Registracija nepavyko: ${backendMessage}`);
     }
   };
 
   return (
     <div className="registration-container">
       <h1 className="registration-header">Registracija</h1>
-      {successMessage && <div className="success-message">{successMessage}</div>}
       {errorMessage && <div className="error-message">{errorMessage}</div>}
       <form onSubmit={handleRegistration} className="registration-form">
         <div className="form-row">
@@ -177,6 +211,7 @@ const RegistracijosLangas = () => {
           Registruotis
         </button>
       </form>
+      <ToastContainer />
     </div>
   );
 };
