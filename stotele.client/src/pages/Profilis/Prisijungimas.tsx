@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./prisijungimas.css";
 
 const PrisijungimoLangas = () => {
@@ -16,18 +18,42 @@ const PrisijungimoLangas = () => {
     };
 
     try {
-      // Send POST request to login API
-      const response = await axios.post("https://localhost:5210/api/Profilis/login", loginData);
+      const response = await axios.post(
+        "https://localhost:5210/api/Profilis/login",
+        loginData
+      );
+      console.log("Login response:", response.data);
 
-      console.log("Login successful:", response.data);
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          id: response.data.id,
+          vardas: response.data.vardas,
+          pavarde: response.data.pavarde,
+          elektroninisPastas: response.data.elektroninisPastas,
+          administratorius: response.data.administratorius,
+        })
+      );
 
-      // Store user information or token in local storage (if needed)
-      localStorage.setItem("user", JSON.stringify(response.data));
+      toast.success("Sėkmingai prisijungėte", {
+        position: "bottom-center",
+        autoClose: 1000, 
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
 
-      // Redirect to the home page after successful login
-      window.location.href = "/";
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 1000); 
     } catch (error: any) {
-      setErrorMessage("Prisijungimas nepavyko: " + (error.response?.data || error.message || "Klaida"));
+      console.error("Login error:", error);
+      setErrorMessage(
+        "Prisijungimas nepavyko: " +
+          (error.response?.data || error.message || "Klaida")
+      );
     }
   };
 
@@ -54,9 +80,14 @@ const PrisijungimoLangas = () => {
             required
           />
         </div>
-        <button type="submit" className="login-button">Prisijungti</button>
+        <button type="submit" className="login-button">
+          Prisijungti
+        </button>
       </form>
-      <a href="/registracija" className="register-link">Registracija</a>
+      <a href="/registracija" className="register-link">
+        Registracija
+      </a>
+      <ToastContainer />
     </div>
   );
 };

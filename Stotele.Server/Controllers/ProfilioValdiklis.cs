@@ -57,6 +57,7 @@ namespace Stotele.Server.Controllers
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
+
         // POST: api/Profilis/register
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegistruotiNaudotojaDTO dto)
@@ -134,6 +135,61 @@ namespace Stotele.Server.Controllers
                 naudotojas.ElektroninisPastas,
                 naudotojas.Administratorius
             };
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<object>>> GetAllProfiles()
+        {
+            var naudotojai = await _context.Naudotojai
+                .Select(n => new
+                {
+                    n.Id,
+                    n.Vardas,
+                    n.Pavarde,
+                    n.ElektroninisPastas,
+                    n.Administratorius
+                })
+                .ToListAsync();
+
+            return Ok(naudotojai);
+        }
+
+
+         // PUT: api/Profilis/{id}
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateProfile(int id, [FromBody] RedaguotiNaudotojaDTO dto)
+        {
+            var naudotojas = await _context.Naudotojai.FirstOrDefaultAsync(n => n.Id == id);
+            if (naudotojas == null)
+            {
+                return NotFound("Naudotojas nerastas.");
+            }
+
+            naudotojas.Vardas = dto.Vardas ?? naudotojas.Vardas;
+            naudotojas.Pavarde = dto.Pavarde ?? naudotojas.Pavarde;
+            naudotojas.ElektroninisPastas = dto.ElektroninisPastas ?? naudotojas.ElektroninisPastas;
+
+            if (!string.IsNullOrWhiteSpace(dto.Slaptazodis))
+            {
+                naudotojas.Slaptazodis = HashPassword(dto.Slaptazodis);
+            }
+
+            if (dto.Administratorius.HasValue)
+            {
+                naudotojas.Administratorius = dto.Administratorius.Value;
+            }
+
+            _context.Naudotojai.Update(naudotojas);
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                naudotojas.Id,
+                naudotojas.Vardas,
+                naudotojas.Pavarde,
+                naudotojas.ElektroninisPastas,
+                naudotojas.Administratorius
+            });
         }
     }
 }

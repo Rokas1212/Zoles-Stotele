@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "react-toastify": "^9.0.3",
+    "toastify": "^2.0.1"
+  },
+  "devDependencies": {
+    "@types/react-toastify": "^4.1.0"
+  }
+}
