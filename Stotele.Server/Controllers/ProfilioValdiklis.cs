@@ -57,7 +57,6 @@ namespace Stotele.Server.Controllers
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-
         // POST: api/Profilis/register
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegistruotiNaudotojaDTO dto)
@@ -65,21 +64,39 @@ namespace Stotele.Server.Controllers
             var existingUser = await _context.Naudotojai.FirstOrDefaultAsync(n => n.ElektroninisPastas == dto.ElektroninisPastas);
             if (existingUser != null)
             {
-                return BadRequest("Naudotojas su tokiu el. paštu jau egzistuoja.");
+                return BadRequest(new { message = "Naudotojas su tokiu el. paštu jau egzistuoja." });
+            }
+
+            var existingUsername = await _context.Naudotojai.FirstOrDefaultAsync(n => n.Slapyvardis == dto.Slapyvardis);
+            if (existingUsername != null)
+            {
+                return BadRequest(new { message = "Naudotojas su tokiu slapyvardžiu jau egzistuoja." });
             }
 
             var naudotojas = new Naudotojas
             {
-                Lytis = dto.Lytis,
-                ElektroninisPastas = dto.ElektroninisPastas,
-                Slaptazodis = HashPassword(dto.Slaptazodis),
-                Vardas = dto.Vardas,
-                Slapyvardis = dto.Slapyvardis,
-                Pavarde = dto.Pavarde,
+                Lytis = dto.Lytis.Trim(),
+                ElektroninisPastas = dto.ElektroninisPastas.Trim(),
+                Slaptazodis = HashPassword(dto.Slaptazodis.Trim()),
+                Vardas = dto.Vardas.Trim(),
+                Slapyvardis = dto.Slapyvardis.Trim(),
+                Pavarde = dto.Pavarde.Trim(),
                 Administratorius = false
             };
 
             _context.Naudotojai.Add(naudotojas);
+            await _context.SaveChangesAsync();
+
+            var klientas = new Klientas
+            {
+                NaudotojasId = naudotojas.Id,
+                Miestas = dto.Miestas.Trim(),
+                Adresas = dto.Adresas.Trim(),
+                PastoKodas = dto.PastoKodas,
+                GimimoData = dto.GimimoData
+            };
+
+            _context.Klientai.Add(klientas);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetProfile), new { id = naudotojas.Id }, new
@@ -136,6 +153,25 @@ namespace Stotele.Server.Controllers
                 naudotojas.Administratorius
             };
         }
+
+        [HttpGet("klientai")]
+        public async Task<ActionResult<IEnumerable<object>>> GetAllClientProfiles()
+        {
+            var klientai = await _context.Klientai
+                .Include(k => k.Naudotojas)
+                .Select(k => new
+                {
+                    k.Naudotojas.Id,
+                    k.Naudotojas.Vardas,
+                    k.Naudotojas.Pavarde,
+                    k.Naudotojas.ElektroninisPastas,
+                    k.Naudotojas.Administratorius
+                })
+                .ToListAsync();
+
+            return Ok(klientai);
+        }
+
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<object>>> GetAllProfiles()

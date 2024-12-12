@@ -16,9 +16,9 @@ const Profiliai: React.FC = () => {
   useEffect(() => {
     const fetchProfiles = async () => {
       try {
-        const response = await fetch("https://localhost:5210/api/Profilis");
+        const response = await fetch("https://localhost:5210/api/Profilis/klientai");
         if (!response.ok) {
-          throw new Error("Klaida gaunant profilį");
+          throw new Error("Klaida gaunant klientų profilius");
         }
         const data = await response.json();
 
@@ -46,7 +46,7 @@ const Profiliai: React.FC = () => {
 
   return (
     <div className="container mt-5 mb-5">
-      <h1 className="display-5 mb-4 text-center">Naudotojų profiliai</h1>
+      <h1 className="display-5 mb-4 text-center">Klientų profiliai</h1>
       <div className="table-responsive shadow rounded">
         <table className="table table-hover table-bordered align-middle">
           <thead className="table-success">

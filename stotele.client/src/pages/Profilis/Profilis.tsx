@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Loading from "../../components/loading";
-import "./Profilis.css"; // Add custom styles here
+import useAuth from "../../hooks/useAuth"; // Import useAuth
+import "./Profilis.css";
 
 interface Profile {
   id: number;
@@ -15,12 +16,13 @@ interface Taskai {
 }
 
 const Profilis: React.FC = () => {
+  const { user } = useAuth(); // Get logged-in user info
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [taskai, setTaskai] = useState<number>(0);
-  const [addPoints, setAddPoints] = useState<string>(""); // Keep as a string to handle '-' during input
-  const [validationError, setValidationError] = useState<string | null>(null); // For point-specific validation errors
+  const [addPoints, setAddPoints] = useState<string>("");
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -95,8 +97,8 @@ const Profilis: React.FC = () => {
 
       const newTaskai: Taskai = await response.json();
       setTaskai(taskai + newTaskai.kiekis);
-      setAddPoints(""); // Reset the input field
-      setValidationError(null); // Clear validation error
+      setAddPoints("");
+      setValidationError(null);
     } catch (e: any) {
       setError(e.message);
     }
@@ -137,20 +139,23 @@ const Profilis: React.FC = () => {
           <a href="/redaguoti-profili">Redaguoti profilį</a>
         </li>
       </ul>
-      <div className="add-points-section">
-        <h3>Pridėti taškų</h3>
-        <input
-          type="text"
-          value={addPoints}
-          onChange={(e) => setAddPoints(e.target.value)}
-          className="form-control mb-3"
-          placeholder="Įveskite taškų kiekį"
-        />
-        {validationError && <div className="validation-error">{validationError}</div>}
-        <button className="add-points-button" onClick={handleAddPoints}>
-          Pridėti taškų
-        </button>
-      </div>
+      {/* Reveal this section only if the logged-in user is an administrator */}
+      {user?.administratorius && (
+        <div className="add-points-section">
+          <h3>Pridėti taškų</h3>
+          <input
+            type="text"
+            value={addPoints}
+            onChange={(e) => setAddPoints(e.target.value)}
+            className="form-control mb-3"
+            placeholder="Įveskite taškų kiekį"
+          />
+          {validationError && <div className="validation-error">{validationError}</div>}
+          <button className="add-points-button" onClick={handleAddPoints}>
+            Pridėti taškų
+          </button>
+        </div>
+      )}
     </div>
   );
 };

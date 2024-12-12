@@ -44,7 +44,7 @@ const CustomNavbar: React.FC = () => {
                 <Nav.Link href={`/profilis?id=${user?.id || ""}`}>Profilis</Nav.Link>
                 <Nav.Link onClick={handleLogout}>Atsijungti</Nav.Link>
 
-                {user?.administratorius && (
+                {user?.administratorius ? (
                   <NavDropdown
                     title="Administratoriaus Meniu"
                     id="administratorius-dropdown"
@@ -56,6 +56,8 @@ const CustomNavbar: React.FC = () => {
                       Pridėti nuolaidą
                     </NavDropdown.Item>
                   </NavDropdown>
+                ) : (
+                  <></>
                 )}
               </>
             )}
