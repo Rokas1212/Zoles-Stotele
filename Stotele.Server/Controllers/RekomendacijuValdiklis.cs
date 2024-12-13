@@ -9,6 +9,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text; // Add this line to include the namespace for ApplicationDbContext
+using System.Linq;
 
 namespace Stotele.Server.Controllers
 {
@@ -25,18 +26,18 @@ namespace Stotele.Server.Controllers
             _configuration = configuration;
         }
 
-        // GET: api/Rekomendacija/{klientasId}/megstamos-kategorijos
-        [HttpGet("{klientasId}/megstamos-kategorijos")]
-        public async Task<ActionResult<IEnumerable<MegstamaKategorijaDTO>>> GetMegstamosKategorijos(int klientasId)
+        // GET: api/Rekomendacija/{naudotojasId}/megstamos-kategorijos
+        [HttpGet("/megstamos-kategorijos/{naudotojasId}")]
+        public async Task<ActionResult<IEnumerable<MegstamaKategorijaDTO>>> GetMegstamosKategorijos(int naudotojasId)
         {
-            var klientas = await _context.Klientai.FindAsync(klientasId);
+            var klientas = await _context.Klientai.FindAsync(naudotojasId);
             if (klientas == null)
             {
                 return NotFound(new { Message = "Klientas nerastas" });
             }
 
             var megstamosKategorijos = await _context.MegstamosKategorijos
-                .Where(mk => mk.KlientasId == klientasId)
+                .Where(mk => mk.KlientasId == naudotojasId)
                 .Include(mk => mk.Kategorija)
                 .Select(mk => new MegstamaKategorijaDTO
                 {
@@ -48,12 +49,69 @@ namespace Stotele.Server.Controllers
                 })
                 .ToListAsync();
 
-            if (megstamosKategorijos == null)
+            if (megstamosKategorijos.Count == 0)
             {
-                return NotFound(new { Message = "Megstamos kategorijos nerastos" });
+                return NotFound(new { Message = "Klientas neturi megstamu kategoriju." });
             }
 
             return Ok(megstamosKategorijos);
+        }
+
+        [HttpPut("/megstamos-kategorijos/prideti/{naudotojasId}/{kategorijosId}")]
+        public async Task<IActionResult> AddMegstamaKategorija(int naudotojasId, int kategorijosId)
+        {
+            var klientas = await _context.Klientai.FindAsync(naudotojasId);
+            if (klientas == null)
+            {
+                return NotFound(new { Message = "Klientas nerastas" });
+            }
+
+            var rekomendacija = await _context.Kategorijos.FindAsync(kategorijosId);
+            if (rekomendacija == null)
+            {
+                return NotFound(new { Message = "Kategorija nerasta" });
+            }
+
+            var egzistuojaKategorija = await _context.MegstamosKategorijos
+                .Where(mk => mk.KlientasId == naudotojasId && mk.KategorijaId == kategorijosId)
+                .FirstOrDefaultAsync();
+
+            if (egzistuojaKategorija != null)
+            {
+                return BadRequest(new { Message = "Megstama kategorija jau prideta" });
+            }
+
+            var megstamaKategorija = new MegstamaKategorija
+            {
+                KlientasId = naudotojasId,
+                KategorijaId = kategorijosId,
+                PridejimoData = DateTime.UtcNow,
+                Kategorija = rekomendacija,
+                Klientas = klientas
+            };
+
+            _context.MegstamosKategorijos.Add(megstamaKategorija);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { Message = "Megstama kategorija prideta", MegstamaKategorija = megstamaKategorija });
+        }
+
+        [HttpDelete("/megstamos-kategorijos/istrinti/{naudotojasId}/{kategorijosId}")]
+        public async Task<IActionResult> DeleteMegstamaKategorija(int naudotojasId, int kategorijosId)
+        {
+            var megstamaKategorija = await _context.MegstamosKategorijos
+                .Where(mk => mk.KlientasId == naudotojasId && mk.KategorijaId == kategorijosId)
+                .FirstOrDefaultAsync();
+
+            if (megstamaKategorija == null)
+            {
+                return NotFound(new { Message = "Nurodytas neteisignas megstamos kategorijosId arba naudotojoId" });
+            }
+
+            _context.MegstamosKategorijos.Remove(megstamaKategorija);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { Message = "Megstama kategorija istrinta", MegstamaKategorija = megstamaKategorija });
         }
     }
 }

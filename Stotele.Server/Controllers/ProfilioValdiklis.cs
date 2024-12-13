@@ -95,6 +95,7 @@ namespace Stotele.Server.Controllers
 
             var klientas = new Klientas
             {
+                Id = naudotojas.Id,
                 NaudotojasId = naudotojas.Id,
                 Miestas = dto.Miestas.Trim(),
                 Adresas = dto.Adresas.Trim(),
