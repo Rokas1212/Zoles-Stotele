@@ -56,7 +56,7 @@ namespace Stotele.Server
 
             // Register ApplicationDbContext
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseNpgsql(connectionString));
+                options.UseNpgsql(connectionString).EnableSensitiveDataLogging());
 
 
             // Configure Stripe

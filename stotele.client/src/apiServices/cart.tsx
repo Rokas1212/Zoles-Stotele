@@ -42,7 +42,10 @@ export async function clearCart() {
 export async function createOrder(cartItems: CartItem[]) {
     const response = await fetch("https://localhost:5210/api/uzsakymu/sukurti-uzsakyma", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
         body: JSON.stringify(cartItems),
         credentials: "include",
     });

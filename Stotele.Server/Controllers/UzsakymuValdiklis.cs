@@ -9,6 +9,8 @@ using Stotele.Server.Models.ApplicationDbContexts;
 using System.Collections.Generic;
 using Stotele.Server.Models.SessionModels;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Stotele.Server.Controllers
 {
@@ -23,6 +25,29 @@ namespace Stotele.Server.Controllers
         {
             _dbContext = dbContext;
             _stripeSettings = stripeSettings.Value;
+        }
+
+        [HttpGet("uzsakymai")]
+        public ActionResult GetOrders()
+        {
+            var userId = User.FindFirstValue("UserId");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("Nežinomas user id.");
+            }
+
+            if (!int.TryParse(userId, out int parsedUserId))
+            {
+                return BadRequest("Neteisingas user id formatas.");
+            }
+
+            var orders = _dbContext.Uzsakymai
+                .Where(n => n.NaudotojasId == parsedUserId)
+                .Include(o => o.PrekesUzsakymai)
+                .ThenInclude(pu => pu.Preke)
+                .ToList();
+
+            return Ok(orders);
         }
 
         [HttpGet("uzsakymas/{id}")]
@@ -45,6 +70,18 @@ namespace Stotele.Server.Controllers
         [HttpPost("sukurti-uzsakyma")]
         public ActionResult CreateOrder([FromBody] List<CartItem> cartItems)
         {
+
+            var userId = User.FindFirstValue("UserId");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("Nežinomas user ID.");
+            }
+
+            if (!int.TryParse(userId, out int parsedUserId))
+            {
+                return BadRequest("Neteisingas user ID formatas.");
+            }
+
             if (cartItems == null || !cartItems.Any())
             {
                 return BadRequest("Krepšelis yra tuščias.");
@@ -53,6 +90,7 @@ namespace Stotele.Server.Controllers
             var order = new Uzsakymas
             {
                 Data = DateTime.UtcNow,
+                NaudotojasId = parsedUserId,
                 Suma = cartItems.Sum(i => i.kaina * i.kiekis)
             };
 
