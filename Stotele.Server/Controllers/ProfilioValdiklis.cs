@@ -37,9 +37,9 @@ namespace Stotele.Server.Controllers
         {
             var claims = new List<Claim>
             {
+                new Claim("UserId", naudotojas.Id.ToString()), // Custom claim for user ID
                 new Claim(JwtRegisteredClaimNames.Sub, naudotojas.Slapyvardis),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.NameIdentifier, naudotojas.Id.ToString()),
                 new Claim(ClaimTypes.Role, naudotojas.Administratorius ? "Administratorius" : "Vartotojas")
             };
 
@@ -53,6 +53,12 @@ namespace Stotele.Server.Controllers
                 expires: DateTime.UtcNow.AddMinutes(Convert.ToDouble(_configuration["JwtSettings:ExpiresInMinutes"])),
                 signingCredentials: creds
             );
+
+            Console.WriteLine("JWT Token Claims:");
+            foreach (var claim in claims)
+            {
+                Console.WriteLine($"Type: {claim.Type}, Value: {claim.Value}");
+            }
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
@@ -191,7 +197,7 @@ namespace Stotele.Server.Controllers
         }
 
 
-         // PUT: api/Profilis/{id}
+        // PUT: api/Profilis/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateProfile(int id, [FromBody] RedaguotiNaudotojaDTO dto)
         {
