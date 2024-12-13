@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace Stotele.Server.Models
 {
     public class Apmokejimas
@@ -10,8 +12,10 @@ namespace Stotele.Server.Models
         public int PridetiTaskai { get; set; }
         public ApmokejimoMetodas ApmokejimoMetodas { get; set; }
         public MokejimoStatusas MokejimoStatusas { get; set; }
+        [ForeignKey("Klientas")]
         public int KlientasId { get; set; }
         public Klientas Klientas { get; set; }
+        [ForeignKey("Uzsakymas")]
         public int UzsakymasId { get; set; }
         public Uzsakymas Uzsakymas { get; set; }
     }

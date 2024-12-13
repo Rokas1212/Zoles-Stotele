@@ -69,14 +69,28 @@ namespace Stotele.Server
             builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
             StripeConfiguration.ApiKey = stripeSecretKey;
 
-            Console.WriteLine($"Stripe Secret Key: {stripeSecretKey}");
+
             // Replace placeholder in configuration
             builder.Configuration["Stripe:SecretKey"] = stripeSecretKey;
+
+
+            var stripeWebhookSecret = Environment.GetEnvironmentVariable("STRIPE_WEBHOOK_SECRET");
+            if (string.IsNullOrEmpty(stripeWebhookSecret))
+            {
+                throw new InvalidOperationException("STRIPE_WEBHOOK_SECRET environment variable is not set.");
+            }
+
+            builder.Configuration["Stripe:WebhookSecret"] = stripeWebhookSecret;
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            builder.Services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+            });
             // JWT Authentication
             var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET");
             if (string.IsNullOrEmpty(jwtSecret) || jwtSecret.Length < 16)
@@ -99,7 +113,6 @@ namespace Stotele.Server
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]))
                     };
                 });
-
 
 
             var app = builder.Build();
