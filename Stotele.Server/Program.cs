@@ -36,7 +36,7 @@ namespace Stotele.Server
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowReactApp",
-                    builder => builder.WithOrigins("https://localhost:5173")
+                    builder => builder.WithOrigins("https://localhost:5173", "https://localhost:5210")
                         .AllowAnyMethod()
                         .AllowAnyHeader()
                         .AllowCredentials());
@@ -128,10 +128,10 @@ namespace Stotele.Server
                 app.UseSwaggerUI(options =>
                 {
                     options.SwaggerEndpoint("/swagger/v1/swagger.json", "Stotele API V1");
-                    options.RoutePrefix = string.Empty;
+                    options.RoutePrefix = "swagger"; // Serve Swagger UI at /swagger/
                 });
             }
-
+            app.UseHttpsRedirection();
             app.UseCors("AllowReactApp");
             app.UseSession();
             app.UseAuthentication();
