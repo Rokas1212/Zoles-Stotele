@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Stotele.Server.Models;
 using Stotele.Server.Models.ApplicationDbContexts;
+using Newtonsoft.Json;
+using Stotele.Server.Models.SessionModels;
+
 
 namespace Stotele.Server.Controllers
 {
@@ -15,6 +18,8 @@ namespace Stotele.Server.Controllers
         {
             _context = context;
         }
+
+        private const string CartSessionKey = "ShoppingCart";
 
         // GET: api/Taskai
         [HttpGet]
@@ -209,5 +214,99 @@ namespace Stotele.Server.Controllers
 
             return NoContent();
         }
+
+
+        // POST: api/Taskai/GenerateQR
+        [HttpPost("GenerateQR")]
+        public IActionResult GenerateQRCode(ProcessQRDTO request)
+        {
+            if (request == null || request.OrderId <= 0)
+            {
+                return BadRequest("Invalid Order ID.");
+            }
+
+            var qrData = $"https://localhost:5210/api/Taskai/ApplyDiscounts?orderId={request.OrderId}";
+
+            var baseUrl = "https://api.qrserver.com/v1/create-qr-code/";
+            var size = "200x200";
+            var qrCodeUrl = $"{baseUrl}?data={Uri.EscapeDataString(qrData)}&size={size}&format=png";
+
+            var response = new QRResponseDTO
+            {
+                OrderId = request.OrderId,
+                QRCodeUrl = qrCodeUrl
+            };
+
+            return Ok(response);
+        }
+
+        // POST: api/Taskai/ApplyDiscounts
+        [HttpPost("ApplyDiscounts")]
+        public IActionResult ApplyDiscounts([FromQuery] int orderId)
+        {
+            if (orderId <= 0)
+            {
+                return BadRequest("Invalid Order ID.");
+            }
+
+            Console.WriteLine($"Processing discounts for Order ID: {orderId}");
+
+            var order = _context.Uzsakymai
+                .Include(o => o.PrekesUzsakymai)
+                .ThenInclude(pu => pu.Preke)
+                .FirstOrDefault(o => o.Id == orderId);
+
+            if (order == null)
+            {
+                return NotFound($"Order with ID {orderId} not found.");
+            }
+
+            decimal totalUpdatedPrice = 0;
+
+            foreach (var orderItem in order.PrekesUzsakymai)
+            {
+                var discount = _context.Nuolaidos
+                    .Where(n => n.PrekeId == orderItem.PrekeId && n.PabaigosData > DateTime.UtcNow)
+                    .FirstOrDefault();
+
+                if (discount != null)
+                {
+                    Console.WriteLine($"Applying discount: {discount.Procentai}% to item: {orderItem.Preke.Pavadinimas}");
+
+                    var originalPrice = orderItem.Preke.Kaina;
+                    var discountedPrice = (decimal)originalPrice * (1 - ((decimal)discount.Procentai / 100));
+                    orderItem.Preke.Kaina = (double)discountedPrice;
+
+                    _context.Entry(orderItem.Preke).State = EntityState.Modified;
+                }
+
+                totalUpdatedPrice += (decimal)orderItem.Preke.Kaina * orderItem.Kiekis;
+            }
+
+            order.Suma = (double)totalUpdatedPrice;
+            _context.Entry(order).State = EntityState.Modified;
+            _context.SaveChanges();
+
+            return Ok(new
+            {
+                Message = "Discounts applied successfully.",
+                UpdatedOrder = order,
+                TotalPrice = totalUpdatedPrice
+            });
+        }
+
+        private List<CartItem> GetCartFromSession()
+        {
+            var cartJson = HttpContext.Session.GetString(CartSessionKey);
+            return string.IsNullOrEmpty(cartJson) ? new List<CartItem>() : JsonConvert.DeserializeObject<List<CartItem>>(cartJson);
+        }
+
+        private void SaveCartToSession(List<CartItem> cart)
+        {
+            var cartJson = JsonConvert.SerializeObject(cart);
+            HttpContext.Session.SetString(CartSessionKey, cartJson);
+        }
+
+
     }
 }

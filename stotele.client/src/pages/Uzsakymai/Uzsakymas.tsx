@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import QRCodeGenerator from "../../components/qrgeneration";
 
 const Uzsakymas = () => {
   const { orderId } = useParams(); // Get the orderId from the URL
@@ -64,6 +65,9 @@ const Uzsakymas = () => {
           ))}
         </tbody>
       </table>
+
+      <QRCodeGenerator orderId={order.id} />
+
       <button onClick={() => navigate(`/apmokejimas/${order?.id}`)} className="btn btn-primary">
         Patvirtinti užsakymą
       </button>
