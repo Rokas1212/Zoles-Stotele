@@ -14,6 +14,32 @@ const Uzsakymas = () => {
   const navigate = useNavigate();
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const previousOrderRef = useRef<any>(null);
+  const [points, setPoints] = useState<number | null>(null); // State to store user points
+  
+
+  const fetchUserPoints = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "{}"); 
+      const userId = user.id; 
+  
+      if (!userId) {
+        console.error("No user ID found.");
+        return;
+      }
+  
+      const response = await axios.get(`https://localhost:5210/api/Taskai/Naudotojas/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`, 
+        },
+      });
+  
+      const totalPoints = response.data.reduce((sum: number, taskai: any) => sum + taskai.kiekis, 0);
+      setPoints(totalPoints); 
+    } catch (err) {
+      setPoints(null);
+    }
+  };
+  
 
   // Function to fetch order details
   const fetchOrder = async () => {
@@ -92,6 +118,7 @@ const Uzsakymas = () => {
     checkIfPaid();
     checkIfConfirmed();
     startPolling();
+    fetchUserPoints();
 
     return () => stopPolling();
   }, [orderId]);
@@ -155,7 +182,12 @@ const Uzsakymas = () => {
       <h3 className="mt-3">
         Bendra suma: <span className="text-success">€{displayOrder.suma.toFixed(2)}</span>
       </h3>
-
+      <h3 className="mt-3">
+        Turimi taškai:{" "}
+        <span className="text-primary">
+          {points !== null ? `${points} taškų` : "Nepavyko gauti taškų"}
+        </span>
+      </h3>
       <h2 className="mt-4">Prekės</h2>
       <table className="table table-striped table-hover mt-3">
         <thead style={{ backgroundColor: "#198754", color: "#fff" }}>
