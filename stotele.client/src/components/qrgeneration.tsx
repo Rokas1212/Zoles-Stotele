@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import "./qrgeneration.css";
 
 interface QRCodeGeneratorProps {
   orderId: number;
@@ -22,7 +23,6 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ orderId }) => {
     }
   };
 
-
   const handleScanQR = async () => {
     try {
       await axios.post(
@@ -43,19 +43,23 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ orderId }) => {
   };
 
   return (
-    <div>
-      <button onClick={generateQRCode}>Generate QR Code</button>
+    <div className="qr-container">
+      <button className="qr-btn" onClick={generateQRCode}>
+        Generate QR Code
+      </button>
       {qrCodeUrl && (
-        <div>
-          <img src={qrCodeUrl} alt="Order QR Code" />
+        <div className="qr-display">
+          <img className="qr-image" src={qrCodeUrl} alt="Order QR Code" />
           <p>Scan the QR code to apply discounts.</p>
-          <button onClick={handleScanQR}>Simulate QR Scan</button>
+          <button className="qr-btn scan-btn" onClick={handleScanQR}>
+            Simulate QR Scan
+          </button>
         </div>
       )}
       {updatedOrder && (
-        <div>
+        <div className="updated-order">
           <h3>Updated Order:</h3>
-          <table className="table">
+          <table className="order-table">
             <thead>
               <tr>
                 <th>Prekė</th>
@@ -75,7 +79,9 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ orderId }) => {
               ))}
             </tbody>
           </table>
-          <h3>Bendra suma: €{updatedOrder.suma.toFixed(2)}</h3>
+          <h3 className="total-sum">
+            Bendra suma: €{updatedOrder.suma.toFixed(2)}
+          </h3>
         </div>
       )}
     </div>
