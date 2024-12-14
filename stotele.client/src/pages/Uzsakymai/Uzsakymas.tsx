@@ -1,20 +1,20 @@
-import { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import QRCodeGenerator from "../../components/qrgeneration";
 
 const Uzsakymas = () => {
-  const { orderId } = useParams(); // Get the orderId from the URL
-  const [order, setOrder] = useState<any>(null); // State to store the order details
-  const [loading, setLoading] = useState<boolean>(true); // Loading state
-  const [error, setError] = useState<string | null>(null); // Error state
+  const { orderId } = useParams();
+  const [order, setOrder] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  // Function to fetch order details
   const fetchOrder = async () => {
     try {
-      const response = await fetch(`https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`, {
-        credentials: "include",
-      });
+      const response = await fetch(
+        `https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`,
+        { credentials: "include" }
+      );
       if (!response.ok) {
         throw new Error("Nepavyko gauti užsakymo informacijos.");
       }
@@ -32,9 +32,8 @@ const Uzsakymas = () => {
     fetchOrder();
   }, [orderId]);
 
-  const handleOrderUpdated = async () => {
-    // Re-fetch the order after discounts are applied
-    await fetchOrder();
+  const handleOrderUpdated = (updatedOrder: any) => {
+    setOrder(updatedOrder); // Update the order state with the latest data
   };
 
   if (loading) {
@@ -49,11 +48,13 @@ const Uzsakymas = () => {
     <div className="container mt-4">
       <h1>Užsakymo ID: {order.id}</h1>
       <p>Data: {new Date(order.data).toLocaleDateString()}</p>
-      <h3 className="mt-3">Bendra suma: <span className="text-success">€{order.suma.toFixed(2)}</span></h3>
-      
+      <h3 className="mt-3">
+        Bendra suma: <span className="text-success">€{order.suma.toFixed(2)}</span>
+      </h3>
+
       <h2 className="mt-4">Prekės</h2>
       <table className="table table-striped table-hover mt-3">
-        <thead>
+        <thead style={{ backgroundColor: "#198754", color: "#fff" }}>
           <tr>
             <th>Prekė</th>
             <th>Pradinė kaina</th>
@@ -71,9 +72,10 @@ const Uzsakymas = () => {
             const totalLine = discountedPrice * quantity;
 
             const discountAmount = originalPrice - discountedPrice;
-            const discountPercentage = discountAmount > 0
-              ? Math.round((discountAmount / originalPrice) * 100)
-              : 0;
+            const discountPercentage =
+              discountAmount > 0
+                ? Math.round((discountAmount / originalPrice) * 100)
+                : 0;
 
             return (
               <tr key={item.id}>
@@ -81,9 +83,7 @@ const Uzsakymas = () => {
                 <td>€{originalPrice.toFixed(2)}</td>
                 <td>
                   {discountAmount > 0 ? (
-                    <>
-                      <span className="text-success">€{discountedPrice.toFixed(2)}</span>
-                    </>
+                    <span className="text-success">€{discountedPrice.toFixed(2)}</span>
                   ) : (
                     <span>€{discountedPrice.toFixed(2)}</span>
                   )}
@@ -92,13 +92,9 @@ const Uzsakymas = () => {
                 <td>€{totalLine.toFixed(2)}</td>
                 <td>
                   {discountAmount > 0 ? (
-                    <span className="badge bg-success">
-                      -{discountPercentage}% 
-                    </span>
+                    <span className="badge bg-success">-{discountPercentage}%</span>
                   ) : (
-                    <span className="badge bg-secondary">
-                      Nėra nuolaidos
-                    </span>
+                    <span className="badge bg-secondary">Nėra nuolaidos</span>
                   )}
                 </td>
               </tr>

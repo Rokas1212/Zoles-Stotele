@@ -32,16 +32,15 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
 
   const handleScanQR = async () => {
     try {
-      await axios.post(
+      await axios.get(
         `https://localhost:5210/api/Taskai/ApplyDiscounts?orderId=${orderId}`
       );
 
       const response = await axios.get(
         `https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`
       );
+  
       console.log("Updated order fetched successfully:", response.data);
-
-      // Pass updated order to parent component
       onOrderUpdated(response.data);
     } catch (error: any) {
       console.error(
@@ -50,18 +49,22 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
       );
     }
   };
+  
+  
 
   return (
     <div className="qr-container">
       {qrCodeUrl ? (
-        <div className="qr-display mt-3">
+        <div className="qr-display mt-3" style={{ border: "1px solid #ddd", padding: "20px", borderRadius: "10px", backgroundColor: "#f8f9fa" }}>
           <img
             className="qr-image"
             src={qrCodeUrl}
             alt="Order QR Code"
-            style={{ width: "200px", height: "200px" }}
+            style={{ width: "200px", height: "200px", border: "2px solid #198754", borderRadius: "8px" }}
           />
-          <p className="mt-2">Nuskenuokite QR kodą norint pritaikyti nuolaidas.</p>
+          <p className="mt-2" style={{ fontStyle: "italic" }}>
+            Nuskenuokite QR kodą norint pritaikyti nuolaidas.
+          </p>
           <button
             className="qr-btn btn btn-success"
             onClick={handleScanQR}

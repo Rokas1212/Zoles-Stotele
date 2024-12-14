@@ -227,6 +227,8 @@ namespace Stotele.Server.Controllers
 
             var qrData = $"https://localhost:5210/api/Taskai/ApplyDiscounts?orderId={request.OrderId}";
 
+            Console.WriteLine("Generating QR code for: " + qrData);
+
             var baseUrl = "https://api.qrserver.com/v1/create-qr-code/";
             var size = "200x200";
             var qrCodeUrl = $"{baseUrl}?data={Uri.EscapeDataString(qrData)}&size={size}&format=png";
@@ -240,8 +242,9 @@ namespace Stotele.Server.Controllers
             return Ok(response);
         }
 
-        // POST: api/Taskai/ApplyDiscounts
-        [HttpPost("ApplyDiscounts")]
+
+        // GET: api/Taskai/ApplyDiscounts?orderId={orderId}
+        [HttpGet("ApplyDiscounts")]
         public IActionResult ApplyDiscounts([FromQuery] int orderId)
         {
             if (orderId <= 0)
@@ -261,7 +264,6 @@ namespace Stotele.Server.Controllers
                 return NotFound($"Order with ID {orderId} not found.");
             }
 
-
             foreach (var orderItem in order.PrekesUzsakymai)
             {
                 var discount = _context.Nuolaidos
@@ -272,11 +274,10 @@ namespace Stotele.Server.Controllers
                 {
                     var originalPrice = orderItem.Preke.Kaina;
                     var discountedPrice = (double)((decimal)originalPrice * (1 - ((decimal)discount.Procentai / 100)));
-                    
+
                     orderItem.Kaina = discountedPrice;
                     _context.Entry(orderItem).State = EntityState.Modified;
                 }
-
             }
 
             decimal totalUpdatedPrice = 0;
@@ -289,7 +290,6 @@ namespace Stotele.Server.Controllers
             _context.Entry(order).State = EntityState.Modified;
             _context.SaveChanges();
 
-
             return Ok(new
             {
                 Message = "Discounts applied successfully.",
@@ -297,6 +297,7 @@ namespace Stotele.Server.Controllers
                 TotalPrice = totalUpdatedPrice
             });
         }
+
 
         private List<CartItem> GetCartFromSession()
         {
