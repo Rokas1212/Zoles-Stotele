@@ -27,7 +27,7 @@ namespace Stotele.Server.Controllers
         }
         // Endpointai skirti megstamom kategorijom
         // GET: api/Rekomendacija/{naudotojasId}/megstamos-kategorijos
-        [HttpGet("/megstamos-kategorijos/{naudotojasId}")]
+        [HttpGet("megstamos-kategorijos/{naudotojasId}")]
         public async Task<ActionResult<IEnumerable<MegstamaKategorijaDTO>>> GetMegstamosKategorijos(int naudotojasId)
         {
             var klientas = await _context.Klientai.FindAsync(naudotojasId);
@@ -57,7 +57,7 @@ namespace Stotele.Server.Controllers
             return Ok(megstamosKategorijos);
         }
 
-        [HttpPut("/megstamos-kategorijos/prideti/{naudotojasId}/{kategorijosId}")]
+        [HttpPut("megstamos-kategorijos/prideti/{naudotojasId}/{kategorijosId}")]
         public async Task<IActionResult> AddMegstamaKategorija(int naudotojasId, int kategorijosId)
         {
             var klientas = await _context.Klientai.FindAsync(naudotojasId);
@@ -96,7 +96,7 @@ namespace Stotele.Server.Controllers
             return Ok(new { Message = "Megstama kategorija prideta", MegstamaKategorija = megstamaKategorija });
         }
 
-        [HttpDelete("/megstamos-kategorijos/istrinti/{naudotojasId}/{kategorijosId}")]
+        [HttpDelete("megstamos-kategorijos/istrinti/{naudotojasId}/{kategorijosId}")]
         public async Task<IActionResult> DeleteMegstamaKategorija(int naudotojasId, int kategorijosId)
         {
             var megstamaKategorija = await _context.MegstamosKategorijos
@@ -116,7 +116,7 @@ namespace Stotele.Server.Controllers
 
 
         // Endpointai skirti kategorijom
-        [HttpGet("/blokuotos-rekomendacijos/{naudotojasId}")]
+        [HttpGet("blokuotos-rekomendacijos/{naudotojasId}")]
         public async Task<ActionResult<IEnumerable<UzblokuotaRekomendacijaDTO>>> GetBlokuotosRekomendacijos(int naudotojasId)
         {
             var klientas = await _context.Klientai.FindAsync(naudotojasId);
@@ -147,7 +147,7 @@ namespace Stotele.Server.Controllers
             return Ok(blokuotosRekomendacijos);
         }
 
-        [HttpPut("/blokuotos-rekomendacijos/uzblokuoti/{naudotojasId}/{prekesId}")]
+        [HttpPut("blokuotos-rekomendacijos/uzblokuoti/{naudotojasId}/{prekesId}")]
         public async Task<IActionResult> AddBlokuotaRekomendacija(int naudotojasId, int prekesId)
         {
             var klientas = await _context.Klientai.FindAsync(naudotojasId);
@@ -186,7 +186,7 @@ namespace Stotele.Server.Controllers
             return Ok(new { Message = "Rekomendacija uzblokuota", UzblokuotaRekomendacija = uzblokuotaRekomendacija });
         }
 
-        [HttpDelete("/blokuotos-rekomendacijos/atblokuoti/{naudotojasId}/{prekesId}")]
+        [HttpDelete("blokuotos-rekomendacijos/atblokuoti/{naudotojasId}/{prekesId}")]
         public async Task<IActionResult> DeleteBlokuotaRekomendacija(int naudotojasId, int prekesId)
         {
             var uzblokuotaRekomendacija = await _context.UzblokuotosRekomendacijos
@@ -205,7 +205,7 @@ namespace Stotele.Server.Controllers
         }
 
         //Gauti atrinktas rekomendacijas
-        [HttpGet("/rekomendacijos/{naudotojasId}")]
+        [HttpGet("rekomendacijos/{naudotojasId}")]
         public async Task<ActionResult<IEnumerable<UzblokuotaRekomendacijaDTO>>> GetRekomendacijos(int naudotojasId)
         {
             var klientas = await _context.Klientai.FindAsync(naudotojasId);
@@ -279,7 +279,7 @@ namespace Stotele.Server.Controllers
                     return p;
                 })
                 .OrderByDescending(p => p.RekomendacijosSvoris)
-                .Take(20)
+                .Take(4)
                 .ToList();
 
             if (prekes.Count == 0)
@@ -287,7 +287,7 @@ namespace Stotele.Server.Controllers
                 return NotFound(new { Message = "Nera prekiu" });
             }
 
-            return Ok(new { Message = "Atrinktos rekomendacijos pagal filtrus", Prekes = rekomendacijosPrekes.Take(4) });
+            return Ok(new { Message = "Atrinktos rekomendacijos pagal filtrus", Prekes = rekomendacijosPrekes });
         }
     }
 }
