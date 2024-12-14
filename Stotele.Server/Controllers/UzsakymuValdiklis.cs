@@ -121,7 +121,8 @@ namespace Stotele.Server.Controllers
                     Kiekis = item.kiekis,
                     PrekeId = preke.Id,
                     UzsakymasId = order.Id,
-                    Preke = preke
+                    Preke = preke,
+                    Kaina = preke.Kaina
                 };
 
                 orderItems.Add(orderItem);

@@ -58,9 +58,9 @@ const Uzsakymas = () => {
           {order.prekesUzsakymai.map((item: any) => (
             <tr key={item.id}>
               <td>{item.preke.pavadinimas}</td>
-              <td>€{item.preke.kaina.toFixed(2)}</td>
+              <td>€{item.kaina.toFixed(2)}</td>
               <td>{item.kiekis}</td>
-              <td>€{(item.preke.kaina * item.kiekis).toFixed(2)}</td>
+              <td>€{(item.kaina * item.kiekis).toFixed(2)}</td>
             </tr>
           ))}
         </tbody>

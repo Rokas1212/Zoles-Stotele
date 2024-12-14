@@ -261,7 +261,6 @@ namespace Stotele.Server.Controllers
                 return NotFound($"Order with ID {orderId} not found.");
             }
 
-            decimal totalUpdatedPrice = 0;
 
             foreach (var orderItem in order.PrekesUzsakymai)
             {
@@ -271,21 +270,25 @@ namespace Stotele.Server.Controllers
 
                 if (discount != null)
                 {
-                    Console.WriteLine($"Applying discount: {discount.Procentai}% to item: {orderItem.Preke.Pavadinimas}");
-
-                    var originalPrice = orderItem.Preke.Kaina;
-                    var discountedPrice = (decimal)originalPrice * (1 - ((decimal)discount.Procentai / 100));
-                    orderItem.Preke.Kaina = (double)discountedPrice;
-
-                    _context.Entry(orderItem.Preke).State = EntityState.Modified;
+                    var originalPrice = orderItem.Kaina;
+                    var discountedPrice = (double)((decimal)originalPrice * (1 - ((decimal)discount.Procentai / 100)));
+                    
+                    orderItem.Kaina = discountedPrice;
+                    _context.Entry(orderItem).State = EntityState.Modified;
                 }
 
-                totalUpdatedPrice += (decimal)orderItem.Preke.Kaina * orderItem.Kiekis;
+            }
+
+            decimal totalUpdatedPrice = 0;
+            foreach (var orderItem in order.PrekesUzsakymai)
+            {
+                totalUpdatedPrice += (decimal)orderItem.Kaina * orderItem.Kiekis;
             }
 
             order.Suma = (double)totalUpdatedPrice;
             _context.Entry(order).State = EntityState.Modified;
             _context.SaveChanges();
+
 
             return Ok(new
             {
