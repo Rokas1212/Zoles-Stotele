@@ -11,8 +11,8 @@ const Uzsakymai = () => {
         const response = await fetch("https://localhost:5210/api/uzsakymu/uzsakymai", {
           credentials: "include",
           headers: {
-            "Authorization": `Bearer ${localStorage.getItem("token")}`
-          }
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         });
 
         if (!response.ok) {
@@ -20,6 +20,7 @@ const Uzsakymai = () => {
         }
 
         const data = await response.json();
+        console.log("Fetched orders:", data); // Log for debugging
         setOrders(data);
       } catch (error) {
         console.error("Klaida:", error);
@@ -46,23 +47,27 @@ const Uzsakymai = () => {
       <table className="table table-striped">
         <thead>
           <tr>
-            <th>Uzsakymo numeris</th>
-            <th>Uzsakymo data</th>
-            <th>Uzsakymo busena</th>
-            <th>Uzsakymo suma</th>
+            <th>Užsakymo numeris</th>
+            <th>Užsakymo data</th>
+            <th>Užsakymo būsena</th>
+            <th>Suma</th>
           </tr>
         </thead>
         <tbody>
-          {orders.map((order) => (
-            <tr key={order.id}>
-              <td>
-                <a href={`/uzsakymas?id=${order.id}`}>{order.id}</a>
-              </td>
-              <td>{new Date(order.data).toLocaleDateString()}</td>
-              <td>{order.busena}</td>
-              <td>€{order.suma.toFixed(2)}</td>
-            </tr>
-          ))}
+          {orders.map((item, index) => {
+            const order = item.order;
+            const payment = item.payments?.[0]; // Get the first payment or undefined
+            return (
+              <tr key={order.id || index}>
+                <td>
+                  <a href={`/uzsakymas/${order.id}`}>{order.id}</a>
+                </td>
+                <td>{new Date(order.data).toLocaleDateString()}</td>
+                <td>{payment?.mokejimoStatusas || "Nepasirinktas mokėjimo būdas"}</td>
+                <td>€{order.suma.toFixed(2)}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
