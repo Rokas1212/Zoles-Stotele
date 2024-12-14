@@ -270,7 +270,7 @@ namespace Stotele.Server.Controllers
 
                 if (discount != null)
                 {
-                    var originalPrice = orderItem.Kaina;
+                    var originalPrice = orderItem.Preke.Kaina;
                     var discountedPrice = (double)((decimal)originalPrice * (1 - ((decimal)discount.Procentai / 100)));
                     
                     orderItem.Kaina = discountedPrice;
