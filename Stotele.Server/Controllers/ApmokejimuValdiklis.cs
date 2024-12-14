@@ -96,7 +96,7 @@ namespace Stotele.Server.Controllers
             {
                 PriceData = new SessionLineItemPriceDataOptions
                 {
-                    UnitAmount = (long)(item.Preke.Kaina * 100),
+                    UnitAmount = (long)(item.Kaina * 100),
                     Currency = "eur",
                     ProductData = new SessionLineItemPriceDataProductDataOptions
                     {

@@ -1,0 +1,83 @@
+.qr-container {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    margin: 0 auto;
+    font-family: Arial, sans-serif;
+  }
+  
+  .qr-btn {
+    background-color: #10802c;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    margin-top: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .qr-btn:hover {
+    background-color: #0d6a24;
+  }
+  
+  .qr-display {
+    text-align: center;
+    margin-top: 20px;
+  }
+  
+  .qr-image {
+    width: 200px;
+    height: 200px;
+    margin: 20px auto;
+    border: 2px solid #10802c;
+    border-radius: 5px;
+  }
+  
+  .scan-btn {
+    margin-top: 10px;
+  }
+  
+  .updated-order {
+    margin-top: 30px;
+    background-color: white;
+    border-radius: 10px;
+    padding: 15px;
+    border: 1px solid #ddd;
+  }
+  
+  .updated-order h3 {
+    color: #10802c;
+    font-weight: bold;
+  }
+  
+  .order-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+  
+  .order-table th,
+  .order-table td {
+    text-align: left;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .order-table th {
+    background-color: #10802c;
+    color: white;
+    font-weight: bold;
+  }
+  
+  .total-sum {
+    text-align: right;
+    color: #10802c;
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 20px;
+  }
+  
