@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 using Stotele.Server.Models;
 using Stotele.Server.Models.ApplicationDbContexts;
 using Newtonsoft.Json;
 using Stotele.Server.Models.SessionModels;
+using System.Security.Claims;
+using System.Text;
 
 
 namespace Stotele.Server.Controllers
@@ -225,10 +228,16 @@ namespace Stotele.Server.Controllers
                 return BadRequest("Invalid Order ID.");
             }
 
-            var qrData = $"https://localhost:5210/api/Taskai/ApplyDiscounts?orderId={request.OrderId}";
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User is not authenticated.");
+            }
+
+            var qrData = $"https://localhost:5210/api/Taskai/ApplyDiscounts?orderId={request.OrderId}&userId={userId}";
 
             //TODO delete later
-            Console.WriteLine("!!!!!!!!!5555555555555555 Generating QR code for: " + qrData);
+            Console.WriteLine($"!!!!!!!!-------- 4555556418576165 QR Data: {qrData}");
 
             var baseUrl = "https://api.qrserver.com/v1/create-qr-code/";
             var size = "200x200";
@@ -245,16 +254,31 @@ namespace Stotele.Server.Controllers
 
 
         // GET: api/Taskai/ApplyDiscounts?orderId={orderId}
+        [Authorize]
         [HttpGet("ApplyDiscounts")]
-        public IActionResult ApplyDiscounts([FromQuery] int orderId)
+        public IActionResult ApplyDiscounts([FromQuery] int orderId, [FromQuery] string userId)
         {
+            // Authenticate user
+            var authenticatedUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(authenticatedUserId))
+            {
+                return Unauthorized("User is not authenticated.");
+            }
+
+            // Check if the authenticated user matches the userId in the request
+            if (authenticatedUserId != userId)
+            {
+                return Forbid("You are not authorized to access this order.");
+            }
+
             if (orderId <= 0)
             {
                 return BadRequest("Invalid Order ID.");
             }
 
-            Console.WriteLine($"Processing discounts for Order ID: {orderId}");
+            Console.WriteLine($"Processing discounts for Order ID: {orderId} by User ID: {userId}");
 
+            // Fetch the order and apply discounts
             var order = _context.Uzsakymai
                 .Include(o => o.PrekesUzsakymai)
                 .ThenInclude(pu => pu.Preke)
@@ -281,23 +305,22 @@ namespace Stotele.Server.Controllers
                 }
             }
 
-            decimal totalUpdatedPrice = 0;
-            foreach (var orderItem in order.PrekesUzsakymai)
-            {
-                totalUpdatedPrice += (decimal)orderItem.Kaina * orderItem.Kiekis;
-            }
+    // Update the total price
+    decimal totalUpdatedPrice = order.PrekesUzsakymai
+        .Sum(orderItem => (decimal)(orderItem.Kaina ?? orderItem.Preke.Kaina) * orderItem.Kiekis);
 
-            order.Suma = (double)totalUpdatedPrice;
-            _context.Entry(order).State = EntityState.Modified;
-            _context.SaveChanges();
+    order.Suma = (double)totalUpdatedPrice;
+    _context.Entry(order).State = EntityState.Modified;
+    _context.SaveChanges();
 
-            return Ok(new
-            {
-                Message = "Discounts applied successfully.",
-                UpdatedOrder = order,
-                TotalPrice = totalUpdatedPrice
-            });
-        }
+    return Ok(new
+    {
+        Message = "Discounts applied successfully.",
+        UpdatedOrder = order,
+        TotalPrice = totalUpdatedPrice
+    });
+}
+
 
 
         private List<CartItem> GetCartFromSession()

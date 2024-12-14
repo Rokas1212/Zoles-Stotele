@@ -16,9 +16,15 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
   useEffect(() => {
     const generateQRCode = async () => {
       try {
+        const token = localStorage.getItem('token');
         const response = await axios.post(
           "https://localhost:5210/api/Taskai/GenerateQR",
-          { orderId }
+          { orderId },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
         setQrCodeUrl(response.data.qrCodeUrl);
         console.log("QR code generated successfully:", response.data.qrCodeUrl);
@@ -26,29 +32,34 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
         console.error("Failed to generate QR code:", error);
       }
     };
+    
 
     generateQRCode();
   }, [orderId]); 
 
   const handleScanQR = async () => {
     try {
-      await axios.get(
-        `https://localhost:5210/api/Taskai/ApplyDiscounts?orderId=${orderId}`
-      );
-
+      const token = localStorage.getItem('token');
       const response = await axios.get(
-        `https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`
+        `https://localhost:5210/api/Taskai/ApplyDiscounts`,
+        {
+          params: { orderId },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
   
-      console.log("Updated order fetched successfully:", response.data);
-      onOrderUpdated(response.data);
-    } catch (error: any) {
+      console.log("Discounts applied successfully:", response.data);
+      onOrderUpdated(response.data.UpdatedOrder);
+    } catch (error) {
       console.error(
         "Failed to apply discounts or fetch updated order:",
-        error.response?.data || error.message
+        (error as any).response?.data || (error as any).message
       );
     }
   };
+  
   
   
 
