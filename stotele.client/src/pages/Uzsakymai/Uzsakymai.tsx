@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import Loading from "../../components/loading";
 
 const Uzsakymai = () => {
   const [orders, setOrders] = useState<any[]>([]);
@@ -20,7 +21,7 @@ const Uzsakymai = () => {
         }
 
         const data = await response.json();
-        console.log("Fetched orders:", data); // Log for debugging
+        console.log("Fetched orders:", data);
         setOrders(data);
       } catch (error) {
         console.error("Klaida:", error);
@@ -34,7 +35,7 @@ const Uzsakymai = () => {
   }, []);
 
   if (loading) {
-    return <div>Kraunama...</div>;
+    return <Loading />;
   }
 
   if (error) {

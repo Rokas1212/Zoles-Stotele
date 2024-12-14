@@ -16,9 +16,20 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
   useEffect(() => {
     const generateQRCode = async () => {
       try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.error("No token found. Please log in first.");
+          return;
+        }
+
         const response = await axios.post(
           "https://localhost:5210/api/Taskai/GenerateQR",
-          { orderId }
+          { orderId },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
         setQrCodeUrl(response.data.qrCodeUrl);
         console.log("QR code generated successfully:", response.data.qrCodeUrl);
@@ -28,40 +39,51 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
     };
 
     generateQRCode();
-  }, [orderId]); 
+  }, [orderId]);
 
   const handleScanQR = async () => {
     try {
-      await axios.post(
-        `https://localhost:5210/api/Taskai/ApplyDiscounts?orderId=${orderId}`
-      );
-
+      const token = localStorage.getItem('token');
+      if (!token) {
+        return; 
+      }
+  
+      const user = localStorage.getItem('user');
+      const userId = user ? JSON.parse(user).id : null;
+      if (!userId) {
+        return;
+      }
+  
       const response = await axios.get(
-        `https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`
+        `https://localhost:5210/api/Taskai/ApplyDiscounts`,
+        {
+          params: { orderId, userId },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
-      console.log("Updated order fetched successfully:", response.data);
-
-      // Pass updated order to parent component
-      onOrderUpdated(response.data);
+  
+      onOrderUpdated(response.data.UpdatedOrder);
     } catch (error: any) {
-      console.error(
-        "Failed to apply discounts or fetch updated order:",
-        error.response?.data || error.message
-      );
     }
   };
+  
 
   return (
     <div className="qr-container">
       {qrCodeUrl ? (
-        <div className="qr-display mt-3">
+        <div className="qr-display mt-3"
+             style={{ border: "1px solid #ddd", padding: "20px", borderRadius: "10px", backgroundColor: "#f8f9fa" }}>
           <img
             className="qr-image"
             src={qrCodeUrl}
             alt="Order QR Code"
-            style={{ width: "200px", height: "200px" }}
+            style={{ width: "200px", height: "200px", border: "2px solid #198754", borderRadius: "8px" }}
           />
-          <p className="mt-2">Nuskenuokite QR kodą norint pritaikyti nuolaidas.</p>
+          <p className="mt-2" style={{ fontStyle: "italic" }}>
+            Nuskenuokite QR kodą norint pritaikyti nuolaidas.
+          </p>
           <button
             className="qr-btn btn btn-success"
             onClick={handleScanQR}

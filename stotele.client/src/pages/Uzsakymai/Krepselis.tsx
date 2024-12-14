@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { fetchCart, createOrder, CartItem, removeFromCart } from "../../apiServices/cart";
-import { useNavigate } from "react-router-dom"; // For navigation
+import { useNavigate } from "react-router-dom";
 
 const Krepselis = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -28,12 +28,20 @@ const Krepselis = () => {
     try {
       const response = await createOrder(cart);
       alert(`Užsakymas ${response.orderId} sukurtas sėkmingai!`);
+  
+      await fetch("https://localhost:5210/api/krepselio/clear", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      setCart([]);
       navigate(`/uzsakymas/${response.orderId}`);
     } catch (error) {
       console.error("Klaida:", error);
       alert("Nepavyko sukurti užsakymo.");
     }
   };
+  
 
   const handleRemoveFromCart = async (id: string) => {
     try {
