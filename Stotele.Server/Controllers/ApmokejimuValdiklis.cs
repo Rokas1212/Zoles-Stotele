@@ -139,7 +139,8 @@ namespace Stotele.Server.Controllers
         {
             Console.WriteLine("PVM: " + PvmMoketojoKodas);
             Console.WriteLine("Order ID: " + orderId);
-            if (!CheckUser(orderId, int.Parse(User.FindFirstValue("UserId"))))
+            var UserId = int.Parse(User.FindFirstValue("UserId"));
+            if (!CheckUser(orderId, UserId))
             {
                 return Unauthorized("Neturite teisės apmokėti šio užsakymo.");
             }
@@ -167,16 +168,12 @@ namespace Stotele.Server.Controllers
             _dbContext.SaveChanges();
 
             // Send email notification
+            var userEmail = _dbContext.Naudotojai.Find(UserId).ElektroninisPastas;
             var emailSent = await _emailService.SendEmailAsync(
-                recipientEmail: "rokas.roktantu@gmail.com", // Replace with dynamic customer email
-                subject: "Order Confirmation",
-                message: $"Your order {orderId} has been placed successfully!"
+                recipientEmail: userEmail,
+                subject: "Užsakymo Patvirtinimas",
+                message: $"Užsakymas su ID: {orderId} sėkmingai pateiktas. Kurjeris susisieks telefonu. Ačiū, kad perkate pas mus!"
             );
-
-            if (!emailSent)
-            {
-                return StatusCode(500, "Order created, but failed to send email notification.");
-            }
             return Ok();
         }
 
