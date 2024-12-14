@@ -231,5 +231,35 @@ namespace Stotele.Server.Controllers
 
             return Ok($"Užsakymas su ID: {orderId} sėkmingai patvirtintas.");
         }
+
+        [HttpPut("cancel-order")]
+        public ActionResult CancelOrder([FromQuery] int orderId)
+        {
+            var userId = User.FindFirstValue("UserId");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("Nežinomas user ID.");
+            }
+
+            var order = _dbContext.Uzsakymai.Find(orderId);
+            if (order == null)
+            {
+                return NotFound($"Užsakymas su ID: {orderId} nerastas.");
+            }
+
+            if (order.NaudotojasId != int.Parse(userId))
+            {
+                return Unauthorized("Neturite teisės atšaukti šio užsakymo.");
+            }
+
+            var payment = _dbContext.Apmokejimai.FirstOrDefault(a => a.UzsakymasId == orderId);
+            if (payment != null)
+            {
+                payment.MokejimoStatusas = MokejimoStatusas.Grazinta;
+                _dbContext.SaveChanges();
+            }
+
+            return Ok($"Užsakymas su ID: {orderId} sėkmingai atšauktas.");
+        }
     }
 }
