@@ -14,6 +14,7 @@ const Apmokejimas = () => {
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [isPaid, setIsPaid] = useState<boolean>(false);
   useEffect(() => {
     const fetchOrder = async () => {
       try {
@@ -33,6 +34,19 @@ const Apmokejimas = () => {
       }
     };
 
+    const checkIfPaid = async () => {
+      try {
+        const response = await axios.get(`https://localhost:5210/api/apmokejimu/is-paid`, {
+          params: { orderId }, 
+        });
+        setIsPaid(response.data);
+        console.log('Is paid:', response.data);
+      } catch (error) {
+        console.error('Klaida:', error);
+      }
+    };
+
+    checkIfPaid();
     fetchOrder();
   }, [orderId]);
 
@@ -77,8 +91,12 @@ const Apmokejimas = () => {
   return (
     <div>
       <h1>Apmokėjimas</h1>
-      <p>Pasirinkite apmokėjimo būdą:</p>
-      <div style={{ display: 'flex', gap: '10px' }}>
+      {isPaid ? (
+      <div style={{ color: 'green' }}>Užsakymas apmokėtas sėkmingai!</div>
+      ) : (
+      <>
+        <p>Pasirinkite apmokėjimo būdą:</p>
+        <div style={{ display: 'flex', gap: '10px' }}>
         {/* Button for card payment */}
         <button
           onClick={handleCheckout}
@@ -90,7 +108,7 @@ const Apmokejimas = () => {
         {/* Button for cash payment */}
         <button
           onClick={handleCashPayment}
-          style={{ padding: '10px   20px', fontSize: '16px', cursor: 'pointer' }}
+          style={{ padding: '10px 20px', fontSize: '16px', cursor: 'pointer' }}
         >
           Mokėti Grynaisias
         </button>
@@ -102,7 +120,9 @@ const Apmokejimas = () => {
         >
           Mokėti Banko Pavedimu
         </button>
-      </div>
+        </div>
+      </>
+      )}
     </div>
   );
 };
