@@ -251,7 +251,7 @@ namespace Stotele.Server.Controllers
                 .Distinct()
                 .ToListAsync();
 
-            // Gauti pirmas 20 prekiu pagal ju svori, kurios nera blokuotos
+            // Isfiltruoti uzblokuotas prekes
             var prekes = await _context.Prekes
                 .Where(p => !uzblokuotosPrekes.Contains(p.Id))
                 .ToListAsync();
