@@ -15,6 +15,7 @@ const Uzsakymas = () => {
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const previousOrderRef = useRef<any>(null);
 
+  // Function to fetch order details
   const fetchOrder = async () => {
     try {
       const response = await fetch(`https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`, {
@@ -32,65 +33,77 @@ const Uzsakymas = () => {
         previousOrderRef.current = data;
       }
     } catch (err) {
-      setError("Klaida gaunant užsakymo informaciją");
+      console.error("Klaida:", err);
+      setError("Nepavyko gauti užsakymo informacijos.");
     } finally {
       setLoading(false);
     }
   };
 
-    const checkIfPaid = async () => {
-      try {
-        const response = await axios.get(`https://localhost:5210/api/apmokejimu/is-paid`, {
-          params: { orderId }, 
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        setIsPaid(response.data);
-        console.log('Is paid:', response.data);
-      } catch (error) {
-        console.error('Klaida:', error);
-      }
-    } catch {}
+  // Function to check if order is paid
+  const checkIfPaid = async () => {
+    try {
+      const response = await axios.get(`https://localhost:5210/api/apmokejimu/is-paid`, {
+        params: { orderId }, 
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      setIsPaid(response.data);
+      console.log('Is paid:', response.data);
+    } catch (error) {
+      console.error('Klaida:', error);
+    }
   };
 
-    checkIfPaid();
-
-    const checkIfConfirmed = async () => {
-      try {
-        const response = await axios.get(`https://localhost:5210/api/uzsakymu/is-confirmed`, {
-          params: { orderId }, 
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        setIsConfirmed(response.data);
-        console.log('Is confirmed:', response.data);
-      } catch (error) {
-        console.error('Klaida:', error);
-      }
-    };
-
-    checkIfConfirmed();
+  // Function to check if order is confirmed
+  const checkIfConfirmed = async () => {
+    try {
+      const response = await axios.get(`https://localhost:5210/api/uzsakymu/is-confirmed`, {
+        params: { orderId }, 
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      setIsConfirmed(response.data);
+      console.log('Is confirmed:', response.data);
+    } catch (error) {
+      console.error('Klaida:', error);
+    }
   };
 
+  // Start polling mechanism
+  const startPolling = () => {
+    pollingIntervalRef.current = setInterval(() => {
+      checkIfPaid();
+      checkIfConfirmed();
+    }, 30000); // Poll every 30 seconds
+  };
 
+  // Stop polling mechanism
+  const stopPolling = () => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+    }
+  };
 
   useEffect(() => {
     fetchOrder();
     checkIfPaid();
+    checkIfConfirmed();
     startPolling();
 
     return () => stopPolling();
   }, [orderId]);
 
   const handleBackToCart = () => {
-    //delete the created order
+    // Delete the created order
     axios.delete(`https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`, {
       withCredentials: true,
     });
     navigate("/krepselis");
   };
+
   const handleOrderUpdated = async () => {
     // Re-fetch the order after discounts are applied
     await fetchOrder();
@@ -107,7 +120,7 @@ const Uzsakymas = () => {
   const displayOrder = order || previousOrderRef.current;
 
   if (!displayOrder) {
-    return null;
+    return <div>Užsakymo informacija nerasta.</div>;
   }
 
   const handleConfirmOrder = async () => {
@@ -120,12 +133,11 @@ const Uzsakymas = () => {
       });
       console.log('Order confirmed:', response.data);
       setIsConfirmed(true);
-      navigate(`/apmokejimas/${order?.id}`);
+      navigate(`/apmokejimas/${displayOrder?.id}`);
     } catch (error) {
       console.error('Klaida:', error);
     }
-  }
-
+  };
 
   return (
     <div className="container mt-4">
@@ -189,10 +201,10 @@ const Uzsakymas = () => {
       {!isPaid ? 
       <>
         <div className="mt-4">
-          <QRCodeGenerator orderId={order.id} onOrderUpdated={handleOrderUpdated} />
+          <QRCodeGenerator orderId={displayOrder.id} onOrderUpdated={handleOrderUpdated} />
         </div>
         <button
-          onClick={() => handleBackToCart()}
+          onClick={handleBackToCart}
           className="btn btn-secondary mt-3"
         >
           Grįžti į krepšelį
@@ -201,13 +213,13 @@ const Uzsakymas = () => {
         {isConfirmed ? 
         <button
           className="btn btn-success mt-3"
-          onClick={() => navigate(`/apmokejimas/${order?.id}`)}
+          onClick={() => navigate(`/apmokejimas/${displayOrder?.id}`)}
         >
           Apmokėti
         </button>
         :
         <button
-          onClick={() => handleConfirmOrder()}
+          onClick={handleConfirmOrder}
           className="btn btn-primary mt-3"
         >
           Patvirtinti užsakymą
