@@ -44,6 +44,18 @@ namespace Stotele.Server.Controllers
             return Ok(payment.MokejimoStatusas == MokejimoStatusas.Apmoketa);
         }
 
+        private bool IsPaid(int orderId)
+        {
+            var payment = _dbContext.Apmokejimai.FirstOrDefault(p => p.UzsakymasId == orderId);
+
+            if (payment == null)
+            {
+                return false;
+            }
+
+            return payment.MokejimoStatusas == MokejimoStatusas.Apmoketa;
+        }
+
         [HttpPost("webhook")]
         public async Task<IActionResult> StripeWebhook()
         {
@@ -88,10 +100,66 @@ namespace Stotele.Server.Controllers
             }
         }
 
+        [HttpPost("create-checkout-transfer")]
+        public ActionResult CreateCheckoutBank([FromQuery] int orderId, [FromQuery] string PvmMoketojoKodas)
+        {
+            if (IsPaid(orderId))
+            {
+                //Return that order is paid for
+                return BadRequest("Užsakymas jau apmokėtas.");
+            }
+
+            var order = _dbContext.Uzsakymai
+                .Include(o => o.PrekesUzsakymai)
+                .ThenInclude(pu => pu.Preke)
+                .FirstOrDefault(o => o.Id == orderId);
+
+            if (order == null)
+            {
+                return NotFound($"Užsakymas su ID: {orderId} nerastas.");
+            }
+
+            CreatePayment(orderId, ApmokejimoMetodas.Pavedimas, PvmMoketojoKodas);
+
+            return Ok();
+        }
+
+        [HttpPost("create-checkout-cash")]
+        public ActionResult CreateCheckoutCash([FromQuery] int orderId, [FromQuery] string PvmMoketojoKodas)
+        {
+            if (IsPaid(orderId))
+            {
+                //Return that order is paid for
+                return BadRequest("Užsakymas jau apmokėtas.");
+            }
+
+            var order = _dbContext.Uzsakymai
+                .Include(o => o.PrekesUzsakymai)
+                .ThenInclude(pu => pu.Preke)
+                .FirstOrDefault(o => o.Id == orderId);
+
+            if (order == null)
+            {
+                return NotFound($"Užsakymas su ID: {orderId} nerastas.");
+            }
+
+
+            var payment = CreatePayment(orderId, ApmokejimoMetodas.Grynaisiais, PvmMoketojoKodas);
+
+            payment.MokejimoStatusas = MokejimoStatusas.Apmoketa;
+
+            return Ok();
+        }
 
         [HttpPost("create-checkout-session/{orderId}&{PvmMoketojoKodas}")]
         public ActionResult CreateCheckoutSession(int orderId, string PvmMoketojoKodas)
         {
+            if (IsPaid(orderId))
+            {
+                //Return that order is paid for
+                return BadRequest("Užsakymas jau apmokėtas.");
+            }
+
             var order = _dbContext.Uzsakymai
                 .Include(o => o.PrekesUzsakymai)
                 .ThenInclude(pu => pu.Preke)
@@ -153,6 +221,21 @@ namespace Stotele.Server.Controllers
             if (order == null)
             {
                 throw new InvalidOperationException($"Order with ID {orderId} not found.");
+            }
+
+            var check = _dbContext.Apmokejimai.FirstOrDefault(a => a.UzsakymasId == orderId);
+            if (check != null)
+            {
+                if (check.MokejimoStatusas == MokejimoStatusas.Apmoketa)
+                {
+                    return check;
+                }
+
+                //update
+                check.ApmokejimoMetodas = apmokejimoMetodas;
+                check.PvmMoketojoKodas = pvmMoketojoKodas;
+                _dbContext.SaveChanges();
+                return check;
             }
 
             var payment = new Apmokejimas

@@ -58,6 +58,43 @@ namespace Stotele.Server.Controllers
             return Ok(ordersWithPayments);
         }
 
+        [HttpDelete("uzsakymas/{orderId}")]
+        public ActionResult DeleteOrder(int orderId)
+        {
+            var userId = User.FindFirstValue("UserId");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("Nežinomas user ID.");
+            }
+
+            if (!int.TryParse(userId, out int parsedUserId))
+            {
+                return BadRequest("Neteisingas user ID formatas.");
+            }
+
+            var order = _dbContext.Uzsakymai.Find();
+            if (order == null)
+            {
+                return NotFound($"Užsakymas su ID: {orderId} nerastas.");
+            }
+
+            if (order.NaudotojasId != parsedUserId && !User.IsInRole("Admin"))
+            {
+                return Unauthorized("Neturite teisės ištrinti šio užsakymo.");
+            }
+
+            var payment = _dbContext.Apmokejimai.FirstOrDefault(a => a.UzsakymasId == orderId);
+            if (payment != null)
+            {
+                _dbContext.Apmokejimai.Remove(payment);
+            }
+
+            _dbContext.Uzsakymai.Remove(order);
+            _dbContext.SaveChanges();
+
+            return Ok($"Užsakymas su ID: {orderId} sėkmingai ištrintas.");
+        }
+
         [HttpGet("uzsakymas/{id}")]
         public ActionResult GetOrder(int id)
         {
@@ -143,6 +180,56 @@ namespace Stotele.Server.Controllers
                 Message = "Užsakymas sėkmingai sukurtas.",
                 OrderId = order.Id
             });
+        }
+
+        [HttpGet("is-confirmed")]
+        public ActionResult IsOrderConfirmed([FromQuery] int orderId)
+        {
+            var userId = User.FindFirstValue("UserId");
+            Console.WriteLine($"User ID: {userId}");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("Nežinomas user ID.");
+            }
+
+            var order = _dbContext.Uzsakymai.Find(orderId);
+            if (order == null)
+            {
+                return NotFound($"Užsakymas su ID: {orderId} nerastas.");
+            }
+
+            if (order.NaudotojasId != int.Parse(userId) && !User.IsInRole("Admin"))
+            {
+                return Unauthorized("Neturite teisės patikrinti šio užsakymo.");
+            }
+
+            return Ok(order.Patvirtintas);
+        }
+
+        [HttpPut("confirm-order")]
+        public ActionResult ConfirmOrder([FromQuery] int orderId)
+        {
+            var userId = User.FindFirstValue("UserId");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("Nežinomas user ID.");
+            }
+
+            var order = _dbContext.Uzsakymai.Find(orderId);
+            if (order == null)
+            {
+                return NotFound($"Užsakymas su ID: {orderId} nerastas.");
+            }
+
+            if (order.NaudotojasId != int.Parse(userId))
+            {
+                return Unauthorized("Neturite teisės patvirtinti šio užsakymo.");
+            }
+
+            order.Patvirtintas = true;
+            _dbContext.SaveChanges();
+
+            return Ok($"Užsakymas su ID: {orderId} sėkmingai patvirtintas.");
         }
     }
 }

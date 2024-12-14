@@ -3,18 +3,17 @@ import { loadStripe } from '@stripe/stripe-js';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 
-
-
 // Load your Stripe publishable key
 const stripePromise = loadStripe('pk_test_51BrUMKBUtGUmzKJGptzSuF8yfO5pzm83qFs6We6l7ZM7l3ko9vmbrwBdkCNlBeBWzIyMQpcmVsoslM3pFTBm7HJw00f9qd9h0J');
 
 const Apmokejimas = () => {
-  
   const { orderId } = useParams();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isPaid, setIsPaid] = useState<boolean>(false);
+  const [pvmMoketojoKodas, setPvmMoketojoKodas] = useState<string>(''); // Added for PVM Moketojo Kodas
+
   useEffect(() => {
     const fetchOrder = async () => {
       try {
@@ -59,24 +58,32 @@ const Apmokejimas = () => {
   }
 
   const handleCheckout = async () => {
+    if (!pvmMoketojoKodas) {
+      alert('Prašome įvesti PVM Mokėtojo Kodą.');
+      return;
+    }
+
     const stripe = await stripePromise;
 
     if (!stripe) {
       console.error('Stripe failed to initialize.');
       return;
     }
-    var PvmMoketojoKodas = "1249815";
-    // Replace with your session ID from the backend
-    const response = await axios.post(`https://localhost:5210/api/apmokejimu/create-checkout-session/${orderId}&${PvmMoketojoKodas}`);
-    const sessionId = response.data.sessionId;
 
-    // Redirect to the Stripe Checkout page
-    const { error } = await stripe.redirectToCheckout({
-      sessionId,
-    });
+    try {
+      const response = await axios.post(`https://localhost:5210/api/apmokejimu/create-checkout-session/${orderId}&${pvmMoketojoKodas}`);
+      const sessionId = response.data.sessionId;
 
-    if (error) {
-      console.error('Klaida:', error.message);
+      // Redirect to the Stripe Checkout page
+      const { error } = await stripe.redirectToCheckout({
+        sessionId,
+      });
+
+      if (error) {
+        console.error('Klaida:', error.message);
+      }
+    } catch (error) {
+      console.error('Klaida:', error);
     }
   };
 
@@ -92,36 +99,59 @@ const Apmokejimas = () => {
     <div>
       <h1>Apmokėjimas</h1>
       {isPaid ? (
-      <div style={{ color: 'green' }}>Užsakymas apmokėtas sėkmingai!</div>
+        <div style={{ color: 'green' }}>Užsakymas apmokėtas sėkmingai!</div>
       ) : (
-      <>
-        <p>Pasirinkite apmokėjimo būdą:</p>
-        <div style={{ display: 'flex', gap: '10px' }}>
-        {/* Button for card payment */}
-        <button
-          onClick={handleCheckout}
-          style={{ padding: '10px 20px', fontSize: '16px', cursor: 'pointer' }}
-        >
-          Mokėti Kortele
-        </button>
+        <>
+          <p>Pasirinkite apmokėjimo būdą:</p>
 
-        {/* Button for cash payment */}
-        <button
-          onClick={handleCashPayment}
-          style={{ padding: '10px 20px', fontSize: '16px', cursor: 'pointer' }}
-        >
-          Mokėti Grynaisias
-        </button>
+          {/* Input field for PVM Mokėtojo Kodas */}
+          <div style={{ marginBottom: '20px' }}>
+            <label htmlFor="pvmMoketojoKodas" style={{ display: 'block', marginBottom: '5px' }}>
+              Įveskite PVM Mokėtojo Kodą:
+            </label>
+            <input
+              id="pvmMoketojoKodas"
+              type="text"
+              value={pvmMoketojoKodas}
+              onChange={(e) => setPvmMoketojoKodas(e.target.value)}
+              placeholder="123456789"
+              style={{
+                padding: '10px',
+                fontSize: '16px',
+                borderRadius: '4px',
+                border: '1px solid #ccc',
+                width: '100%',
+                maxWidth: '300px',
+              }}
+            />
+          </div>
 
-        {/* Button for bank transfer */}
-        <button
-          onClick={handleBankTransfer}
-          style={{ padding: '10px 20px', fontSize: '16px', cursor: 'pointer' }}
-        >
-          Mokėti Banko Pavedimu
-        </button>
-        </div>
-      </>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            {/* Button for card payment */}
+            <button
+              onClick={handleCheckout}
+              style={{ padding: '10px 20px', fontSize: '16px', cursor: 'pointer' }}
+            >
+              Mokėti Kortele
+            </button>
+
+            {/* Button for cash payment */}
+            <button
+              onClick={handleCashPayment}
+              style={{ padding: '10px 20px', fontSize: '16px', cursor: 'pointer' }}
+            >
+              Mokėti Grynaisias
+            </button>
+
+            {/* Button for bank transfer */}
+            <button
+              onClick={handleBankTransfer}
+              style={{ padding: '10px 20px', fontSize: '16px', cursor: 'pointer' }}
+            >
+              Mokėti Banko Pavedimu
+            </button>
+          </div>
+        </>
       )}
     </div>
   );

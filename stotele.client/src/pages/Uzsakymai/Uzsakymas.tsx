@@ -9,6 +9,7 @@ const Uzsakymas = () => {
   const [loading, setLoading] = useState<boolean>(true); // Loading state
   const [error, setError] = useState<string | null>(null); // Error state
   const [isPaid, setIsPaid] = useState<boolean>(false); // State to store if the order is paid
+  const [isConfirmed, setIsConfirmed] = useState<boolean>(false); // State to store if the order is confirmed
   const navigate = useNavigate();
 
   // Function to fetch order details
@@ -16,6 +17,9 @@ const Uzsakymas = () => {
     try {
       const response = await fetch(`https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`, {
         credentials: "include",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       });
       if (!response.ok) {
         throw new Error("Nepavyko gauti užsakymo informacijos.");
@@ -33,6 +37,9 @@ const Uzsakymas = () => {
       try {
         const response = await axios.get(`https://localhost:5210/api/apmokejimu/is-paid`, {
           params: { orderId }, 
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         });
         setIsPaid(response.data);
         console.log('Is paid:', response.data);
@@ -42,12 +49,38 @@ const Uzsakymas = () => {
     };
 
     checkIfPaid();
+
+    const checkIfConfirmed = async () => {
+      try {
+        const response = await axios.get(`https://localhost:5210/api/uzsakymu/is-confirmed`, {
+          params: { orderId }, 
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        setIsConfirmed(response.data);
+        console.log('Is confirmed:', response.data);
+      } catch (error) {
+        console.error('Klaida:', error);
+      }
+    };
+
+    checkIfConfirmed();
   };
+
+
 
   useEffect(() => {
     fetchOrder();
   }, [orderId]);
 
+  const handleBackToCart = () => {
+    //delete the created order
+    axios.delete(`https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`, {
+      withCredentials: true,
+    });
+    navigate("/krepselis");
+  };
   const handleOrderUpdated = async () => {
     // Re-fetch the order after discounts are applied
     await fetchOrder();
@@ -66,7 +99,21 @@ const Uzsakymas = () => {
     return <div>Užsakymo informacija nerasta.</div>;
   }
 
-  //Check if order is paid
+  const handleConfirmOrder = async () => {
+    try {
+      const response = await axios.put(`https://localhost:5210/api/uzsakymu/confirm-order/`, null, {
+        params: { orderId },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      console.log('Order confirmed:', response.data);
+      setIsConfirmed(true);
+      navigate(`/apmokejimas/${order?.id}`);
+    } catch (error) {
+      console.error('Klaida:', error);
+    }
+  }
 
 
   return (
@@ -132,18 +179,39 @@ const Uzsakymas = () => {
       </table>
 
       {!isPaid ? 
-      <><div className="mt-4">
+      <>
+        <div className="mt-4">
           <QRCodeGenerator orderId={order.id} onOrderUpdated={handleOrderUpdated} />
-        </div><button
+        </div>
+        <button
+          onClick={() => handleBackToCart()}
+          className="btn btn-secondary mt-3"
+        >
+          Grįžti į krepšelį
+        </button>
+
+        {isConfirmed ? 
+        <button
+          className="btn btn-success mt-3"
           onClick={() => navigate(`/apmokejimas/${order?.id}`)}
+        >
+          Apmokėti
+        </button>
+        :
+        <button
+          onClick={() => handleConfirmOrder()}
           className="btn btn-primary mt-3"
         >
-            Patvirtinti užsakymą
-          </button></>
-      
-      : <button
+          Patvirtinti užsakymą
+        </button>
+        }
+      </>
+      : 
+      <button
         className="btn btn-danger mt-3"
-      >Atšaukti užsakymą</button> 
+      >
+        Atšaukti užsakymą
+      </button> 
       }
     </div>
   );
