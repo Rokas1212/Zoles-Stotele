@@ -115,7 +115,6 @@ namespace Stotele.Server.Controllers
         }
 
 
-
         // Endpointai skirti kategorijom
         [HttpGet("/blokuotos-rekomendacijos/{naudotojasId}")]
         public async Task<ActionResult<IEnumerable<UzblokuotaRekomendacijaDTO>>> GetBlokuotosRekomendacijos(int naudotojasId)
@@ -203,6 +202,92 @@ namespace Stotele.Server.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(new { Message = "Rekomendacija atblokuota", UzblokuotaRekomendacija = uzblokuotaRekomendacija });
+        }
+
+        //Gauti atrinktas rekomendacijas
+        [HttpGet("/rekomendacijos/{naudotojasId}")]
+        public async Task<ActionResult<IEnumerable<UzblokuotaRekomendacijaDTO>>> GetRekomendacijos(int naudotojasId)
+        {
+            var klientas = await _context.Klientai.FindAsync(naudotojasId);
+            if (klientas == null)
+            {
+                return NotFound(new { Message = "Klientas nerastas" });
+            }
+
+            // Gauti uzblokuotas prekes
+            var uzblokuotosPrekes = await _context.UzblokuotosRekomendacijos
+                .Where(ur => ur.KlientasId == naudotojasId)
+                .Select(ur => ur.PrekeId)
+                .ToListAsync();
+
+            // Gauti vartotojo megstamas kategorijas (kategoriju ids)
+            var megstamosKategorijosIds = await _context.MegstamosKategorijos
+                .Where(mk => mk.KlientasId == naudotojasId)
+                .Select(mk => mk.KategorijaId)
+                .ToListAsync();
+
+            // Atrinkti prekiu ids pagal vartotojo megstamas kategorijas
+            var megstamosPrekesIds = await _context.PrekesKategorijos
+                .Where(pk => megstamosKategorijosIds.Contains(pk.KategorijaId))
+                .Select(pk => pk.PrekeId)
+                .Distinct()
+                .ToListAsync();
+
+            // Gauti paskutines 5 perziuretas prekes (distinct) pagal vartotojo id
+            var perziuretosPrekesIds = await _context.PrekesPerziuros
+                .Where(pp => pp.KlientasId == naudotojasId)
+                .OrderByDescending(pp => pp.Data)
+                .Select(pp => pp.PrekeId)
+                .Distinct()
+                .Take(5)
+                .ToListAsync();
+
+            // Gauti prekes ids, kurias vartotojas yra nupirkes
+            var nupirktosPrekesIds = await _context.PrekesUzsakymai
+                .Where(pu => pu.Uzsakymas.NaudotojasId == naudotojasId &&
+                             _context.Apmokejimai.Any(a => a.UzsakymasId == pu.UzsakymasId &&
+                                                            a.MokejimoStatusas == MokejimoStatusas.Apmoketa))
+                .Select(pu => pu.PrekeId)
+                .Distinct()
+                .ToListAsync();
+
+            // Gauti pirmas 20 prekiu pagal ju svori, kurios nera blokuotos
+            var prekes = await _context.Prekes
+                .Where(p => !uzblokuotosPrekes.Contains(p.Id))
+                .ToListAsync();
+
+
+            // Prideti prie prekiu svorio pagal jei jos yra megstamose kategorijose
+            var rekomendacijosPrekes = prekes
+                .Select(p =>
+                {
+                    if (megstamosPrekesIds.Contains(p.Id))
+                    {
+                        p.RekomendacijosSvoris += 0.08;
+                    }
+
+                    if (perziuretosPrekesIds.Contains(p.Id))
+                    {
+                        p.RekomendacijosSvoris += 0.04;
+                    }
+
+                    if (nupirktosPrekesIds.Contains(p.Id))
+                    {
+                        p.RekomendacijosSvoris += 0.12;
+                    }
+
+                    return p;
+                })
+                .OrderByDescending(p => p.RekomendacijosSvoris)
+                .Take(20)
+                .ToList();
+
+            if (prekes.Count == 0)
+            {
+                return NotFound(new { Message = "Nera prekiu" });
+            }
+
+            return Ok(new { Message = "Atrinktos rekomendacijos pagal filtrus", Prekes = rekomendacijosPrekes.Take(4) });
         }
     }
 }

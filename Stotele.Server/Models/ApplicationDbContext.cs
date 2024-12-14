@@ -26,7 +26,7 @@ namespace Stotele.Server.Models.ApplicationDbContexts
         public DbSet<PrekesKategorija> PrekesKategorijos { get; set; }
         public DbSet<PrekesParduotuve> PrekesParduotuves { get; set; }
         public DbSet<PrekesUzsakymas> PrekesUzsakymai { get; set; }
-        public DbSet<UzblokuotosRekomendacijos> UzblokuotosRekomendacijos { get; set; }
+        public DbSet<UzblokuotaRekomendacija> UzblokuotosRekomendacijos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

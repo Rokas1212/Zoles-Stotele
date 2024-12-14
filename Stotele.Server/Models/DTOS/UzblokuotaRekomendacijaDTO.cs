@@ -1,6 +1,6 @@
 namespace Stotele.Server.Models
 {
-    public class UzblokuotosRekomendacijos
+    public class UzblokuotaRekomendacijaDTO
     {
         public int Id { get; set; }
         public int KlientasId { get; set; }
