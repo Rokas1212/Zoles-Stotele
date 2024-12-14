@@ -17,5 +17,6 @@ namespace Stotele.Server.Models
 
         [JsonIgnore]
         public Uzsakymas Uzsakymas { get; set; }
+        public double? Kaina { get; set; }
     }
 }

@@ -66,11 +66,11 @@ namespace Stotele.Server.Controllers
                 Kaina = dto.Kaina,
                 Pavadinimas = dto.Pavadinimas,
                 Kodas = dto.Kodas,
-                GaliojimoData = dto.GaliojimoData,
+                GaliojimoData = DateTime.SpecifyKind(dto.GaliojimoData, DateTimeKind.Utc),
                 Kiekis = dto.Kiekis,
                 Ismatavimai = dto.Ismatavimai,
                 NuotraukosUrl = dto.NuotraukosUrl,
-                GarantinisLaikotarpis = dto.GarantinisLaikotarpis,
+                GarantinisLaikotarpis = DateTime.SpecifyKind(dto.GarantinisLaikotarpis, DateTimeKind.Utc),
                 Aprasymas = dto.Aprasymas,
                 RekomendacijosSvoris = dto.RekomendacijosSvoris,
                 Mase = dto.Mase,
@@ -82,6 +82,7 @@ namespace Stotele.Server.Controllers
 
             return CreatedAtAction(nameof(GetPreke), new { id = preke.Id }, preke);
         }
+
 
         // PUT: api/Preke/{id}
         [HttpPut("{id}")]

@@ -51,9 +51,9 @@ const Apmokejimas = () => {
       console.error('Stripe failed to initialize.');
       return;
     }
-
+    var PvmMoketojoKodas = "1249815";
     // Replace with your session ID from the backend
-    const response = await axios.post(`https://localhost:5210/api/uzsakymu/create-checkout-session/${orderId}`);
+    const response = await axios.post(`https://localhost:5210/api/apmokejimu/create-checkout-session/${orderId}&${PvmMoketojoKodas}`);
     const sessionId = response.data.sessionId;
 
     // Redirect to the Stripe Checkout page
