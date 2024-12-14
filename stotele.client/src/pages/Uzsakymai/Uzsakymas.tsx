@@ -99,7 +99,10 @@ const Uzsakymas = () => {
   const handleBackToCart = () => {
     // Delete the created order
     axios.delete(`https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`, {
-      withCredentials: true,
+      withCredentials: true, 
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
     });
     navigate("/krepselis");
   };
@@ -133,6 +136,12 @@ const Uzsakymas = () => {
       });
       console.log('Order confirmed:', response.data);
       setIsConfirmed(true);
+        
+      await fetch("https://localhost:5210/api/krepselio/clear", {
+        method: "POST",
+        credentials: "include",
+      });
+
       navigate(`/apmokejimas/${displayOrder?.id}`);
     } catch (error) {
       console.error('Klaida:', error);

@@ -72,7 +72,7 @@ namespace Stotele.Server.Controllers
                 return BadRequest("Neteisingas user ID formatas.");
             }
 
-            var order = _dbContext.Uzsakymai.Find();
+            var order = _dbContext.Uzsakymai.Find(orderId);
             if (order == null)
             {
                 return NotFound($"Užsakymas su ID: {orderId} nerastas.");

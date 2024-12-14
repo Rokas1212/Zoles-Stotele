@@ -27,14 +27,6 @@ const Krepselis = () => {
   const handleCreateOrder = async () => {
     try {
       const response = await createOrder(cart);
-      alert(`Užsakymas ${response.orderId} sukurtas sėkmingai!`);
-  
-      await fetch("https://localhost:5210/api/krepselio/clear", {
-        method: "POST",
-        credentials: "include",
-      });
-
-      setCart([]);
       navigate(`/uzsakymas/${response.orderId}`);
     } catch (error) {
       console.error("Klaida:", error);
