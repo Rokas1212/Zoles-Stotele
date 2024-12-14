@@ -17,6 +17,11 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
     const generateQRCode = async () => {
       try {
         const token = localStorage.getItem('token');
+        if (!token) {
+          console.error("No token found. Please log in first.");
+          return;
+        }
+
         const response = await axios.post(
           "https://localhost:5210/api/Taskai/GenerateQR",
           { orderId },
@@ -32,41 +37,44 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
         console.error("Failed to generate QR code:", error);
       }
     };
-    
 
     generateQRCode();
-  }, [orderId]); 
+  }, [orderId]);
 
   const handleScanQR = async () => {
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        return; 
+      }
+  
+      const user = localStorage.getItem('user');
+      const userId = user ? JSON.parse(user).id : null;
+      if (!userId) {
+        return;
+      }
+  
       const response = await axios.get(
         `https://localhost:5210/api/Taskai/ApplyDiscounts`,
         {
-          params: { orderId },
+          params: { orderId, userId },
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
   
-      console.log("Discounts applied successfully:", response.data);
       onOrderUpdated(response.data.UpdatedOrder);
-    } catch (error) {
-      console.error(
-        "Failed to apply discounts or fetch updated order:",
-        (error as any).response?.data || (error as any).message
-      );
+    } catch (error: any) {
     }
   };
-  
-  
   
 
   return (
     <div className="qr-container">
       {qrCodeUrl ? (
-        <div className="qr-display mt-3" style={{ border: "1px solid #ddd", padding: "20px", borderRadius: "10px", backgroundColor: "#f8f9fa" }}>
+        <div className="qr-display mt-3"
+             style={{ border: "1px solid #ddd", padding: "20px", borderRadius: "10px", backgroundColor: "#f8f9fa" }}>
           <img
             className="qr-image"
             src={qrCodeUrl}

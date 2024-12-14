@@ -2,15 +2,17 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import QRCodeGenerator from "../../components/qrgeneration";
 import axios from "axios";
+import Loading from "../../components/loading";
 
 const Uzsakymas = () => {
   const { orderId } = useParams();
   const [order, setOrder] = useState<any>(null);
-  const [loading, setLoading] = useState<boolean>(true); 
-  const [error, setError] = useState<string | null>(null); 
-  const [isPaid, setIsPaid] = useState<boolean>(false); 
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isPaid, setIsPaid] = useState<boolean>(false);
   const navigate = useNavigate();
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const previousOrderRef = useRef<any>(null);
 
   const fetchOrder = async () => {
     try {
@@ -23,9 +25,11 @@ const Uzsakymas = () => {
       }
       const data = await response.json();
       setOrder(data);
-    } catch (error) {
-      console.error("Klaida:", error);
-      setError("Nepavyko gauti užsakymo informacijos.");
+      if (data) {
+        previousOrderRef.current = data;
+      }
+    } catch (err) {
+      setError("Klaida gaunant užsakymo informaciją");
     } finally {
       setLoading(false);
     }
@@ -37,14 +41,11 @@ const Uzsakymas = () => {
         params: { orderId },
       });
       setIsPaid(response.data);
-      console.log("Is paid:", response.data);
 
       if (response.data || (order && order.suma !== order.originalSuma)) {
         stopPolling();
       }
-    } catch (error) {
-      console.error("Klaida:", error);
-    }
+    } catch {}
   };
 
   const startPolling = () => {
@@ -79,23 +80,25 @@ const Uzsakymas = () => {
   };
 
   if (loading) {
-    return <div>Kraunama užsakymo informacija...</div>;
+    return <Loading />;
   }
 
   if (error) {
     return <div>{error}</div>;
   }
 
-  if (!order) {
-    return <div>Užsakymo informacija nerasta.</div>;
+  const displayOrder = order || previousOrderRef.current;
+
+  if (!displayOrder) {
+    return null;
   }
 
   return (
     <div className="container mt-4">
-      <h1>Užsakymo ID: {order.id}</h1>
-      <p>Data: {new Date(order.data).toLocaleDateString()}</p>
+      <h1>Užsakymo ID: {displayOrder.id}</h1>
+      <p>Data: {new Date(displayOrder.data).toLocaleDateString()}</p>
       <h3 className="mt-3">
-        Bendra suma: <span className="text-success">€{order.suma.toFixed(2)}</span>
+        Bendra suma: <span className="text-success">€{displayOrder.suma.toFixed(2)}</span>
       </h3>
 
       <h2 className="mt-4">Prekės</h2>
@@ -111,9 +114,9 @@ const Uzsakymas = () => {
           </tr>
         </thead>
         <tbody>
-          {order.prekesUzsakymai.map((item: any) => {
-            const originalPrice = item.preke.kaina; // Original price from the product
-            const discountedPrice = item.kaina ?? originalPrice; // Fallback to original price if `kaina` is null
+          {displayOrder.prekesUzsakymai.map((item: any) => {
+            const originalPrice = item.preke.kaina;
+            const discountedPrice = item.kaina ?? originalPrice;
             const quantity = item.kiekis;
             const totalLine = discountedPrice * quantity;
 
@@ -152,10 +155,10 @@ const Uzsakymas = () => {
       {!isPaid ? (
         <>
           <div className="mt-4">
-            <QRCodeGenerator orderId={order.id} onOrderUpdated={handleOrderUpdated} />
+            <QRCodeGenerator orderId={displayOrder.id} onOrderUpdated={handleOrderUpdated} />
           </div>
           <button
-            onClick={() => navigate(`/apmokejimas/${order?.id}`)}
+            onClick={() => navigate(`/apmokejimas/${displayOrder?.id}`)}
             className="btn btn-primary mt-3"
           >
             Patvirtinti užsakymą
