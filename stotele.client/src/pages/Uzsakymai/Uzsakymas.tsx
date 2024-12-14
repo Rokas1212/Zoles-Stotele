@@ -12,6 +12,7 @@ const Uzsakymas = () => {
   const [loading, setLoading] = useState<boolean>(true); // Loading state
   const [error, setError] = useState<string | null>(null); // Error state
   const [isPaid, setIsPaid] = useState<boolean>(false); // State to store if the order is paid
+  const [isCancelled, setIsCancelled] = useState<boolean>(false); // State to store if the order is cancelled
   const [isConfirmed, setIsConfirmed] = useState<boolean>(false); // State to store if the order is confirmed
   const [usedPoints, setUsedPoints] = useState<boolean>(false); // Whether points have been used
   const navigate = useNavigate();
@@ -95,6 +96,23 @@ const Uzsakymas = () => {
     }
   };
 
+  const checkIfCancelled = async () => {
+    try {
+      const response = await axios.get(
+        `https://localhost:5210/api/uzsakymu/is-cancelled`,
+        {
+          params: { orderId },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      setIsCancelled(response.data);
+    } catch (error) {
+      console.error("Klaida:", error);
+    }
+  };
+
   // Function to check if order is confirmed
   const checkIfConfirmed = async () => {
     try {
@@ -133,6 +151,7 @@ const Uzsakymas = () => {
     fetchOrder();
     checkIfPaid();
     checkIfConfirmed();
+    checkIfCancelled();
     startPolling();
     fetchUserPoints();
 
@@ -141,10 +160,16 @@ const Uzsakymas = () => {
 
   const handleBackToCart = () => {
     // If points have already been used, disable the action
-    if (usedPoints) return;
+    if (usedPoints) {
+      alert("Taškai jau panaudoti, tad grįžti nebegalite.");
+      return;
+    } 
+      
 
     // Delete the created order
-    axios
+    if(!isConfirmed)
+    {
+       axios
       .delete(`https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`, {
         withCredentials: true,
         headers: {
@@ -155,7 +180,49 @@ const Uzsakymas = () => {
         navigate("/krepselis");
       })
       .catch((error) => console.error("Failed to delete order:", error));
+    } else {
+      navigate("/uzsakymai");
+    }
   };
+
+  const handleCancelOrder = async () => {
+    try {
+      var confirmation = window.confirm("Ar tikrai norite atšaukti užsakymą?");
+      if (!confirmation) {
+        return;
+      }
+      //Get order info
+      const response = await axios.get(`https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      //Get order data
+      const orderData = response.data;
+      
+      //If order date is more than 24 hours, don't allow to cancel
+      const orderDate = new Date(orderData.data);
+      const currentDate = new Date();
+      const diffInMs = currentDate.getTime() - orderDate.getTime();
+      const diffInHours = diffInMs / (1000 * 60 * 60);
+      if (diffInHours > 24) {
+        alert('Užsakymą galima atšaukti tik per 24 valandas nuo užsakymo datos.');
+        return;
+      }
+
+      //Cancel order
+      await axios.put(`https://localhost:5210/api/uzsakymu/cancel-order`, null, {
+        params: { orderId },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      navigate("/uzsakymai");
+    } catch (error) {
+      console.error('Klaida:', error);
+    }
+  }
 
   const handleOrderUpdated = async () => {
     // Re-fetch the order after discounts are applied
@@ -209,23 +276,21 @@ const Uzsakymas = () => {
       <h3 className="mt-3">
         Bendra suma: <span className="text-success">€{displayOrder.suma.toFixed(2)}</span>
       </h3>
-      <h3 className="mt-3">
-        Turimi taškai:{" "}
-        <span className="text-primary">
-          {points !== null ? `${points} taškų` : "Nepavyko gauti taškų"}
-        </span>
-      </h3>
-
-      <LoyaltyPoints
-        orderId={displayOrder.id}
-        totalOrderPrice={displayOrder.suma}
-        onOrderUpdated={(updatedOrder) => setOrder(updatedOrder)}
-        onPointsUpdated={(remainingPoints) => {
-          setPoints(remainingPoints);
-          setUsedPoints(true); // Mark that points have been used
-        }}
-      />
-
+      {!isCancelled && !isPaid && (
+        <><h3 className="mt-3">
+          Turimi taškai:{" "}
+          <span className="text-primary">
+            {points !== null ? `${points} taškų` : "Nepavyko gauti taškų"}
+          </span>
+        </h3><LoyaltyPoints
+            orderId={displayOrder.id}
+            totalOrderPrice={displayOrder.suma}
+            onOrderUpdated={(updatedOrder) => setOrder(updatedOrder)}
+            onPointsUpdated={(remainingPoints) => {
+              setPoints(remainingPoints);
+              setUsedPoints(true); // Mark that points have been used
+            } } /></>
+      )}
       <h2 className="mt-4">Prekės</h2>
       <table className="table table-striped table-hover mt-3">
         <thead style={{ backgroundColor: "#198754", color: "#fff" }}>
@@ -277,18 +342,21 @@ const Uzsakymas = () => {
         </tbody>
       </table>
 
-      {!isPaid ? (
+      {!isPaid && !isCancelled ? (
         <>
-          <div className="mt-4">
-            <QRCodeGenerator orderId={displayOrder.id} onOrderUpdated={handleOrderUpdated} />
-          </div>
+          {!isCancelled && (
+            <div className="mt-4">
+              <QRCodeGenerator orderId={displayOrder.id} onOrderUpdated={handleOrderUpdated} />
+            </div>
+          )
+          }
           <div className="button-container">
             <button
               onClick={handleBackToCart}
               className={`custom-btn back-btn ${usedPoints ? "disabled" : ""}`}
               disabled={usedPoints} // Disable button if points are used
             >
-              Grįžti į krepšelį
+              Atgal
             </button>
 
             {isConfirmed ? (
@@ -305,8 +373,19 @@ const Uzsakymas = () => {
             )}
           </div>
         </>
+      ) : !isCancelled ? (
+        <button 
+        onClick={handleCancelOrder}
+        className="btn btn-danger mt-3">Atšaukti užsakymą
+        </button>
       ) : (
-        <button className="btn btn-danger mt-3">Atšaukti užsakymą</button>
+        <><div className="alert alert-danger mt-3">Užsakymas atšauktas</div>
+              <button
+                onClick={() => navigate("/uzsakymai")}
+                className="btn btn-primary mt-3"
+              >
+                Atgal į užsakymus
+              </button></>
       )}
     </div>
   );

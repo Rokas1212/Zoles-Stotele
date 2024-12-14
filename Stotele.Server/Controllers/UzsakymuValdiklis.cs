@@ -206,6 +206,35 @@ namespace Stotele.Server.Controllers
             return Ok(order.Patvirtintas);
         }
 
+        [HttpGet("is-cancelled")]
+        public ActionResult IsOrderCancelled([FromQuery] int orderId)
+        {
+            var userId = User.FindFirstValue("UserId");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("Nežinomas user ID.");
+            }
+
+            var order = _dbContext.Uzsakymai.Find(orderId);
+            if (order == null)
+            {
+                return NotFound($"Užsakymas su ID: {orderId} nerastas.");
+            }
+
+            if (order.NaudotojasId != int.Parse(userId) && !User.IsInRole("Admin"))
+            {
+                return Unauthorized("Neturite teisės patikrinti šio užsakymo.");
+            }
+
+            var payment = _dbContext.Apmokejimai.FirstOrDefault(a => a.UzsakymasId == orderId);
+            if (payment != null)
+            {
+                return Ok(payment.MokejimoStatusas == MokejimoStatusas.Atšaukta);
+            }
+
+            return Ok(false);
+        }
+
         [HttpPut("confirm-order")]
         public ActionResult ConfirmOrder([FromQuery] int orderId)
         {
@@ -230,6 +259,36 @@ namespace Stotele.Server.Controllers
             _dbContext.SaveChanges();
 
             return Ok($"Užsakymas su ID: {orderId} sėkmingai patvirtintas.");
+        }
+
+        [HttpPut("cancel-order")]
+        public ActionResult CancelOrder([FromQuery] int orderId)
+        {
+            var userId = User.FindFirstValue("UserId");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("Nežinomas user ID.");
+            }
+
+            var order = _dbContext.Uzsakymai.Find(orderId);
+            if (order == null)
+            {
+                return NotFound($"Užsakymas su ID: {orderId} nerastas.");
+            }
+
+            if (order.NaudotojasId != int.Parse(userId))
+            {
+                return Unauthorized("Neturite teisės atšaukti šio užsakymo.");
+            }
+
+            var payment = _dbContext.Apmokejimai.FirstOrDefault(a => a.UzsakymasId == orderId);
+            if (payment != null)
+            {
+                payment.MokejimoStatusas = MokejimoStatusas.Atšaukta;
+                _dbContext.SaveChanges();
+            }
+
+            return Ok($"Užsakymas su ID: {orderId} sėkmingai atšauktas.");
         }
     }
 }

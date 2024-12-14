@@ -4,6 +4,6 @@ namespace Stotele.Server.Models
     {
         Neapmoketa,
         Apmoketa,
-        Grazinta
+        Atšaukta
     }
 }
