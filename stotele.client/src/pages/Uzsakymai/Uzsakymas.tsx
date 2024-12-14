@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import QRCodeGenerator from "../../components/qrgeneration";
 import axios from "axios";
 import Loading from "../../components/loading";
+import LoyaltyPoints from "../../components/loyaltypoints";
 
 const Uzsakymas = () => {
   const { orderId } = useParams(); // Get the orderId from the URL
@@ -188,6 +189,16 @@ const Uzsakymas = () => {
           {points !== null ? `${points} taškų` : "Nepavyko gauti taškų"}
         </span>
       </h3>
+
+      <LoyaltyPoints
+        orderId={displayOrder.id}
+        onOrderUpdated={(updatedOrder) => setOrder(updatedOrder)} // Update the order
+        onPointsUpdated={(remainingPoints) => setPoints(remainingPoints)} // Update the points
+      />
+
+
+
+
       <h2 className="mt-4">Prekės</h2>
       <table className="table table-striped table-hover mt-3">
         <thead style={{ backgroundColor: "#198754", color: "#fff" }}>
