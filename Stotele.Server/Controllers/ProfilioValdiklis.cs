@@ -278,13 +278,23 @@ namespace Stotele.Server.Controllers
             _context.Klientai.Add(klientas);
             await _context.SaveChangesAsync();
 
+            var parduotuve = await _context.Parduotuves.FirstOrDefaultAsync(p => p.Id == dto.ParduotuveId);
+            if (parduotuve == null)
+            {
+                return BadRequest(new { message = "Parduotuvė nerasta." });
+            }
+
+            parduotuve.DarbuotojuKiekis++;
+            _context.Parduotuves.Update(parduotuve);
+            await _context.SaveChangesAsync();
+
             var vadybininkas = new Vadybininkas
             {
                 Id = naudotojas.Id,
                 NaudotojasId = naudotojas.Id,
                 Naudotojas = naudotojas,
                 ParduotuveId = dto.ParduotuveId,
-                Parduotuve = await _context.Parduotuves.FirstOrDefaultAsync(p => p.Id == dto.ParduotuveId),
+                Parduotuve = parduotuve,
                 Skyrius = dto.Skyrius
             };
 
