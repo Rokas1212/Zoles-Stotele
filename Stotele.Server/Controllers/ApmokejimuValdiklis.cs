@@ -31,6 +31,19 @@ namespace Stotele.Server.Controllers
         }
 
 
+        [HttpGet("is-paid")]
+        public ActionResult GetIsPaid([FromQuery] int orderId)
+        {
+            var payment = _dbContext.Apmokejimai.FirstOrDefault(p => p.UzsakymasId == orderId);
+
+            if (payment == null)
+            {
+                return NotFound($"Apmokėjimas su užsakymo ID: {orderId} nerastas.");
+            }
+
+            return Ok(payment.MokejimoStatusas == MokejimoStatusas.Apmoketa);
+        }
+
         [HttpPost("webhook")]
         public async Task<IActionResult> StripeWebhook()
         {

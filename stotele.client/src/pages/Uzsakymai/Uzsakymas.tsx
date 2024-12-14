@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import QRCodeGenerator from "../../components/qrgeneration";
+import axios from "axios";
 
 const Uzsakymas = () => {
   const { orderId } = useParams(); // Get the orderId from the URL
   const [order, setOrder] = useState<any>(null); // State to store the order details
   const [loading, setLoading] = useState<boolean>(true); // Loading state
   const [error, setError] = useState<string | null>(null); // Error state
+  const [isPaid, setIsPaid] = useState<boolean>(false); // State to store if the order is paid
   const navigate = useNavigate();
 
   // Function to fetch order details
@@ -26,6 +28,20 @@ const Uzsakymas = () => {
     } finally {
       setLoading(false);
     }
+
+    const checkIfPaid = async () => {
+      try {
+        const response = await axios.get(`https://localhost:5210/api/apmokejimu/is-paid`, {
+          params: { orderId }, 
+        });
+        setIsPaid(response.data);
+        console.log('Is paid:', response.data);
+      } catch (error) {
+        console.error('Klaida:', error);
+      }
+    };
+
+    checkIfPaid();
   };
 
   useEffect(() => {
@@ -44,6 +60,14 @@ const Uzsakymas = () => {
   if (error) {
     return <div>{error}</div>;
   }
+
+  if (!order) {
+    // Handle the case where order is null
+    return <div>Užsakymo informacija nerasta.</div>;
+  }
+
+  //Check if order is paid
+
 
   return (
     <div className="container mt-4">
@@ -65,8 +89,8 @@ const Uzsakymas = () => {
         </thead>
         <tbody>
           {order.prekesUzsakymai.map((item: any) => {
-            const originalPrice = item.preke.kaina;
-            const discountedPrice = item.kaina;
+            const originalPrice = item.preke.kaina; // Original price from the product
+            const discountedPrice = item.kaina ?? originalPrice; // Fallback to original price if `kaina` is null
             const quantity = item.kiekis;
             const totalLine = discountedPrice * quantity;
 
@@ -107,16 +131,20 @@ const Uzsakymas = () => {
         </tbody>
       </table>
 
-      <div className="mt-4">
-        <QRCodeGenerator orderId={order.id} onOrderUpdated={handleOrderUpdated} />
-      </div>
-
-      <button
-        onClick={() => navigate(`/apmokejimas/${order?.id}`)}
-        className="btn btn-primary mt-3"
-      >
-        Patvirtinti užsakymą
-      </button>
+      {!isPaid ? 
+      <><div className="mt-4">
+          <QRCodeGenerator orderId={order.id} onOrderUpdated={handleOrderUpdated} />
+        </div><button
+          onClick={() => navigate(`/apmokejimas/${order?.id}`)}
+          className="btn btn-primary mt-3"
+        >
+            Patvirtinti užsakymą
+          </button></>
+      
+      : <button
+        className="btn btn-danger mt-3"
+      >Atšaukti užsakymą</button> 
+      }
     </div>
   );
 };
