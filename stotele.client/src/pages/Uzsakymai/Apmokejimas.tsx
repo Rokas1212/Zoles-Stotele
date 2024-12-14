@@ -12,13 +12,16 @@ const Apmokejimas = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isPaid, setIsPaid] = useState<boolean>(false);
-  const [pvmMoketojoKodas, setPvmMoketojoKodas] = useState<string>(''); // Added for PVM Moketojo Kodas
+  const [PvmMoketojoKodas, setPvmMoketojoKodas] = useState<string>(''); // Added for PVM Moketojo Kodas
 
   useEffect(() => {
     const fetchOrder = async () => {
       try {
         const response = await fetch(`https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`, {
           credentials: "include",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         });
         if (!response.ok) {
           throw new Error("Nepavyko gauti užsakymo informacijos.");
@@ -40,7 +43,10 @@ const Apmokejimas = () => {
         });
         setIsPaid(response.data);
         console.log('Is paid:', response.data);
-      } catch (error) {
+      } catch (error: any) {
+        if (error.response.status === 404) {
+          return;
+        }
         console.error('Klaida:', error);
       }
     };
@@ -58,7 +64,7 @@ const Apmokejimas = () => {
   }
 
   const handleCheckout = async () => {
-    if (!pvmMoketojoKodas) {
+    if (!PvmMoketojoKodas) {
       alert('Prašome įvesti PVM Mokėtojo Kodą.');
       return;
     }
@@ -66,12 +72,18 @@ const Apmokejimas = () => {
     const stripe = await stripePromise;
 
     if (!stripe) {
-      console.error('Stripe failed to initialize.');
+      console.error('Stripe klaida.');
       return;
     }
 
     try {
-      const response = await axios.post(`https://localhost:5210/api/apmokejimu/create-checkout-session/${orderId}&${pvmMoketojoKodas}`);
+      const response = await axios.post(`https://localhost:5210/api/apmokejimu/create-checkout-session/${orderId}&${PvmMoketojoKodas}`, {
+        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        }
+      }
+      );
       const sessionId = response.data.sessionId;
 
       // Redirect to the Stripe Checkout page
@@ -87,12 +99,48 @@ const Apmokejimas = () => {
     }
   };
 
-  const handleCashPayment = () => {
-    alert('Pasirinkote mokėti grynais, apmokėti galėsite atvykus kurjeriui.');
-  };
+  const handleCashPayment = async () => {
+    if (!PvmMoketojoKodas) {
+      alert('Prašome įvesti PVM Mokėtojo Kodą.');
+      return;
+    }
 
+    const confirmPayment = window.confirm('Ar tikrai norite apmokėti grynaisiais?');
+    if (!confirmPayment) {
+      return;
+    }
+  
+    try {
+      const response = await axios.post(`https://localhost:5210/api/apmokejimu/create-checkout-cash`, null, {
+        params: { orderId, PvmMoketojoKodas },
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+  
+      if (response.status === 200) {
+        setIsPaid(true);
+        alert('Pasirinkote mokėti grynais, apmokėti galėsite atvykus kurjeriui. Ačiū!');
+      }
+    } catch (error) {
+      console.error('Klaida:', error);
+    }
+  };
   const handleBankTransfer = () => {
-    alert('Apmokėjimo instrukcijos :).');
+    if (!PvmMoketojoKodas) {
+      alert('Prašome įvesti PVM Mokėtojo Kodą.');
+      return;
+    }
+
+    const confirmPayment = window.confirm('Ar tikrai norite apmokėti banko pavedimu?');
+    if (!confirmPayment) {
+      return;
+    }
+
+    axios.post(`https://localhost:5210/api/apmokejimu/create-checkout-transfer`, null, {
+      params: { orderId, PvmMoketojoKodas },
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    });
+
+    alert('Apmokėjimo instrukcijos išsiųstos į El. Paštą.');
   };
 
   return (
@@ -106,13 +154,13 @@ const Apmokejimas = () => {
 
           {/* Input field for PVM Mokėtojo Kodas */}
           <div style={{ marginBottom: '20px' }}>
-            <label htmlFor="pvmMoketojoKodas" style={{ display: 'block', marginBottom: '5px' }}>
+            <label htmlFor="PvmMoketojoKodas" style={{ display: 'block', marginBottom: '5px' }}>
               Įveskite PVM Mokėtojo Kodą:
             </label>
             <input
-              id="pvmMoketojoKodas"
+              id="PvmMoketojoKodas"
               type="text"
-              value={pvmMoketojoKodas}
+              value={PvmMoketojoKodas}
               onChange={(e) => setPvmMoketojoKodas(e.target.value)}
               placeholder="123456789"
               style={{
