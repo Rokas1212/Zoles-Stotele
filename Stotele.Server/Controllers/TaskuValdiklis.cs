@@ -330,6 +330,91 @@ namespace Stotele.Server.Controllers
             HttpContext.Session.SetString(CartSessionKey, cartJson);
         }
 
+        // POST: api/Taskai/UsePoints
+        [HttpPost("UsePoints")]
+        public async Task<IActionResult> UsePoints([FromBody] NaudotiTaskusDTO dto)
+        {
+            var user = await _context.Klientai
+                .Include(k => k.Naudotojas)
+                .FirstOrDefaultAsync(k => k.Naudotojas.Id == dto.UserId);
+
+            if (user == null)
+            {
+                return BadRequest("Invalid user.");
+            }
+
+            var order = await _context.Uzsakymai
+                .Include(o => o.PrekesUzsakymai)
+                .ThenInclude(pu => pu.Preke)
+                .FirstOrDefaultAsync(o => o.Id == dto.OrderId);
+
+            if (order == null)
+            {
+                return BadRequest("Order not found.");
+            }
+
+            var totalPoints = _context.Taskai
+                .Where(t => t.KlientasId == user.Id)
+                .Sum(t => t.Kiekis);
+
+            if (dto.PointsToUse > totalPoints)
+            {
+                return BadRequest("Insufficient points.");
+            }
+
+            var discount = dto.PointsToUse / 10.0; 
+            var totalOrderPrice = order.PrekesUzsakymai.Sum(item => (item.Kaina ?? item.Preke.Kaina) * item.Kiekis);
+
+            foreach (var item in order.PrekesUzsakymai)
+            {
+                var itemOriginalPrice = (item.Kaina ?? item.Preke.Kaina) * item.Kiekis;
+                var itemProportionalDiscount = discount * (itemOriginalPrice / totalOrderPrice);
+
+                var discountPerUnit = itemProportionalDiscount / item.Kiekis;
+                item.Kaina = Math.Max(0, (item.Kaina ?? item.Preke.Kaina) - discountPerUnit);
+
+                _context.Entry(item).State = EntityState.Modified;
+            }
+
+            var remainingPoints = dto.PointsToUse;
+            var userPoints = _context.Taskai.Where(t => t.KlientasId == user.Id).ToList();
+
+            foreach (var taskai in userPoints)
+            {
+                if (remainingPoints <= 0) break;
+
+                if (taskai.Kiekis <= remainingPoints)
+                {
+                    remainingPoints -= taskai.Kiekis;
+                    _context.Taskai.Remove(taskai);
+                }
+                else
+                {
+                    taskai.Kiekis -= remainingPoints;
+                    remainingPoints = 0;
+                    _context.Taskai.Update(taskai);
+                }
+            }
+
+            order.Suma = order.PrekesUzsakymai.Sum(item => (item.Kaina ?? 0) * item.Kiekis);
+
+            _context.Uzsakymai.Update(order);
+            await _context.SaveChangesAsync();
+
+            var updatedTotalPoints = _context.Taskai
+                .Where(t => t.KlientasId == user.Id)
+                .Sum(t => t.Kiekis);
+
+            return Ok(new
+            {
+                updatedOrder = order,
+                usedPoints = dto.PointsToUse,
+                remainingPoints = updatedTotalPoints
+            });
+        }
+
+
+
 
     }
 }
