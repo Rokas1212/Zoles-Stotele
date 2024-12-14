@@ -77,8 +77,8 @@ const Apmokejimas = () => {
     }
 
     try {
-      const response = await axios.post(`https://localhost:5210/api/apmokejimu/create-checkout-session/${orderId}&${PvmMoketojoKodas}`, {
-        withCredentials: true,
+      const response = await axios.post(`https://localhost:5210/api/apmokejimu/create-checkout-session/`, null, {
+        params: { orderId, PvmMoketojoKodas },
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         }

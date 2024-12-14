@@ -177,8 +177,8 @@ namespace Stotele.Server.Controllers
             return Ok();
         }
 
-        [HttpPost("create-checkout-session/{orderId}&{PvmMoketojoKodas}")]
-        public ActionResult CreateCheckoutSession(int orderId, string PvmMoketojoKodas)
+        [HttpPost("create-checkout-session")]
+        public ActionResult CreateCheckoutSession([FromQuery] int orderId, [FromQuery] string PvmMoketojoKodas)
         {
             if (!CheckUser(orderId, int.Parse(User.FindFirstValue("UserId"))))
             {
