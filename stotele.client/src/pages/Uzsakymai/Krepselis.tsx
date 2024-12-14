@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchCart, createOrder, CartItem } from "../../apiServices/cart";
+import { fetchCart, createOrder, CartItem, removeFromCart } from "../../apiServices/cart";
 import { useNavigate } from "react-router-dom"; // For navigation
 
 const Krepselis = () => {
@@ -23,6 +23,7 @@ const Krepselis = () => {
     return cart.reduce((total, item) => total + item.kaina * item.kiekis, 0).toFixed(2);
   };
 
+    
   const handleCreateOrder = async () => {
     try {
       const response = await createOrder(cart);
@@ -31,6 +32,16 @@ const Krepselis = () => {
     } catch (error) {
       console.error("Klaida:", error);
       alert("Nepavyko sukurti užsakymo.");
+    }
+  };
+
+  const handleRemoveFromCart = async (id: string) => {
+    try {
+      const updatedCart = await removeFromCart(id);
+      setCart(updatedCart);
+    } catch (error) {
+      console.error("Klaida:", error);
+      alert("Nepavyko pašalinti prekės iš krepšelio.");
     }
   };
 
@@ -46,6 +57,7 @@ const Krepselis = () => {
                 <th>Kaina</th>
                 <th>Kiekis</th>
                 <th>Iš viso</th>
+                <th>Veiksmai</th>
               </tr>
             </thead>
             <tbody>
@@ -55,6 +67,14 @@ const Krepselis = () => {
                   <td>€{item.kaina.toFixed(2)}</td>
                   <td>{item.kiekis}</td>
                   <td>€{(item.kaina * item.kiekis).toFixed(2)}</td>
+                  <td>
+                    <button
+                      onClick={() => handleRemoveFromCart(item.id)}
+                      className="btn btn-danger"
+                    >
+                      Pašalinti
+                    </button>
+                    </td>
                 </tr>
               ))}
             </tbody>

@@ -24,12 +24,18 @@ export async function addToCart(id: string) {
   }
 
 export async function removeFromCart(id: string) {
-    await fetch(`${apiUrl}/remove`, {
+    const response = await fetch(`${apiUrl}/remove`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(id),
         credentials: "include",
     });
+
+    if (!response.ok) {
+        throw new Error("Nepavyko pašalinti prekės iš krepšelio.");
+    }
+
+    return response.json();
 }
 
 export async function clearCart() {
