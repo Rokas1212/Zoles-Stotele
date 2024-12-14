@@ -5,7 +5,7 @@
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #fff;
+  background-color: #f4f4f4;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -16,4 +16,8 @@
 html, body {
   width: 100%;
   height: 100%;
+  margin: 0; 
+  background-color: #f4f4f4;
+  overflow-x: hidden;
 }
+

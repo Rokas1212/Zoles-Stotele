@@ -4,6 +4,7 @@ import QRCodeGenerator from "../../components/qrgeneration";
 import axios from "axios";
 import Loading from "../../components/loading";
 import LoyaltyPoints from "../../components/loyaltypoints";
+import "./Uzsakymas.css";
 
 const Uzsakymas = () => {
   const { orderId } = useParams(); // Get the orderId from the URL
@@ -12,45 +13,53 @@ const Uzsakymas = () => {
   const [error, setError] = useState<string | null>(null); // Error state
   const [isPaid, setIsPaid] = useState<boolean>(false); // State to store if the order is paid
   const [isConfirmed, setIsConfirmed] = useState<boolean>(false); // State to store if the order is confirmed
+  const [usedPoints, setUsedPoints] = useState<boolean>(false); // Whether points have been used
   const navigate = useNavigate();
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const previousOrderRef = useRef<any>(null);
   const [points, setPoints] = useState<number | null>(null); // State to store user points
-  
 
   const fetchUserPoints = async () => {
     try {
-      const user = JSON.parse(localStorage.getItem("user") || "{}"); 
-      const userId = user.id; 
-  
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const userId = user.id;
+
       if (!userId) {
         console.error("No user ID found.");
         return;
       }
-  
-      const response = await axios.get(`https://localhost:5210/api/Taskai/Naudotojas/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`, 
-        },
-      });
-  
-      const totalPoints = response.data.reduce((sum: number, taskai: any) => sum + taskai.kiekis, 0);
-      setPoints(totalPoints); 
+
+      const response = await axios.get(
+        `https://localhost:5210/api/Taskai/Naudotojas/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      const totalPoints = response.data.reduce(
+        (sum: number, taskai: any) => sum + taskai.kiekis,
+        0
+      );
+      setPoints(totalPoints);
     } catch (err) {
       setPoints(null);
     }
   };
-  
 
   // Function to fetch order details
   const fetchOrder = async () => {
     try {
-      const response = await fetch(`https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`, {
-        credentials: "include",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      const response = await fetch(
+        `https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`,
+        {
+          credentials: "include",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
       if (!response.ok) {
         throw new Error("Nepavyko gauti užsakymo informacijos.");
       }
@@ -70,32 +79,38 @@ const Uzsakymas = () => {
   // Function to check if order is paid
   const checkIfPaid = async () => {
     try {
-      const response = await axios.get(`https://localhost:5210/api/apmokejimu/is-paid`, {
-        params: { orderId }, 
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      const response = await axios.get(
+        `https://localhost:5210/api/apmokejimu/is-paid`,
+        {
+          params: { orderId },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
       setIsPaid(response.data);
-      console.log('Is paid:', response.data);
+      console.log("Is paid:", response.data);
     } catch (error) {
-      console.error('Klaida:', error);
+      console.error("Klaida:", error);
     }
   };
 
   // Function to check if order is confirmed
   const checkIfConfirmed = async () => {
     try {
-      const response = await axios.get(`https://localhost:5210/api/uzsakymu/is-confirmed`, {
-        params: { orderId }, 
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      const response = await axios.get(
+        `https://localhost:5210/api/uzsakymu/is-confirmed`,
+        {
+          params: { orderId },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
       setIsConfirmed(response.data);
-      console.log('Is confirmed:', response.data);
+      console.log("Is confirmed:", response.data);
     } catch (error) {
-      console.error('Klaida:', error);
+      console.error("Klaida:", error);
     }
   };
 
@@ -125,14 +140,21 @@ const Uzsakymas = () => {
   }, [orderId]);
 
   const handleBackToCart = () => {
+    // If points have already been used, disable the action
+    if (usedPoints) return;
+
     // Delete the created order
-    axios.delete(`https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`, {
-      withCredentials: true, 
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    });
-    navigate("/krepselis");
+    axios
+      .delete(`https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`, {
+        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      })
+      .then(() => {
+        navigate("/krepselis");
+      })
+      .catch((error) => console.error("Failed to delete order:", error));
   };
 
   const handleOrderUpdated = async () => {
@@ -156,15 +178,19 @@ const Uzsakymas = () => {
 
   const handleConfirmOrder = async () => {
     try {
-      const response = await axios.put(`https://localhost:5210/api/uzsakymu/confirm-order/`, null, {
-        params: { orderId },
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-      console.log('Order confirmed:', response.data);
+      const response = await axios.put(
+        `https://localhost:5210/api/uzsakymu/confirm-order/`,
+        null,
+        {
+          params: { orderId },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      console.log("Order confirmed:", response.data);
       setIsConfirmed(true);
-        
+
       await fetch("https://localhost:5210/api/krepselio/clear", {
         method: "POST",
         credentials: "include",
@@ -172,7 +198,7 @@ const Uzsakymas = () => {
 
       navigate(`/apmokejimas/${displayOrder?.id}`);
     } catch (error) {
-      console.error('Klaida:', error);
+      console.error("Klaida:", error);
     }
   };
 
@@ -192,12 +218,13 @@ const Uzsakymas = () => {
 
       <LoyaltyPoints
         orderId={displayOrder.id}
-        onOrderUpdated={(updatedOrder) => setOrder(updatedOrder)} // Update the order
-        onPointsUpdated={(remainingPoints) => setPoints(remainingPoints)} // Update the points
+        totalOrderPrice={displayOrder.suma}
+        onOrderUpdated={(updatedOrder) => setOrder(updatedOrder)}
+        onPointsUpdated={(remainingPoints) => {
+          setPoints(remainingPoints);
+          setUsedPoints(true); // Mark that points have been used
+        }}
       />
-
-
-
 
       <h2 className="mt-4">Prekės</h2>
       <table className="table table-striped table-hover mt-3">
@@ -250,41 +277,37 @@ const Uzsakymas = () => {
         </tbody>
       </table>
 
-      {!isPaid ? 
-      <>
-        <div className="mt-4">
-          <QRCodeGenerator orderId={displayOrder.id} onOrderUpdated={handleOrderUpdated} />
-        </div>
-        <button
-          onClick={handleBackToCart}
-          className="btn btn-secondary mt-3"
-        >
-          Grįžti į krepšelį
-        </button>
+      {!isPaid ? (
+        <>
+          <div className="mt-4">
+            <QRCodeGenerator orderId={displayOrder.id} onOrderUpdated={handleOrderUpdated} />
+          </div>
+          <div className="button-container">
+            <button
+              onClick={handleBackToCart}
+              className={`custom-btn back-btn ${usedPoints ? "disabled" : ""}`}
+              disabled={usedPoints} // Disable button if points are used
+            >
+              Grįžti į krepšelį
+            </button>
 
-        {isConfirmed ? 
-        <button
-          className="btn btn-success mt-3"
-          onClick={() => navigate(`/apmokejimas/${displayOrder?.id}`)}
-        >
-          Apmokėti
-        </button>
-        :
-        <button
-          onClick={handleConfirmOrder}
-          className="btn btn-primary mt-3"
-        >
-          Patvirtinti užsakymą
-        </button>
-        }
-      </>
-      : 
-      <button
-        className="btn btn-danger mt-3"
-      >
-        Atšaukti užsakymą
-      </button> 
-      }
+            {isConfirmed ? (
+              <button
+                className="custom-btn confirm-btn"
+                onClick={() => navigate(`/apmokejimas/${displayOrder?.id}`)}
+              >
+                Apmokėti
+              </button>
+            ) : (
+              <button className="custom-btn confirm-btn" onClick={handleConfirmOrder}>
+                Patvirtinti užsakymą
+              </button>
+            )}
+          </div>
+        </>
+      ) : (
+        <button className="btn btn-danger mt-3">Atšaukti užsakymą</button>
+      )}
     </div>
   );
 };
