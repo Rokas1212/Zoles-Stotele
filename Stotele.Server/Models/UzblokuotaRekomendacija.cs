@@ -1,6 +1,6 @@
 namespace Stotele.Server.Models
 {
-    public class UzblokuotosRekomendacijos
+    public class UzblokuotaRekomendacija
     {
         public int Id { get; set; }
         public DateTime PridejimoData { get; set; }

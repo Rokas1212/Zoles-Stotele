@@ -8,6 +8,8 @@ namespace Stotele.Server.Models
         public DateTime Data { get; set; }
         public double Suma { get; set; }
 
+        public bool Patvirtintas { get; set; } = false;
+
         [ForeignKey("Naudotojas")]
         public int NaudotojasId { get; set; }
         public Naudotojas Naudotojas { get; set; }

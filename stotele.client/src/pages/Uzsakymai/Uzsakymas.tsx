@@ -5,21 +5,24 @@ import axios from "axios";
 import Loading from "../../components/loading";
 
 const Uzsakymas = () => {
-  const { orderId } = useParams();
-  const [order, setOrder] = useState<any>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isPaid, setIsPaid] = useState<boolean>(false);
+  const { orderId } = useParams(); // Get the orderId from the URL
+  const [order, setOrder] = useState<any>(null); // State to store the order details
+  const [loading, setLoading] = useState<boolean>(true); // Loading state
+  const [error, setError] = useState<string | null>(null); // Error state
+  const [isPaid, setIsPaid] = useState<boolean>(false); // State to store if the order is paid
+  const [isConfirmed, setIsConfirmed] = useState<boolean>(false); // State to store if the order is confirmed
   const navigate = useNavigate();
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const previousOrderRef = useRef<any>(null);
 
   const fetchOrder = async () => {
     try {
-      const response = await fetch(
-        `https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`,
-        { credentials: "include" }
-      );
+      const response = await fetch(`https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`, {
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
       if (!response.ok) {
         throw new Error("Nepavyko gauti užsakymo informacijos.");
       }
@@ -35,34 +38,43 @@ const Uzsakymas = () => {
     }
   };
 
-  const checkIfPaid = async () => {
-    try {
-      const response = await axios.get(`https://localhost:5210/api/apmokejimu/is-paid`, {
-        params: { orderId },
-      });
-      setIsPaid(response.data);
-
-      if (response.data || (order && order.suma !== order.originalSuma)) {
-        stopPolling();
+    const checkIfPaid = async () => {
+      try {
+        const response = await axios.get(`https://localhost:5210/api/apmokejimu/is-paid`, {
+          params: { orderId }, 
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        setIsPaid(response.data);
+        console.log('Is paid:', response.data);
+      } catch (error) {
+        console.error('Klaida:', error);
       }
     } catch {}
   };
 
-  const startPolling = () => {
-    if (!pollingIntervalRef.current) {
-      pollingIntervalRef.current = setInterval(() => {
-        fetchOrder();
-        checkIfPaid();
-      }, 1000);
-    }
+    checkIfPaid();
+
+    const checkIfConfirmed = async () => {
+      try {
+        const response = await axios.get(`https://localhost:5210/api/uzsakymu/is-confirmed`, {
+          params: { orderId }, 
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        setIsConfirmed(response.data);
+        console.log('Is confirmed:', response.data);
+      } catch (error) {
+        console.error('Klaida:', error);
+      }
+    };
+
+    checkIfConfirmed();
   };
 
-  const stopPolling = () => {
-    if (pollingIntervalRef.current) {
-      clearInterval(pollingIntervalRef.current);
-      pollingIntervalRef.current = null;
-    }
-  };
+
 
   useEffect(() => {
     fetchOrder();
@@ -72,11 +84,16 @@ const Uzsakymas = () => {
     return () => stopPolling();
   }, [orderId]);
 
-  const handleOrderUpdated = (updatedOrder: any) => {
-    setOrder(updatedOrder);
-    if (updatedOrder.suma !== order?.suma) {
-      stopPolling();
-    }
+  const handleBackToCart = () => {
+    //delete the created order
+    axios.delete(`https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`, {
+      withCredentials: true,
+    });
+    navigate("/krepselis");
+  };
+  const handleOrderUpdated = async () => {
+    // Re-fetch the order after discounts are applied
+    await fetchOrder();
   };
 
   if (loading) {
@@ -92,6 +109,23 @@ const Uzsakymas = () => {
   if (!displayOrder) {
     return null;
   }
+
+  const handleConfirmOrder = async () => {
+    try {
+      const response = await axios.put(`https://localhost:5210/api/uzsakymu/confirm-order/`, null, {
+        params: { orderId },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      console.log('Order confirmed:', response.data);
+      setIsConfirmed(true);
+      navigate(`/apmokejimas/${order?.id}`);
+    } catch (error) {
+      console.error('Klaida:', error);
+    }
+  }
+
 
   return (
     <div className="container mt-4">
@@ -152,21 +186,41 @@ const Uzsakymas = () => {
         </tbody>
       </table>
 
-      {!isPaid ? (
-        <>
-          <div className="mt-4">
-            <QRCodeGenerator orderId={displayOrder.id} onOrderUpdated={handleOrderUpdated} />
-          </div>
-          <button
-            onClick={() => navigate(`/apmokejimas/${displayOrder?.id}`)}
-            className="btn btn-primary mt-3"
-          >
-            Patvirtinti užsakymą
-          </button>
-        </>
-      ) : (
-        <button className="btn btn-danger mt-3">Atšaukti užsakymą</button>
-      )}
+      {!isPaid ? 
+      <>
+        <div className="mt-4">
+          <QRCodeGenerator orderId={order.id} onOrderUpdated={handleOrderUpdated} />
+        </div>
+        <button
+          onClick={() => handleBackToCart()}
+          className="btn btn-secondary mt-3"
+        >
+          Grįžti į krepšelį
+        </button>
+
+        {isConfirmed ? 
+        <button
+          className="btn btn-success mt-3"
+          onClick={() => navigate(`/apmokejimas/${order?.id}`)}
+        >
+          Apmokėti
+        </button>
+        :
+        <button
+          onClick={() => handleConfirmOrder()}
+          className="btn btn-primary mt-3"
+        >
+          Patvirtinti užsakymą
+        </button>
+        }
+      </>
+      : 
+      <button
+        className="btn btn-danger mt-3"
+      >
+        Atšaukti užsakymą
+      </button> 
+      }
     </div>
   );
 };
