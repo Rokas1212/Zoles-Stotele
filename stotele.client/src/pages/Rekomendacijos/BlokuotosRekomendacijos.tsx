@@ -1,11 +1,78 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+
+type Product = {
+  id: number;
+  klientasId: number;
+  prekeId: number;
+  nuotraukosUrl: string;
+  pavadinimas: string;
+  aprasymas: string;
+};
 
 const BlokuotosRekomendacijos = () => {
-  const blockedItems = [
-    { id: 1, preke: "Albaniška žolė", dateAdded: "2024-11-01" },
-    { id: 2, preke: "Gruziniška veja", dateAdded: "2024-10-25" },
-    { id: 3, preke: "Žolytės suktinukai ALBANIA", dateAdded: "2024-09-15" },
-  ];
+  const [products, setProducts] = useState<Product[]>([]);
+  const [userId, setUserId] = useState<number | null>(null);
+  const [refetch, setRefetch] = useState<boolean>(false);
+
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+
+    if (user) {
+      const userObject = JSON.parse(user);
+      setUserId(userObject.id);
+    } else {
+      console.log("Naudotojas neprisijungęs");
+    }
+  }, []);
+
+  const fetchData = async () => {
+    if (userId === null) {
+      console.log("User ID not found.");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `https://localhost:5210/api/Rekomendacija/blokuotos-rekomendacijos/${userId}`
+      );
+      const data = await response.json();
+      const sortedProducts = data.sort((a: Product, b: Product) => a.id - b.id);
+      setProducts(sortedProducts);
+    } catch (error) {
+      console.error("Klaida gaunant uzblokuotas prekes", error);
+    }
+  };
+
+  const handleUnblockRecommendation = async (productId: number) => {
+    if (userId === null) {
+      console.log("User ID not found.");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `https://localhost:5210/api/Rekomendacija/blokuotos-rekomendacijos/atblokuoti/${userId}/${productId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (response.ok) {
+        setRefetch((prev) => !prev);
+        alert("Rekomendacija sėkmingai atblokuota");
+      } else {
+        alert("Nepavyko atblokuoti rekomendacijos");
+      }
+    } catch (error) {
+      console.error("Klaida atblokuojant rekomendaciją", error);
+    }
+  };
+
+  useEffect(() => {
+    if (userId !== null) {
+      fetchData();
+    }
+  }, [userId, refetch]);
 
   return (
     <div>
@@ -15,18 +82,22 @@ const BlokuotosRekomendacijos = () => {
           <tr>
             <th>ID</th>
             <th>Prekė</th>
-            <th>Pridėjimo data</th>
+            <th>Aprasymas</th>
             <th>Veiksmas</th>
           </tr>
         </thead>
         <tbody>
-          {blockedItems.map((item) => (
+          {products.map((item, index) => (
             <tr key={item.id}>
               <td>{item.id}</td>
-              <td>{item.preke}</td>
-              <td>{item.dateAdded}</td>
+              <td>{item.pavadinimas}</td>
+              <td>{item.aprasymas}</td>
               <td>
-                <button>Pašalinti</button>
+                <button
+                  onClick={() => handleUnblockRecommendation(item.prekeId)}
+                >
+                  Pašalinti
+                </button>
               </td>
             </tr>
           ))}

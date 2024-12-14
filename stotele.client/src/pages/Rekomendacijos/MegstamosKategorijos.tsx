@@ -1,11 +1,77 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+
+type Product = {
+  id: number;
+  pridejimoData: string;
+  kategorijaId: number;
+  kategorijaPavadinimas: string;
+  kategorijaAprasymas: string;
+};
 
 const MegstamosKategorijos = () => {
-  const favoriteCategories = [
-    { id: 1, kategorija: "Albaniška", dateAdded: "2024-11-03" },
-    { id: 2, kategorija: "Natūrali", dateAdded: "2024-10-20" },
-    { id: 3, kategorija: "Populiariausi", dateAdded: "2024-09-10" },
-  ];
+  const [products, setProducts] = useState<Product[]>([]);
+  const [userId, setUserId] = useState<number | null>(null);
+  const [refetch, setRefetch] = useState<boolean>(false);
+
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+
+    if (user) {
+      const userObject = JSON.parse(user);
+      setUserId(userObject.id);
+    } else {
+      console.log("Naudotojas neprisijungęs");
+    }
+  }, []);
+
+  const fetchData = async () => {
+    if (userId === null) {
+      console.log("User ID not found.");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `https://localhost:5210/api/Rekomendacija/megstamos-kategorijos/${userId}`
+      );
+      const data = await response.json();
+      const sortedProducts = data.sort((a: Product, b: Product) => a.id - b.id);
+      setProducts(sortedProducts);
+    } catch (error) {
+      console.error("Klaida gaunant megstamas kategorijas", error);
+    }
+  };
+
+  const handleDeleteCategory = async (categoryId: number) => {
+    if (userId === null) {
+      console.log("User ID not found.");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `https://localhost:5210/api/Rekomendacija/megstamos-kategorijos/istrinti/${userId}/${categoryId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (response.ok) {
+        setRefetch((prev) => !prev);
+        alert("Megstama kategorija istrinta");
+      } else {
+        alert("Megstamos kategorijos nepavyko istrinti");
+      }
+    } catch (error) {
+      console.error("Klaida istrinant megstama kategorija", error);
+    }
+  };
+
+  useEffect(() => {
+    if (userId !== null) {
+      fetchData();
+    }
+  }, [userId, refetch]);
 
   return (
     <div>
@@ -15,18 +81,20 @@ const MegstamosKategorijos = () => {
           <tr>
             <th>ID</th>
             <th>Kategorija</th>
-            <th>Pridėjimo data</th>
+            <th>Aprasymas</th>
             <th>Veiksmas</th>
           </tr>
         </thead>
         <tbody>
-          {favoriteCategories.map((item) => (
+          {products.map((item, index) => (
             <tr key={item.id}>
               <td>{item.id}</td>
-              <td>{item.kategorija}</td>
-              <td>{item.dateAdded}</td>
+              <td>{item.kategorijaPavadinimas}</td>
+              <td>{item.kategorijaAprasymas}</td>
               <td>
-                <button>Pašalinti</button>
+                <button onClick={() => handleDeleteCategory(item.kategorijaId)}>
+                  Pašalinti
+                </button>
               </td>
             </tr>
           ))}
