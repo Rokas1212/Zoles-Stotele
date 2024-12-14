@@ -280,10 +280,8 @@ namespace Stotele.Server.Controllers
                 return check;
             }
 
-            // Add 5 percent of the order's total to the user's account as loyalty points
-            var pointsToAdd = (int)(order.Suma * 0.05);
+            var pointsToAdd = (int)(order.Suma * 0.1);
 
-            // Add points to the user's account
             var user = _dbContext.Klientai.FirstOrDefault(k => k.NaudotojasId == order.NaudotojasId);
             if (user != null)
             {
@@ -303,7 +301,7 @@ namespace Stotele.Server.Controllers
                 ApmokejimoMetodas = apmokejimoMetodas,
                 SaskaitosFakturosNumeris = orderId,
                 PvmMoketojoKodas = PvmMoketojoKodas,
-                PanaudotiTaskai = 0, // Logic to calculate points if needed
+                PanaudotiTaskai = 0,
                 PridetiTaskai = pointsToAdd, 
                 KlientasId = order.NaudotojasId,
                 UzsakymasId = order.Id
@@ -314,5 +312,6 @@ namespace Stotele.Server.Controllers
 
             return payment;
         }
+
     }
 }
