@@ -21,6 +21,8 @@ import PridetiPreke from "./pages/Prekes/PridetiPreke";
 import PridetiKategorija from "./pages/Prekes/PridetiKategorija";
 import Profiliai from "./pages/Profilis/Profiliai";
 import RedaguotiPreke from "./pages/Prekes/RedaguotiPreke";
+import Cancel from "./pages/Uzsakymai/Neapmoketa";
+import Success from "./pages/Uzsakymai/Apmoketa";
 
 function App() {
   return (
@@ -28,8 +30,8 @@ function App() {
       <Navbar />
       <Routes>
         <Route path="/" element={<Pagrindinis />} />
-        <Route path="/success" element={<Pagrindinis />} />
-        <Route path="/cancel" element={<Pagrindinis />} />
+        <Route path="/success/" element={<Success />} />
+        <Route path="/cancel" element={<Cancel />} />
         <Route path="/profilis" element={<Profilis />} />
         <Route path="/prisijungimas" element={<Prisijungimas />} />
         <Route path="/registracija" element={<Registracija />} />
