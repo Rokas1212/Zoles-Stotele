@@ -10,7 +10,6 @@ namespace Stotele.Server.Models
         public string TelNumeris { get; set; }
         public string ElPastas { get; set; }
         public string Faksas { get; set; }
-        public int AdresasId { get; set; }
-        public Adresas Adresas { get; set; }
+        public string Adresas { get; set; }
     }
 }
