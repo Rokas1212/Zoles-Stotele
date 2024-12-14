@@ -1,15 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import QRCodeGenerator from "../../components/qrgeneration";
 import axios from "axios";
 
 const Uzsakymas = () => {
-  const { orderId } = useParams(); // Get the orderId from the URL
-  const [order, setOrder] = useState<any>(null); // State to store the order details
-  const [loading, setLoading] = useState<boolean>(true); // Loading state
-  const [error, setError] = useState<string | null>(null); // Error state
-  const [isPaid, setIsPaid] = useState<boolean>(false); // State to store if the order is paid
+  const { orderId } = useParams();
+  const [order, setOrder] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(true); 
+  const [error, setError] = useState<string | null>(null); 
+  const [isPaid, setIsPaid] = useState<boolean>(false); 
   const navigate = useNavigate();
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchOrder = async () => {
     try {
@@ -28,28 +29,53 @@ const Uzsakymas = () => {
     } finally {
       setLoading(false);
     }
+  };
 
-    const checkIfPaid = async () => {
-      try {
-        const response = await axios.get(`https://localhost:5210/api/apmokejimu/is-paid`, {
-          params: { orderId }, 
-        });
-        setIsPaid(response.data);
-        console.log('Is paid:', response.data);
-      } catch (error) {
-        console.error('Klaida:', error);
+  const checkIfPaid = async () => {
+    try {
+      const response = await axios.get(`https://localhost:5210/api/apmokejimu/is-paid`, {
+        params: { orderId },
+      });
+      setIsPaid(response.data);
+      console.log("Is paid:", response.data);
+
+      if (response.data || (order && order.suma !== order.originalSuma)) {
+        stopPolling();
       }
-    };
+    } catch (error) {
+      console.error("Klaida:", error);
+    }
+  };
 
-    checkIfPaid();
+  const startPolling = () => {
+    if (!pollingIntervalRef.current) {
+      pollingIntervalRef.current = setInterval(() => {
+        fetchOrder();
+        checkIfPaid();
+      }, 1000);
+    }
+  };
+
+  const stopPolling = () => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
   };
 
   useEffect(() => {
     fetchOrder();
+    checkIfPaid();
+    startPolling();
+
+    return () => stopPolling();
   }, [orderId]);
 
   const handleOrderUpdated = (updatedOrder: any) => {
-    setOrder(updatedOrder); // Update the order state with the latest data
+    setOrder(updatedOrder);
+    if (updatedOrder.suma !== order?.suma) {
+      stopPolling();
+    }
   };
 
   if (loading) {
@@ -61,12 +87,8 @@ const Uzsakymas = () => {
   }
 
   if (!order) {
-    // Handle the case where order is null
     return <div>Užsakymo informacija nerasta.</div>;
   }
-
-  //Check if order is paid
-
 
   return (
     <div className="container mt-4">
@@ -127,20 +149,21 @@ const Uzsakymas = () => {
         </tbody>
       </table>
 
-      {!isPaid ? 
-      <><div className="mt-4">
-          <QRCodeGenerator orderId={order.id} onOrderUpdated={handleOrderUpdated} />
-        </div><button
-          onClick={() => navigate(`/apmokejimas/${order?.id}`)}
-          className="btn btn-primary mt-3"
-        >
+      {!isPaid ? (
+        <>
+          <div className="mt-4">
+            <QRCodeGenerator orderId={order.id} onOrderUpdated={handleOrderUpdated} />
+          </div>
+          <button
+            onClick={() => navigate(`/apmokejimas/${order?.id}`)}
+            className="btn btn-primary mt-3"
+          >
             Patvirtinti užsakymą
-          </button></>
-      
-      : <button
-        className="btn btn-danger mt-3"
-      >Atšaukti užsakymą</button> 
-      }
+          </button>
+        </>
+      ) : (
+        <button className="btn btn-danger mt-3">Atšaukti užsakymą</button>
+      )}
     </div>
   );
 };

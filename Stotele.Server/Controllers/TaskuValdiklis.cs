@@ -227,7 +227,8 @@ namespace Stotele.Server.Controllers
 
             var qrData = $"https://localhost:5210/api/Taskai/ApplyDiscounts?orderId={request.OrderId}";
 
-            Console.WriteLine("Generating QR code for: " + qrData);
+            //TODO delete later
+            Console.WriteLine("!!!!!!!!!5555555555555555 Generating QR code for: " + qrData);
 
             var baseUrl = "https://api.qrserver.com/v1/create-qr-code/";
             var size = "200x200";
