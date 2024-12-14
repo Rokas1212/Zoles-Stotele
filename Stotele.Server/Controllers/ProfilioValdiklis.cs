@@ -234,5 +234,104 @@ namespace Stotele.Server.Controllers
                 naudotojas.Administratorius
             });
         }
+
+        // POST: api/Profilis/register-admin
+        [HttpPost("register-admin")]
+        public async Task<IActionResult> RegisterAdmin(RegistruotiVadybininkaDTO dto)
+        {
+            var existingUser = await _context.Naudotojai.FirstOrDefaultAsync(n => n.ElektroninisPastas == dto.ElektroninisPastas);
+            if (existingUser != null)
+            {
+                return BadRequest(new { message = "Naudotojas su tokiu el. paštu jau egzistuoja." });
+            }
+
+            var existingUsername = await _context.Naudotojai.FirstOrDefaultAsync(n => n.Slapyvardis == dto.Slapyvardis);
+            if (existingUsername != null)
+            {
+                return BadRequest(new { message = "Naudotojas su tokiu slapyvardžiu jau egzistuoja." });
+            }
+
+            var naudotojas = new Naudotojas
+            {
+                Lytis = dto.Lytis.Trim(),
+                ElektroninisPastas = dto.ElektroninisPastas.Trim(),
+                Slaptazodis = HashPassword(dto.Slaptazodis.Trim()),
+                Vardas = dto.Vardas.Trim(),
+                Slapyvardis = dto.Slapyvardis.Trim(),
+                Pavarde = dto.Pavarde.Trim(),
+                Administratorius = true
+            };
+
+            _context.Naudotojai.Add(naudotojas);
+            await _context.SaveChangesAsync();
+
+            var klientas = new Klientas
+            {
+                Id = naudotojas.Id,
+                NaudotojasId = naudotojas.Id,
+                Miestas = dto.Miestas.Trim(),
+                Adresas = dto.Adresas.Trim(),
+                PastoKodas = dto.PastoKodas,
+                GimimoData = dto.GimimoData
+            };
+
+            _context.Klientai.Add(klientas);
+            await _context.SaveChangesAsync();
+
+            var parduotuve = await _context.Parduotuves.FirstOrDefaultAsync(p => p.Id == dto.ParduotuveId);
+            if (parduotuve == null)
+            {
+                return BadRequest(new { message = "Parduotuvė nerasta." });
+            }
+
+            parduotuve.DarbuotojuKiekis++;
+            _context.Parduotuves.Update(parduotuve);
+            await _context.SaveChangesAsync();
+
+            var vadybininkas = new Vadybininkas
+            {
+                Id = naudotojas.Id,
+                NaudotojasId = naudotojas.Id,
+                Naudotojas = naudotojas,
+                ParduotuveId = dto.ParduotuveId,
+                Parduotuve = parduotuve,
+                Skyrius = dto.Skyrius
+            };
+
+            _context.Vadybininkai.Add(vadybininkas);
+            await _context.SaveChangesAsync();
+
+
+
+            return CreatedAtAction(nameof(GetProfile), new { id = naudotojas.Id }, new
+            {
+                naudotojas.Id,
+                naudotojas.Vardas,
+                naudotojas.Pavarde,
+                naudotojas.ElektroninisPastas
+            });
+        }
+
+        // POST: api/Profilis/register-shop
+        [HttpPost("register-shop")]
+        public async Task<IActionResult> RegisterShop(RegistruotiParduotuveDTO dto)
+        {
+            var parduotuve = new Parduotuve
+            {
+                DarboLaikoPradzia = dto.DarboLaikoPradzia,
+                DarboLaikoPabaiga = dto.DarboLaikoPabaiga,
+                Kvadratura = dto.Kvadratura,
+                DarbuotojuKiekis = dto.DarbuotojuKiekis,
+                TelNumeris = dto.TelNumeris,
+                ElPastas = dto.ElPastas,
+                Faksas = dto.Faksas,
+                Adresas = dto.Adresas
+            };
+
+            _context.Parduotuves.Add(parduotuve);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { Message = "Parduotuvė sėkmingai užregistruota.", parduotuve.Id });
+        }
     }
 }

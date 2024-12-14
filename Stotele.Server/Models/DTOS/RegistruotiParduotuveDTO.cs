@@ -1,8 +1,7 @@
 namespace Stotele.Server.Models
 {
-    public class Parduotuve
+    public class RegistruotiParduotuveDTO
     {
-        public int Id { get; set; }
         public string DarboLaikoPradzia { get; set; }
         public string DarboLaikoPabaiga { get; set; }
         public double Kvadratura { get; set; }

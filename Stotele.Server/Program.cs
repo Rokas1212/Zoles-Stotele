@@ -114,6 +114,7 @@ namespace Stotele.Server
                     };
                 });
 
+            builder.Services.AddSingleton<EmailService>();
 
             var app = builder.Build();
 

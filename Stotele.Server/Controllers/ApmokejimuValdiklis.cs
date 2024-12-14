@@ -21,13 +21,15 @@ namespace Stotele.Server.Controllers
         private readonly ApplicationDbContext _dbContext;
         private readonly StripeSettings _stripeSettings;
 
+        private readonly EmailService _emailService;
         private readonly string _webhookSecret;
 
-        public ApmokejimuController(ApplicationDbContext dbContext, IOptions<StripeSettings> stripeSettings)
+        public ApmokejimuController(ApplicationDbContext dbContext, IOptions<StripeSettings> stripeSettings, EmailService emailService)
         {
             _dbContext = dbContext;
             _stripeSettings = stripeSettings.Value;
             _webhookSecret = _stripeSettings.WebhookSecret ?? throw new InvalidOperationException("Webhook secret nenustatytas.");
+            _emailService = emailService;
         }
 
 
@@ -103,6 +105,10 @@ namespace Stotele.Server.Controllers
         [HttpPost("create-checkout-transfer")]
         public ActionResult CreateCheckoutBank([FromQuery] int orderId, [FromQuery] string PvmMoketojoKodas)
         {
+            if (!CheckUser(orderId, int.Parse(User.FindFirstValue("UserId"))))
+            {
+                return Unauthorized("Neturite teisės apmokėti šio užsakymo.");
+            }
             if (IsPaid(orderId))
             {
                 //Return that order is paid for
@@ -119,14 +125,26 @@ namespace Stotele.Server.Controllers
                 return NotFound($"Užsakymas su ID: {orderId} nerastas.");
             }
 
-            CreatePayment(orderId, ApmokejimoMetodas.Pavedimas, PvmMoketojoKodas);
+            var payment = CreatePayment(orderId, ApmokejimoMetodas.Pavedimas, PvmMoketojoKodas);
+
+            // Send email with payment details
+
+
 
             return Ok();
         }
 
         [HttpPost("create-checkout-cash")]
-        public ActionResult CreateCheckoutCash([FromQuery] int orderId, [FromQuery] string PvmMoketojoKodas)
+        public async Task<ActionResult> CreateCheckoutCashAsync([FromQuery] int orderId, [FromQuery] string PvmMoketojoKodas)
         {
+            Console.WriteLine("PVM: " + PvmMoketojoKodas);
+            Console.WriteLine("Order ID: " + orderId);
+            var UserId = int.Parse(User.FindFirstValue("UserId"));
+            if (!CheckUser(orderId, UserId))
+            {
+                return Unauthorized("Neturite teisės apmokėti šio užsakymo.");
+            }
+
             if (IsPaid(orderId))
             {
                 //Return that order is paid for
@@ -147,13 +165,26 @@ namespace Stotele.Server.Controllers
             var payment = CreatePayment(orderId, ApmokejimoMetodas.Grynaisiais, PvmMoketojoKodas);
 
             payment.MokejimoStatusas = MokejimoStatusas.Apmoketa;
+            _dbContext.SaveChanges();
 
+            // Send email notification
+            var userEmail = _dbContext.Naudotojai.Find(UserId).ElektroninisPastas;
+            var emailSent = await _emailService.SendEmailAsync(
+                recipientEmail: userEmail,
+                subject: "Užsakymo Patvirtinimas",
+                message: $"Užsakymas su ID: {orderId} sėkmingai pateiktas. Kurjeris susisieks telefonu. Ačiū, kad perkate pas mus!"
+            );
             return Ok();
         }
 
-        [HttpPost("create-checkout-session/{orderId}&{PvmMoketojoKodas}")]
-        public ActionResult CreateCheckoutSession(int orderId, string PvmMoketojoKodas)
+        [HttpPost("create-checkout-session")]
+        public ActionResult CreateCheckoutSession([FromQuery] int orderId, [FromQuery] string PvmMoketojoKodas)
         {
+            if (!CheckUser(orderId, int.Parse(User.FindFirstValue("UserId"))))
+            {
+                return Unauthorized("Neturite teisės apmokėti šio užsakymo.");
+            }
+
             if (IsPaid(orderId))
             {
                 //Return that order is paid for
@@ -211,7 +242,18 @@ namespace Stotele.Server.Controllers
 
         //Helperiai
 
-        private Apmokejimas CreatePayment(int orderId, ApmokejimoMetodas apmokejimoMetodas, string pvmMoketojoKodas)
+        private bool CheckUser(int orderId, int userId)
+        {
+            var order = _dbContext.Uzsakymai.Find(orderId);
+            if (order == null)
+            {
+                return false;
+            }
+
+            return order.NaudotojasId == userId;
+        }
+
+        private Apmokejimas CreatePayment(int orderId, ApmokejimoMetodas apmokejimoMetodas, string PvmMoketojoKodas)
         {
             var order = _dbContext.Uzsakymai
                 .Include(o => o.PrekesUzsakymai)
@@ -233,7 +275,7 @@ namespace Stotele.Server.Controllers
 
                 //update
                 check.ApmokejimoMetodas = apmokejimoMetodas;
-                check.PvmMoketojoKodas = pvmMoketojoKodas;
+                check.PvmMoketojoKodas = PvmMoketojoKodas;
                 _dbContext.SaveChanges();
                 return check;
             }
@@ -260,7 +302,7 @@ namespace Stotele.Server.Controllers
                 MokejimoStatusas = MokejimoStatusas.Neapmoketa,
                 ApmokejimoMetodas = apmokejimoMetodas,
                 SaskaitosFakturosNumeris = orderId,
-                PvmMoketojoKodas = pvmMoketojoKodas,
+                PvmMoketojoKodas = PvmMoketojoKodas,
                 PanaudotiTaskai = 0, // Logic to calculate points if needed
                 PridetiTaskai = pointsToAdd, 
                 KlientasId = order.NaudotojasId,
