@@ -1,81 +1,95 @@
-
 .prekes-container {
-    max-width: 1000px;
-    margin: 40px auto;
-    padding: 20px;
-  }
-  
-  .title {
-    text-align: center;
-    color: #10802c;
-    font-size: 2rem;
-    font-weight: bold;
-    margin-bottom: 20px;
-  }
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 0 10px;
+}
 
-  .table-container {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-    overflow-x: auto;
-  }
-  
-  .styled-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 1rem;
-  }
-  
-  .styled-table th,
-  .styled-table td {
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-  }
-  
-  .styled-table thead th {
-    background-color: #10802c;
-    color: white;
-    text-transform: uppercase;
-    font-weight: bold;
-  }
-  
-  .styled-table tbody tr:nth-child(even) {
-    background-color: #f9f9f9;
-  }
-  
-  .styled-table tbody tr:hover {
-    background-color: #f1f1f1;
-    transition: background-color 0.2s ease-in-out;
-  }
-  
-  .action-button {
-    background-color: #10802c;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    font-size: 1rem;
-    font-weight: bold;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-  }
-  
-  .action-button:hover {
-    background-color: #0c6a24;
-    transform: translateY(-2px);
-  }
-  
-  .action-button:active {
-    background-color: #10802c;
-    transform: translateY(1px);
-  }
-  
-  .error-message {
-    color: red;
-    text-align: center;
-    font-size: 1rem;
-    font-weight: bold;
-    margin-top: 20px;
-  }
-  
+.title {
+  text-align: center;
+  color: #10802c;
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.table-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden; 
+  margin: 0; 
+}
+
+.styled-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed; 
+  font-size: 1rem;
+}
+
+.styled-table th,
+.styled-table td {
+  padding: 12px 10px; 
+  text-align: center; 
+  border: 1px solid #ddd;
+  word-wrap: break-word; 
+}
+
+.styled-table thead th {
+  background-color: #10802c;
+  color: white;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.styled-table tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.styled-table tbody tr:hover {
+  background-color: #e8f5e9;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.action-button {
+  background-color: #10802c; 
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  border-radius: 5px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  margin: 3px; 
+  display: inline-block;
+}
+
+.action-button:hover {
+  background-color: #086922; 
+  transform: translateY(-2px);
+}
+
+.error-message {
+  text-align: center;
+  color: red;
+  font-size: 18px;
+  margin-top: 20px;
+}
+
+.styled-table td {
+  vertical-align: middle; 
+}
+
+.table-container {
+  overflow-x: auto; 
+  margin: 0 auto; 
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  overflow-x: hidden; 
+}
