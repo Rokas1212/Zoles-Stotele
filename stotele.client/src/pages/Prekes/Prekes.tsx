@@ -4,6 +4,7 @@ import Loading from "../../components/loading";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./prekes.css";
+import { useNavigate } from "react-router-dom";
 
 interface Product {
   id: string;
@@ -15,6 +16,7 @@ const Prekes: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchPrekes = async () => {
@@ -42,10 +44,27 @@ const Prekes: React.FC = () => {
   const handleAddToCart = async (id: string) => {
     try {
       await addToCart(id);
-      toast.success(`Prekė su ID ${id} pridėta į krepšelį!`, {
-        position: "top-right",
-        autoClose: 3000,
-      });
+      toast.success(
+        <div className="d-flex align-items-center justify-content-between">
+          <span className="mb-0">Prekė pridėta</span>
+          <button
+            className="btn btn-primary btn-sm"
+            onClick={() => {
+              navigate('/krepselis');
+              toast.dismiss();
+            }}
+          >
+            Eiti į krepšelį
+          </button>
+        </div>,
+        {
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+        }
+      );
     } catch (error) {
       console.error("Klaida: ", error);
       toast.error("Nepavyko pridėti prekės į krepšelį.", {

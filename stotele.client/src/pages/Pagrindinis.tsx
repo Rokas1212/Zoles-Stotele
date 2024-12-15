@@ -10,6 +10,9 @@ import {
   FaBox,
   FaThLarge,
 } from "react-icons/fa"; // Add icons from react-icons
+import { toast } from "react-toastify";
+import { Navigate, useNavigate } from "react-router-dom";
+import { addToCart } from "../apiServices/cart";
 
 type Product = {
   id: number;
@@ -33,6 +36,7 @@ const Pagrindinis = () => {
   const [userId, setUserId] = useState<number | null>(null);
   const [refetch, setRefetch] = useState<boolean>(false);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const user = localStorage.getItem("user");
@@ -108,6 +112,40 @@ const Pagrindinis = () => {
       console.error("Klaida blokuojant rekomendaciją", error);
     }
   };
+
+  const handleAddToCart = async (id: string) => {
+    try {
+      await addToCart(id);
+      toast.success(
+        <div className="d-flex align-items-center justify-content-between">
+          <span className="mb-0">Prekė pridėta</span>
+          <button
+            className="btn btn-primary btn-sm"
+            onClick={() => {
+              navigate('/krepselis');
+              toast.dismiss();
+            }}
+          >
+            Eiti į krepšelį
+          </button>
+        </div>,
+        {
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+        }
+      );
+    } catch (error) {
+      console.error("Klaida: ", error);
+      toast.error("Nepavyko pridėti prekės į krepšelį.", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+    }
+  };
+  
 
   useEffect(() => {
     if (userId !== null) {
@@ -237,9 +275,12 @@ const Pagrindinis = () => {
                   />
                   <div>
                     <p className="fw-bold mb-2">
-                      Pavadinimas: {product.pavadinimas}
+                       {product.pavadinimas}
                     </p>
-                    <p className="text-muted mb-2">Kaina: {product.kaina}</p>
+                    <p className="text-muted mb-2">€ {product.kaina.toFixed(2)}</p>
+                    <p className="text-muted mb-2">Likutis: {product.kiekis}</p>
+                    <p className="text-muted mb-2">Aprašymas: {product.aprasymas}</p>
+                    <button onClick={() => handleAddToCart(product.id.toString())} className="btn btn-primary btn-sm mt-2"><FaShoppingCart /></button>
                   </div>
                 </div>
               </div>
