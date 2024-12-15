@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Stotele.Server.Models;
@@ -58,10 +59,26 @@ namespace Stotele.Server.Controllers
         [HttpPost]
         public async Task<ActionResult<Preke>> CreatePreke(KurtiArKoreguotiPrekeDTO dto)
         {
+            var userId = User.FindFirstValue("UserId");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("Nežinomas user ID.");
+            }
+
+            if (!int.TryParse(userId, out int parsedUserId))
+            {
+                return BadRequest("Neteisingas user ID formatas.");
+            }
+
+            if (dto.VadybininkasId != parsedUserId && !User.IsInRole("Administratorius"))
+            {
+                return Unauthorized("Neturite teisės kurti prekę šiam vadybininkui.");
+            }
+
             var vadybininkas = await _context.Vadybininkai.FindAsync(dto.VadybininkasId);
             if (vadybininkas == null)
             {
-                return BadRequest($"Vadybininkas with ID {dto.VadybininkasId} does not exist.");
+                return BadRequest($"Vadybininkas su šiuo ID {dto.VadybininkasId} neegzistuoja.");
             }
 
             var preke = new Preke
@@ -80,7 +97,15 @@ namespace Stotele.Server.Controllers
                 VadybininkasId = dto.VadybininkasId
             };
 
+            var prekiuParduotuves = dto.PrekiuParduotuves.Select(pp => new PrekesParduotuve
+            {
+                Kiekis = pp.Kiekis,
+                ParduotuveId = pp.ParduotuveId,
+                PrekeId = preke.Id
+            }).ToList();
+
             _context.Prekes.Add(preke);
+            await _context.PrekesParduotuve.AddRangeAsync(prekiuParduotuves);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetPreke), new { id = preke.Id }, preke);
@@ -158,5 +183,11 @@ namespace Stotele.Server.Controllers
             return _context.Prekes.Any(p => p.Id == id);
         }
 
+        // GET List of Parduotuves
+        [HttpGet("ParduotuvesList")]
+        public async Task<ActionResult<IEnumerable<Parduotuve>>> GetParduotuvesList()
+        {
+            return await _context.Parduotuve.ToListAsync();
+        }
     }
 }

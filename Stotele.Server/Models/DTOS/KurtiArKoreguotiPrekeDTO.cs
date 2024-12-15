@@ -14,5 +14,12 @@ namespace Stotele.Server.Models
         public double RekomendacijosSvoris { get; set; }
         public double Mase { get; set; }
         public int VadybininkasId { get; set; }
+        public List<PrekesParduotuve> PrekiuParduotuves { get; set; } = new List<PrekesParduotuve>();
+    }
+
+    public class PrekesParduotuveDTO
+    {
+        public int ParduotuveId { get; set; }
+        public int Kiekis { get; set; }
     }
 }
