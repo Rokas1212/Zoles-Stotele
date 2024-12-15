@@ -142,25 +142,62 @@ namespace Stotele.Server.Controllers
         }
 
         // GET: api/Profilis/{id}
+        // [HttpGet("{id}")]
+        // public async Task<ActionResult<object>> GetProfile(int id)
+        // {
+        //     var naudotojas = await _context.Naudotojai.FirstOrDefaultAsync(n => n.Id == id);
+
+        //     if (naudotojas == null)
+        //     {
+        //         return NotFound("Naudotojas nerastas.");
+        //     }
+
+        //     return new
+        //     {
+        //         naudotojas.Id,
+        //         naudotojas.Vardas,
+        //         naudotojas.Pavarde,
+        //         naudotojas.ElektroninisPastas,
+        //         naudotojas.Administratorius
+        //     };
+        // }
+
+        // GET: api/Profilis/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<object>> GetProfile(int id)
         {
-            var naudotojas = await _context.Naudotojai.FirstOrDefaultAsync(n => n.Id == id);
+            // Fetch the naudotojas using its ID
+            var naudotojas = await _context.Naudotojai
+                .FirstOrDefaultAsync(n => n.Id == id);
 
             if (naudotojas == null)
             {
                 return NotFound("Naudotojas nerastas.");
             }
 
+            var klientas = await _context.Klientai
+                .FirstOrDefaultAsync(k => k.Id == naudotojas.Id);
+
+            // Return combined data with Klientas info if available
             return new
             {
                 naudotojas.Id,
                 naudotojas.Vardas,
                 naudotojas.Pavarde,
                 naudotojas.ElektroninisPastas,
-                naudotojas.Administratorius
+                naudotojas.Lytis,
+                Klientas = klientas != null
+                    ? new
+                    {
+                        klientas.Miestas,
+                        klientas.Adresas,
+                        klientas.PastoKodas,
+                        klientas.GimimoData
+                    }
+                    : null
             };
         }
+
 
         [HttpGet("klientai")]
         public async Task<ActionResult<IEnumerable<object>>> GetAllClientProfiles()
@@ -261,12 +298,69 @@ namespace Stotele.Server.Controllers
         }
 
 
+        [HttpPost("add-vadybininkas")]
+        public async Task<IActionResult> MakeVadybininkas([FromBody] PridetiVadybininkaDTO dto)
+        {
+            var naudotojas = await _context.Naudotojai.FindAsync(dto.NaudotojasId);
+            if (naudotojas == null)
+            {
+                return NotFound("Naudotojas nerastas.");
+            }
 
+            var existingVadybininkas = await _context.Vadybininkai
+                .FirstOrDefaultAsync(v => v.NaudotojasId == dto.NaudotojasId);
 
+            if (existingVadybininkas != null)
+            {
+                return BadRequest("Naudotojas jau yra vadybininkas.");
+            }
 
+            var parduotuve = await _context.Parduotuve.FindAsync(dto.ParduotuveId);
+            if (parduotuve == null)
+            {
+                return NotFound("Parduotuvė nerasta.");
+            }
 
+            var vadybininkas = new Vadybininkas
+            {
+                NaudotojasId = dto.NaudotojasId,
+                Skyrius = dto.Skyrius,
+                ParduotuveId = dto.ParduotuveId
+            };
 
+            _context.Vadybininkai.Add(vadybininkas);
+            await _context.SaveChangesAsync();
 
+            return Ok(new { Message = "Naudotojas sėkmingai pridėtas kaip vadybininkas." });
+        }
+
+        [HttpGet("all-parduotuves")]
+        public async Task<IActionResult> GetAllParduotuves()
+        {
+            var parduotuves = await _context.Parduotuve
+                .Select(p => new
+                {
+                    p.Id,
+                    p.Adresas
+                })
+                .ToListAsync();
+
+            return Ok(parduotuves);
+        }
+
+        // GET: api/Profilis/is-vadybininkas/{id}
+        [HttpGet("is-vadybininkas/{id}")]
+        public async Task<IActionResult> IsVadybininkas(int id)
+        {
+            var isVadybininkas = await _context.Vadybininkai.AnyAsync(v => v.NaudotojasId == id);
+
+            if (isVadybininkas)
+            {
+                return Ok(new { Message = "Naudotojas yra vadybininkas." });
+            }
+
+            return NotFound(new { Message = "Naudotojas nėra vadybininkas." });
+        }
 
 
         // POST: api/Profilis/register-admin

@@ -9,45 +9,58 @@ interface Preke {
   kaina: number;
 }
 
+interface Nuolaida {
+  prekeId: number;
+  galiojimoPabaiga: string;
+}
+
 const PridetiNuolaida: React.FC = () => {
   const [amount, setAmount] = useState("");
   const [endDate, setEndDate] = useState("");
   const [prekes, setPrekes] = useState<Preke[]>([]);
+  const [nuolaidos, setNuolaidos] = useState<Nuolaida[]>([]);
   const [selectedPrekeId, setSelectedPrekeId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const today = new Date().toISOString().split("T")[0];
 
   useEffect(() => {
-    const fetchPrekes = async () => {
+    const fetchPrekesAndNuolaidos = async () => {
       try {
-        const response = await fetch("https://localhost:5210/api/Preke");
-        if (!response.ok) {
-          throw new Error("Nepavyko gauti prekių sąrašo.");
+        const [prekesResponse, nuolaidosResponse] = await Promise.all([
+          fetch("https://localhost:5210/api/Preke"),
+          fetch("https://localhost:5210/api/Nuolaida/active"),
+        ]);
+
+        if (!prekesResponse.ok || !nuolaidosResponse.ok) {
+          throw new Error("Nepavyko gauti duomenų.");
         }
-        const data: Preke[] = await response.json();
-        setPrekes(data);
+
+        const prekesData: Preke[] = await prekesResponse.json();
+        const nuolaidosData: Nuolaida[] = await nuolaidosResponse.json();
+
+        setPrekes(prekesData);
+        setNuolaidos(nuolaidosData);
       } catch (err) {
-        console.error("Klaida gaunant prekes:", err);
-        setError("Nepavyko gauti prekių sąrašo. Bandykite dar kartą.");
+        console.error("Klaida gaunant duomenis:", err);
+        setError("Nepavyko gauti duomenų. Bandykite dar kartą.");
       }
     };
 
-    fetchPrekes();
+    fetchPrekesAndNuolaidos();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const discountValue = parseInt(amount, 10);
-
-    if (discountValue < 0 || discountValue > 100) {
-      setError("Nuolaidos dydis turi būti tarp 0 ir 100.");
+    if (!selectedPrekeId) {
+      toast.error("Pasirinkite prekę.");
       return;
     }
 
-    if (!selectedPrekeId) {
-      toast.error("Pasirinkite prekę.");
+    const discountValue = parseInt(amount, 10);
+    if (discountValue < 0 || discountValue > 100) {
+      setError("Nuolaidos dydis turi būti tarp 0 ir 100.");
       return;
     }
 
@@ -55,41 +68,36 @@ const PridetiNuolaida: React.FC = () => {
 
     const newDiscount = {
       procentai: discountValue,
-      galiojimoPabaiga: formattedEndDate, 
+      galiojimoPabaiga: formattedEndDate,
       prekeId: selectedPrekeId,
     };
 
     try {
       const response = await fetch("https://localhost:5210/api/Nuolaida", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newDiscount),
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || "Nepavyko pridėti nuolaidos.");
-      }
+      if (!response.ok) throw new Error("Nepavyko pridėti nuolaidos.");
 
-      // Show success notification
       toast.success("Nuolaida sėkmingai pridėta!");
 
-      // Redirect to /nuolaidos after a short delay
       setTimeout(() => {
         window.location.href = "/nuolaidos";
       }, 1500);
     } catch (err: any) {
-      console.error("Klaida pridedant nuolaidą:", err);
-      setError(err.message || "Nepavyko pridėti nuolaidos. Bandykite dar kartą.");
       toast.error(err.message || "Nepavyko pridėti nuolaidos.");
     }
   };
 
+  const filteredPrekes = prekes.filter(
+    (preke) => !nuolaidos.some((nuolaida) => nuolaida.prekeId === preke.id)
+  );
+
   return (
     <div className="form-container">
-      <ToastContainer /> 
+      <ToastContainer />
       <h1 className="form-title">Pridėk Savo Nuolaidą</h1>
       <form onSubmit={handleSubmit} className="discount-form">
         <div className="form-group">
@@ -97,15 +105,7 @@ const PridetiNuolaida: React.FC = () => {
           <input
             type="number"
             value={amount}
-            onChange={(e) => {
-              const value = e.target.value;
-              if (+value >= 0 && +value <= 100) {
-                setAmount(value);
-                setError(null);
-              } else {
-                setError("Nuolaidos dydis turi būti tarp 0 ir 100.");
-              }
-            }}
+            onChange={(e) => setAmount(e.target.value)}
             placeholder="Įveskite nuolaidos dydį"
             min="0"
             max="100"
@@ -132,7 +132,7 @@ const PridetiNuolaida: React.FC = () => {
             <option value="" disabled>
               Pasirinkite prekę
             </option>
-            {prekes.map((preke) => (
+            {filteredPrekes.map((preke) => (
               <option key={preke.id} value={preke.id}>
                 {preke.pavadinimas} - {preke.kaina.toFixed(2)} €
               </option>

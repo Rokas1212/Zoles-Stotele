@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Navbar, Nav, NavDropdown } from "react-bootstrap";
-import { useNavigate } from "react-router-dom"; // React Router hook for navigation
+import { useNavigate } from "react-router-dom";
 import "./Navbar.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import useAuth from "../hooks/useAuth";
@@ -10,6 +10,28 @@ import "react-toastify/dist/ReactToastify.css";
 const CustomNavbar: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
+
+  // State to track Vadybininkas status
+  const [isVadybininkas, setIsVadybininkas] = useState<boolean>(false);
+
+  useEffect(() => {
+    const checkVadybininkasStatus = async () => {
+      if (user?.id) {
+        try {
+          const response = await fetch(
+            `https://localhost:5210/api/Profilis/is-vadybininkas/${user.id}`
+          );
+          setIsVadybininkas(response.ok); // Sets true if user is a vadybininkas
+        } catch (error) {
+          console.error("Error checking Vadybininkas status:", error);
+        }
+      }
+    };
+
+    if (isAuthenticated) {
+      checkVadybininkasStatus();
+    }
+  }, [user, isAuthenticated]);
 
   const handleLogout = () => {
     logout();
@@ -23,8 +45,8 @@ const CustomNavbar: React.FC = () => {
     });
 
     setTimeout(() => {
-      navigate("/"); 
-    }, 1000); 
+      navigate("/");
+    }, 1000);
   };
 
   return (
@@ -44,7 +66,7 @@ const CustomNavbar: React.FC = () => {
                 <Nav.Link href={`/profilis?id=${user?.id || ""}`}>Profilis</Nav.Link>
                 <Nav.Link onClick={handleLogout}>Atsijungti</Nav.Link>
 
-                {user?.administratorius ? (
+                {user?.administratorius && (
                   <NavDropdown
                     title="Administratoriaus Meniu"
                     id="administratorius-dropdown"
@@ -56,20 +78,21 @@ const CustomNavbar: React.FC = () => {
                       Pridėti nuolaidą
                     </NavDropdown.Item>
                   </NavDropdown>
-                ) : (
-                  <></>
+                )}
+
+                {/* Conditional display of Vadybininko Meniu */}
+                {isVadybininkas && (
+                  <NavDropdown title="Vadybininko Meniu" id="vadybininkas-dropdown">
+                    <NavDropdown.Item href="/vadybininkas/prideti-preke">
+                      Pridėti prekę
+                    </NavDropdown.Item>
+                    <NavDropdown.Item href="/vadybininkas/prideti-kategorija">
+                      Pridėti kategoriją
+                    </NavDropdown.Item>
+                  </NavDropdown>
                 )}
               </>
             )}
-
-            <NavDropdown title="Vadybininko Meniu" id="vadybininkas-dropdown">
-              <NavDropdown.Item href="/vadybininkas/prideti-preke">
-                Pridėti prekę
-              </NavDropdown.Item>
-              <NavDropdown.Item href="/vadybininkas/prideti-kategorija">
-                Pridėti kategoriją
-              </NavDropdown.Item>
-            </NavDropdown>
           </Nav>
         </Navbar.Collapse>
       </Navbar>

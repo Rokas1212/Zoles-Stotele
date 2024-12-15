@@ -191,14 +191,6 @@ const Pagrindinis = () => {
               </div>
               <div className="col">
                 <div className="d-flex flex-column align-items-center card-link-container">
-                  <FaUserEdit size={30} className="mb-2 icon text-warning" />
-                  <a href="/" className="nav-link text-primary">
-                    Redaguoti profilį
-                  </a>
-                </div>
-              </div>
-              <div className="col">
-                <div className="d-flex flex-column align-items-center card-link-container">
                   <FaBox size={30} className="mb-2 icon text-danger" />
                   <a href="/prekes" className="nav-link text-primary">
                     Prekės

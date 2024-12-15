@@ -129,7 +129,18 @@ namespace Stotele.Server.Controllers
             return NoContent();
         }
 
+        [HttpGet("active")]
+        public async Task<IActionResult> GetActiveDiscounts()
+        {
+            var activeDiscounts = await _context.Nuolaidos
+                .Where(n => n.PabaigosData > DateTime.UtcNow)
+                .Select(n => new { n.PrekeId, n.PabaigosData })
+                .ToListAsync();
 
+            return Ok(activeDiscounts);
+        }
+
+        // Helpers
         private bool NuolaidaExists(int id)
         {
             return _context.Nuolaidos.Any(n => n.Id == id);
