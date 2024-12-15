@@ -6,11 +6,8 @@ using Stripe;
 using Stripe.Checkout;
 using Stotele.Server.Models;
 using Stotele.Server.Models.ApplicationDbContexts;
-using System.Collections.Generic;
-using Stotele.Server.Models.SessionModels;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using System.IdentityModel.Tokens.Jwt;
 
 namespace Stotele.Server.Controllers
 {
