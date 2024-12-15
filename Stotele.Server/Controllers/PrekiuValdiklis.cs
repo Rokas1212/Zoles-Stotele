@@ -39,7 +39,9 @@ namespace Stotele.Server.Controllers
                 {
                     Id = p.Id,
                     Pavadinimas = p.Pavadinimas,
-                    Kaina = p.Kaina
+                    Kaina = p.Kaina,
+                    Aprasymas = p.Aprasymas,
+                    NuotraukosUrl = p.NuotraukosUrl
                 })
                 .FirstOrDefaultAsync(p => p.Id == id);
 
@@ -50,6 +52,7 @@ namespace Stotele.Server.Controllers
 
             return preke;
         }
+
 
         // POST: api/Preke
         [HttpPost]
@@ -154,5 +157,6 @@ namespace Stotele.Server.Controllers
         {
             return _context.Prekes.Any(p => p.Id == id);
         }
+
     }
 }
