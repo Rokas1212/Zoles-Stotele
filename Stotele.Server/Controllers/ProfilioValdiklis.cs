@@ -142,27 +142,6 @@ namespace Stotele.Server.Controllers
         }
 
         // GET: api/Profilis/{id}
-        // [HttpGet("{id}")]
-        // public async Task<ActionResult<object>> GetProfile(int id)
-        // {
-        //     var naudotojas = await _context.Naudotojai.FirstOrDefaultAsync(n => n.Id == id);
-
-        //     if (naudotojas == null)
-        //     {
-        //         return NotFound("Naudotojas nerastas.");
-        //     }
-
-        //     return new
-        //     {
-        //         naudotojas.Id,
-        //         naudotojas.Vardas,
-        //         naudotojas.Pavarde,
-        //         naudotojas.ElektroninisPastas,
-        //         naudotojas.Administratorius
-        //     };
-        // }
-
-        // GET: api/Profilis/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<object>> GetProfile(int id)
         {
@@ -217,7 +196,7 @@ namespace Stotele.Server.Controllers
             return Ok(klientai);
         }
 
-
+        // GET: api/Profilis
         [HttpGet]
         public async Task<ActionResult<IEnumerable<object>>> GetAllProfiles()
         {

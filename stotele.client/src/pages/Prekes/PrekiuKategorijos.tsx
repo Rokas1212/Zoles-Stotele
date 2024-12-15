@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "./prekiuKategorijos.css";
 
 type kategorijos = {
   id: number;
@@ -8,10 +11,23 @@ type kategorijos = {
   vadybininkas: string | null;
 };
 
-const PrekiuKategorijos = () => {
+const PrekiuKategorijos: React.FC = () => {
   const [categories, setCategories] = useState<kategorijos[]>([]);
   const [userId, setUserId] = useState<number | null>(null);
   const [admin, setAdmin] = useState<boolean>(false);
+
+  const fetchUserCheck = async () => {
+    try {
+      const response = await fetch(
+        `https://localhost:5210/api/Profilis/is-vadybininkas/${userId}`
+      );
+      if (response.ok) {
+        setAdmin(true);
+      }
+    } catch (error) {
+      console.error("Klaida gaunant vadybininko informaciją", error);
+    }
+  };
 
   useEffect(() => {
     const user = localStorage.getItem("user");
@@ -19,11 +35,10 @@ const PrekiuKategorijos = () => {
     if (user) {
       const userObject = JSON.parse(user);
       setUserId(userObject.id);
-      if (userObject.administratorius) setAdmin(true);
+      console.log(userId);
     } else {
       console.log("Naudotojas neprisijungęs");
     }
-
     fetchData();
   }, []);
 
@@ -35,7 +50,7 @@ const PrekiuKategorijos = () => {
       const data = await response.json();
       setCategories(data);
     } catch (error) {
-      console.error("Klaida gaunant prekes", error);
+      console.error("Klaida gaunant kategorijas", error);
     }
   };
 
@@ -55,13 +70,13 @@ const PrekiuKategorijos = () => {
       );
 
       if (response.ok) {
-        alert("Prekė pridėta prie mėgstamų");
+        alert("Kategorija pridėta prie mėgstamų");
       }
       if (response.status === 400) {
-        alert("Prekė jau yra pridėta prie mėgstamų");
+        alert("Kategorija jau yra pridėta prie mėgstamų");
       }
     } catch (error) {
-      console.error("Klaida pridedant prekę prie mėgstamų", error);
+      console.error("Klaida pridedant Kategorija prie mėgstamų", error);
     }
   };
 
@@ -71,6 +86,12 @@ const PrekiuKategorijos = () => {
       alert("Naudotojas neprisijungęs");
       return;
     }
+
+    const isConfirmed = window.confirm(
+      "Ar tikrai norite pašalinti šią kategoriją?"
+    );
+
+    if (!isConfirmed) return;
 
     try {
       const response = await fetch(
@@ -83,20 +104,28 @@ const PrekiuKategorijos = () => {
       if (response.ok) {
         alert("Kategorija sėkmingai ištrinta");
       }
+
+      await fetchData();
     } catch (error) {
       console.error("Klaida trinant kategoriją", error);
     }
   };
 
+  useEffect(() => {
+    if (userId !== null) {
+      fetchUserCheck();
+    }
+  }, [userId]);
+
   return (
-    <div>
-      <h1>Prekių Kategorijos</h1>
-      <table className="table table-striped">
+    <div className="kategorijos-container">
+      <h1 className="kategorijos-title">Prekių Kategorijos</h1>
+      <table className="kategorijos-table">
         <thead>
           <tr>
             <th>ID</th>
             <th>Kategorijos pavadinimas</th>
-            <th>Aprasymas</th>
+            <th>Aprašymas</th>
             <th>Veiksmas</th>
           </tr>
         </thead>
@@ -108,13 +137,27 @@ const PrekiuKategorijos = () => {
               <td>{category.aprasymas}</td>
               <td>
                 {!admin ? (
-                  <button onClick={() => handleAddToFavorites(category.id)}>
+                  <button
+                    className="action-button add-to-favorites"
+                    onClick={() => handleAddToFavorites(category.id)}
+                  >
                     Pridėti prie mėgstamų
                   </button>
                 ) : (
-                  <button onClick={() => handleRemoveCategory(category.id)}>
-                    Pašalinti kategoriją
-                  </button>
+                  <>
+                    <button
+                      className="action-button"
+                      onClick={() => handleRemoveCategory(category.id)}
+                    >
+                      Pašalinti kategoriją
+                    </button>
+                    <button
+                      className="action-button add-to-favorites"
+                      onClick={() => handleAddToFavorites(category.id)}
+                    >
+                      Pridėti prie mėgstamų
+                    </button>
+                  </>
                 )}
               </td>
             </tr>

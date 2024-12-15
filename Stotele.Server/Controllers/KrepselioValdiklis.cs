@@ -40,7 +40,10 @@ public class KrepselioController : ControllerBase
         {
             return NotFound($"Produktas su tokiu ID: {productId} nerastas.");
         }
-
+        if (product.Kiekis == 0)
+        {
+            return BadRequest("Produktas yra išparduotas.");
+        }
         // Retrieve the current cart from session
         var cart = GetCartFromSession();
 

@@ -45,15 +45,19 @@ const RedaguotiProfili = () => {
     const klientas: any = {};
     if (city.trim()) klientas.miestas = city.trim();
     if (address.trim()) klientas.adresas = address.trim();
-    if (postalCode.trim()) klientas.pastoKodas = parseInt(postalCode);
+    if (postalCode) klientas.pastoKodas = parseInt(postalCode);
     if (birthDate.trim()) klientas.gimimoData = birthDate;
 
     if (Object.keys(klientas).length > 0) payload.klientas = klientas;
 
     try {
-      await axios.put(`https://localhost:5210/api/Profilis/${userId}`, payload, {
-        headers: { "Content-Type": "application/json" },
-      });
+      await axios.put(
+        `https://localhost:5210/api/Profilis/${userId}`,
+        payload,
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
 
       toast.success("Profilis sėkmingai atnaujintas!");
       setTimeout(() => {

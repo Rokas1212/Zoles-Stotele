@@ -1,9 +1,15 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import PrekiuKategorijos from "./PrekiuKategorijos";
 
 interface ParduotuvesList {
   id: number;
   adresas: string;
+}
+
+interface KategorijaList {
+  id: number;
+  pavadinimas: string;
 }
 
 const PridetiPreke = () => {
@@ -14,12 +20,16 @@ const PridetiPreke = () => {
   const [measurements, setMeasurements] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [stores, setStores] = useState<ParduotuvesList[]>([]);
+  const [categories, setCategories] = useState<KategorijaList[]>([]);
   const [code, setCode] = useState("");
   const [warrantyUntil, setWarrantyUntil] = useState("");
   const [recommendationWeight, setRecommendationWeight] = useState("");
   const [mass, setMass] = useState("");
   const [selectedStores, setSelectedStores] = useState<
     { parduotuveId: number; kiekis: number }[]
+  >([]);
+  const [selectedCategories, setSelectedCategories] = useState<
+    { kategorijaId: number }[]
   >([]);
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const userId = user.id;
@@ -44,8 +54,40 @@ const PridetiPreke = () => {
       }
     };
 
+    fetchCategories();
     fetchStores();
   }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch(
+        "https://localhost:5210/api/Kategorija/kategorijos"
+      );
+      const data = await response.json();
+      const categories = data.map(
+        (category: { id: number; pavadinimas: string }) => ({
+          id: category.id,
+          pavadinimas: category.pavadinimas,
+        })
+      );
+      setCategories(categories);
+    } catch (error) {
+      console.error("Klaida gaunant kategorijas", error);
+    }
+  };
+
+  const handleAddCategory = () => {
+    setSelectedCategories([...selectedCategories, { kategorijaId: 0 }]);
+  };
+
+  const handleCategoryChange = (index: number, value: any) => {
+    const updatedCategories = [...selectedCategories];
+    updatedCategories[index] = {
+      ...updatedCategories[index],
+      kategorijaId: value,
+    };
+    setSelectedCategories(updatedCategories);
+  };
 
   const handleAddStore = () => {
     setSelectedStores([...selectedStores, { parduotuveId: 0, kiekis: 0 }]);
@@ -76,22 +118,19 @@ const PridetiPreke = () => {
       garantinisLaikotarpis: warrantyUntil,
       rekomendacijosSvoris: parseFloat(recommendationWeight),
       mase: parseFloat(mass),
+      prekiuKategorijos: selectedCategories,
     };
 
     console.log("Pridedama prekė:", newPreke);
 
     try {
-      await axios.post(
-        "https://localhost:5210/api/Preke",
-        newPreke,
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      await axios.post("https://localhost:5210/api/Preke", newPreke, {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
       alert("Prekė sėkmingai pridėta!");
       window.location.href = "/prekes";
     } catch (error) {
@@ -176,7 +215,6 @@ const PridetiPreke = () => {
             value={warrantyUntil}
             onChange={(e) => setWarrantyUntil(e.target.value)}
           />
-
         </div>
 
         <div className="form-group">
@@ -201,7 +239,6 @@ const PridetiPreke = () => {
           />
         </div>
 
-
         <div className="form-group">
           <label>Nuotraukos URL</label>
           <input
@@ -213,6 +250,37 @@ const PridetiPreke = () => {
           />
         </div>
 
+        <h3>Kategorijos</h3>
+        {selectedCategories.map((category, index) => (
+          <div key={index} className="row mb-2">
+            <div className="col">
+              <label>Kategorija</label>
+              <select
+                className="form-control"
+                value={category.kategorijaId}
+                onChange={(e) =>
+                  handleCategoryChange(index, Number(e.target.value))
+                }
+              >
+                <option value={0}>Pasirinkite kategoriją</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.pavadinimas}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        ))}
+
+        <button
+          type="button"
+          onClick={handleAddCategory}
+          className="btn btn-secondary mb-3"
+        >
+          Pridėti kategoriją
+        </button>
+
         <h3>Parduotuvės</h3>
         {selectedStores.map((store, index) => (
           <div key={index} className="row mb-2">
@@ -222,7 +290,11 @@ const PridetiPreke = () => {
                 className="form-control"
                 value={store.parduotuveId}
                 onChange={(e) =>
-                  handleStoreChange(index, "parduotuveId", Number(e.target.value))
+                  handleStoreChange(
+                    index,
+                    "parduotuveId",
+                    Number(e.target.value)
+                  )
                 }
               >
                 <option value={0}>Pasirinkite parduotuvę</option>
