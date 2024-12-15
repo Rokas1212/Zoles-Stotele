@@ -302,6 +302,7 @@ namespace Stotele.Server.Controllers
 
             var vadybininkas = new Vadybininkas
             {
+                Id = dto.NaudotojasId,
                 NaudotojasId = dto.NaudotojasId,
                 Skyrius = dto.Skyrius,
                 ParduotuveId = dto.ParduotuveId
