@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import PrekiuKategorijos from "./PrekiuKategorijos";
 
 interface ParduotuvesList {
   id: number;
@@ -34,6 +35,8 @@ const PridetiPreke = () => {
   const userId = user.id;
 
   useEffect(() => {
+    // Fetch list of stores from the backend
+    console.log(userId);
     const fetchStores = async () => {
       try {
         const response = await axios.get(
@@ -58,7 +61,7 @@ const PridetiPreke = () => {
   const fetchCategories = async () => {
     try {
       const response = await fetch(
-        `https://localhost:5210/api/Kategorija/kategorijos`
+        "https://localhost:5210/api/Kategorija/kategorijos"
       );
       const data = await response.json();
       const categories = data.map(
@@ -137,198 +140,151 @@ const PridetiPreke = () => {
   };
 
   return (
-    <div className="container mt-5">
-      <h1 className="text-center mb-4">Pridėti Prekę</h1>
+    <div className="container">
+      <h1>Pridėti Prekę</h1>
       <form onSubmit={handleSubmit}>
-        {/* Title Input */}
-        <div className="mb-3">
-          <label htmlFor="title" className="form-label">
-            Pavadinimas
-          </label>
+        <div className="form-group">
+          <label>Pavadinimas</label>
           <input
             type="text"
             className="form-control"
-            id="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Įveskite pavadinimą"
-            required
           />
         </div>
 
-        {/* Price Input */}
-        <div className="mb-3">
-          <label htmlFor="price" className="form-label">
-            Kaina
-          </label>
-          <input
-            type="number"
-            className="form-control"
-            id="price"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            placeholder="Įveskite kainą"
-            required
-          />
-        </div>
-
-        {/* Expiry Date */}
-        <div className="mb-3">
-          <label htmlFor="expireDate" className="form-label">
-            Galiojimo data
-          </label>
-          <input
-            type="date"
-            className="form-control"
-            id="expireDate"
-            value={expireDate}
-            onChange={(e) => setExpireDate(e.target.value)}
-            required
-          />
-        </div>
-
-        {/* Description */}
-        <div className="mb-3">
-          <label htmlFor="description" className="form-label">
-            Aprašymas
-          </label>
-          <textarea
-            className="form-control"
-            id="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Įveskite aprašymą"
-            rows={4}
-            required
-          />
-        </div>
-
-        {/* Measurements */}
-        <div className="mb-3">
-          <label htmlFor="measurements" className="form-label">
-            Išmatavimai
-          </label>
+        <div className="form-group">
+          <label>Kaina</label>
           <input
             type="text"
             className="form-control"
-            id="measurements"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            placeholder="Įveskite kainą"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Galiojimo data</label>
+          <input
+            type="date"
+            className="form-control"
+            value={expireDate}
+            onChange={(e) => setExpireDate(e.target.value)}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Aprašymas</label>
+          <textarea
+            className="form-control"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Įveskite aprašymą"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Išmatavimai</label>
+          <input
+            type="text"
+            className="form-control"
             value={measurements}
             onChange={(e) => setMeasurements(e.target.value)}
             placeholder="Įveskite išmatavimus"
           />
         </div>
 
-        {/* Product Code */}
-        <div className="mb-3">
-          <label htmlFor="code" className="form-label">
-            Prekės Kodas
-          </label>
+        <div className="form-group">
+          <label>Prekės Kodas</label>
           <input
             type="text"
             className="form-control"
-            id="code"
             value={code}
             onChange={(e) => setCode(e.target.value)}
             placeholder="Įveskite kodą"
-            required
           />
         </div>
 
-        {/* Warranty */}
-        <div className="mb-3">
-          <label htmlFor="warrantyUntil" className="form-label">
-            Garantinis laikotarpis
-          </label>
+        <div className="form-group">
+          <label>Garantinis laikotarpis</label>
           <input
             type="date"
             className="form-control"
-            id="warrantyUntil"
             value={warrantyUntil}
             onChange={(e) => setWarrantyUntil(e.target.value)}
           />
         </div>
 
-        {/* Recommendation Weight */}
-        <div className="mb-3">
-          <label htmlFor="recommendationWeight" className="form-label">
-            Rekomendacijos svoris
-          </label>
+        <div className="form-group">
+          <label>Rekomendacijos svoris</label>
           <input
-            type="number"
+            type="text"
             className="form-control"
-            id="recommendationWeight"
             value={recommendationWeight}
             onChange={(e) => setRecommendationWeight(e.target.value)}
             placeholder="Įveskite svorį"
-            required
           />
         </div>
 
-        {/* Mass */}
-        <div className="mb-3">
-          <label htmlFor="mass" className="form-label">
-            Prekės masė
-          </label>
+        <div className="form-group">
+          <label>Prekės masė</label>
           <input
-            type="number"
+            type="text"
             className="form-control"
-            id="mass"
             value={mass}
             onChange={(e) => setMass(e.target.value)}
             placeholder="Įveskite masę"
-            required
           />
         </div>
 
-        {/* Image URL */}
-        <div className="mb-3">
-          <label htmlFor="imageUrl" className="form-label">
-            Nuotraukos URL
-          </label>
+        <div className="form-group">
+          <label>Nuotraukos URL</label>
           <input
-            type="url"
+            type="text"
             className="form-control"
-            id="imageUrl"
             value={imageUrl}
             onChange={(e) => setImageUrl(e.target.value)}
             placeholder="Įveskite nuotraukos URL"
           />
         </div>
 
-        {/* Categories */}
         <h3>Kategorijos</h3>
         {selectedCategories.map((category, index) => (
-          <div key={index} className="mb-3">
-            <label>Kategorija</label>
-            <select
-              className="form-control"
-              value={category.kategorijaId}
-              onChange={(e) =>
-                handleCategoryChange(index, Number(e.target.value))
-              }
-            >
-              <option value={0}>Pasirinkite kategoriją</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.pavadinimas}
-                </option>
-              ))}
-            </select>
+          <div key={index} className="row mb-2">
+            <div className="col">
+              <label>Kategorija</label>
+              <select
+                className="form-control"
+                value={category.kategorijaId}
+                onChange={(e) =>
+                  handleCategoryChange(index, Number(e.target.value))
+                }
+              >
+                <option value={0}>Pasirinkite kategoriją</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.pavadinimas}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         ))}
+
         <button
           type="button"
           onClick={handleAddCategory}
-          className="btn btn-outline-secondary mb-3"
+          className="btn btn-secondary mb-3"
         >
           Pridėti kategoriją
         </button>
 
-        {/* Stores */}
         <h3>Parduotuvės</h3>
         {selectedStores.map((store, index) => (
-          <div key={index} className="row mb-3">
-            <div className="col-md-6">
+          <div key={index} className="row mb-2">
+            <div className="col">
               <label>Parduotuvė</label>
               <select
                 className="form-control"
@@ -349,7 +305,7 @@ const PridetiPreke = () => {
                 ))}
               </select>
             </div>
-            <div className="col-md-6">
+            <div className="col">
               <label>Kiekis</label>
               <input
                 type="number"
@@ -363,16 +319,16 @@ const PridetiPreke = () => {
             </div>
           </div>
         ))}
+
         <button
           type="button"
           onClick={handleAddStore}
-          className="btn btn-outline-secondary mb-3"
+          className="btn btn-secondary mb-3"
         >
           Pridėti parduotuvę
         </button>
 
-        {/* Submit Button */}
-        <button type="submit" className="btn btn-primary btn-block mt-4">
+        <button type="submit" className="btn btn-primary">
           Pridėti
         </button>
       </form>
