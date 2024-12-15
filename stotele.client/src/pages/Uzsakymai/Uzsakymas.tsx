@@ -96,6 +96,7 @@ const Uzsakymas = () => {
     }
   };
 
+  // Function to check if order is cancelled
   const checkIfCancelled = async () => {
     try {
       const response = await axios.get(
@@ -132,12 +133,13 @@ const Uzsakymas = () => {
     }
   };
 
-  // Start polling mechanism
+  // Start polling mechanism - now every 1 second
   const startPolling = () => {
     pollingIntervalRef.current = setInterval(() => {
       checkIfPaid();
       checkIfConfirmed();
-    }, 30000); // Poll every 30 seconds
+      fetchOrder(); // Also fetch the order details to reflect any changes (like discounts)
+    }, 1000); // Poll every 1 second
   };
 
   // Stop polling mechanism
@@ -152,10 +154,11 @@ const Uzsakymas = () => {
     checkIfPaid();
     checkIfConfirmed();
     checkIfCancelled();
-    startPolling();
     fetchUserPoints();
+    startPolling();
 
     return () => stopPolling();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId]);
 
   const handleBackToCart = () => {
@@ -163,23 +166,21 @@ const Uzsakymas = () => {
     if (usedPoints) {
       alert("Taškai jau panaudoti, tad grįžti nebegalite.");
       return;
-    } 
-      
+    }
 
-    // Delete the created order
-    if(!isConfirmed)
-    {
-       axios
-      .delete(`https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`, {
-        withCredentials: true,
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      })
-      .then(() => {
-        navigate("/krepselis");
-      })
-      .catch((error) => console.error("Failed to delete order:", error));
+    // Delete the created order only if not confirmed
+    if (!isConfirmed) {
+      axios
+        .delete(`https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`, {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        })
+        .then(() => {
+          navigate("/krepselis");
+        })
+        .catch((error) => console.error("Failed to delete order:", error));
     } else {
       navigate("/uzsakymai");
     }
@@ -192,11 +193,14 @@ const Uzsakymas = () => {
         return;
       }
       //Get order info
-      const response = await axios.get(`https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      const response = await axios.get(
+        `https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
 
       //Get order data
       const orderData = response.data;
@@ -222,11 +226,12 @@ const Uzsakymas = () => {
     } catch (error) {
       console.error('Klaida:', error);
     }
-  }
+  };
 
-  const handleOrderUpdated = async () => {
+  const handleOrderUpdated = async (updatedOrder: any) => {
     // Re-fetch the order after discounts are applied
-    await fetchOrder();
+    // In case the updatedOrder is already provided, we can directly set it:
+    setOrder(updatedOrder);
   };
 
   if (loading) {
@@ -277,19 +282,23 @@ const Uzsakymas = () => {
         Bendra suma: <span className="text-success">€{displayOrder.suma.toFixed(2)}</span>
       </h3>
       {!isCancelled && !isPaid && (
-        <><h3 className="mt-3">
-          Turimi taškai:{" "}
-          <span className="text-primary">
-            {points !== null ? `${points} taškų` : "Nepavyko gauti taškų"}
-          </span>
-        </h3><LoyaltyPoints
+        <>
+          <h3 className="mt-3">
+            Turimi taškai:{" "}
+            <span className="text-primary">
+              {points !== null ? `${points} taškų` : "Nepavyko gauti taškų"}
+            </span>
+          </h3>
+          <LoyaltyPoints
             orderId={displayOrder.id}
             totalOrderPrice={displayOrder.suma}
             onOrderUpdated={(updatedOrder) => setOrder(updatedOrder)}
             onPointsUpdated={(remainingPoints) => {
               setPoints(remainingPoints);
               setUsedPoints(true); // Mark that points have been used
-            } } /></>
+            }}
+          />
+        </>
       )}
       <h2 className="mt-4">Prekės</h2>
       <table className="table table-striped table-hover mt-3">
@@ -346,22 +355,18 @@ const Uzsakymas = () => {
         <>
           {!isCancelled && (
             <div className="mt-4">
-              {/* <QRCodeGenerator orderId={displayOrder.id} onOrderUpdated={handleOrderUpdated} /> */}
-
               <QRCodeGenerator
-  orderId={displayOrder.id}
-  onOrderUpdated={handleOrderUpdated}
-  usedPoints={usedPoints} // Pass usedPoints state
-/>
-
+                orderId={displayOrder.id}
+                onOrderUpdated={handleOrderUpdated}
+                usedPoints={usedPoints}
+              />
             </div>
-          )
-          }
+          )}
           <div className="button-container">
             <button
               onClick={handleBackToCart}
               className={`custom-btn back-btn ${usedPoints ? "disabled" : ""}`}
-              disabled={usedPoints} // Disable button if points are used
+              disabled={usedPoints}
             >
               Atgal
             </button>
@@ -382,17 +387,21 @@ const Uzsakymas = () => {
         </>
       ) : !isCancelled ? (
         <button 
-        onClick={handleCancelOrder}
-        className="btn btn-danger mt-3">Atšaukti užsakymą
+          onClick={handleCancelOrder}
+          className="btn btn-danger mt-3"
+        >
+          Atšaukti užsakymą
         </button>
       ) : (
-        <><div className="alert alert-danger mt-3">Užsakymas atšauktas</div>
-              <button
-                onClick={() => navigate("/uzsakymai")}
-                className="btn btn-primary mt-3"
-              >
-                Atgal į užsakymus
-              </button></>
+        <>
+          <div className="alert alert-danger mt-3">Užsakymas atšauktas</div>
+          <button
+            onClick={() => navigate("/uzsakymai")}
+            className="btn btn-primary mt-3"
+          >
+            Atgal į užsakymus
+          </button>
+        </>
       )}
     </div>
   );

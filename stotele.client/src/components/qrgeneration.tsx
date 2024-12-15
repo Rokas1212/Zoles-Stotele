@@ -5,7 +5,7 @@ import "./qrgeneration.css";
 interface QRCodeGeneratorProps {
   orderId: number;
   onOrderUpdated: (updatedOrder: any) => void;
-  usedPoints: boolean; // New prop to determine if points were used
+  usedPoints: boolean; // Whether points were used
 }
 
 const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
