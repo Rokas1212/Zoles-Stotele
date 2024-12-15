@@ -98,6 +98,7 @@ const Profilis: React.FC = () => {
       return;
     }
 
+
     const points = parseInt(addPoints, 10);
 
     if (isNaN(points)) {
@@ -169,7 +170,7 @@ const Profilis: React.FC = () => {
       <h1 className="profilis-title">Profilis</h1>
       {profile && (
         <div className="profilis-info">
-          {isVadybininkas && (
+          {isVadybininkas &&  (
         <p className="vadybininkas-status"><strong>Vadybininkas</strong></p>
           )}
           <h2>
@@ -189,6 +190,23 @@ const Profilis: React.FC = () => {
           )}
           <p><strong>Turimi taškai:</strong> {taskai}</p>
         </div>
+      )}
+      
+      { user?.id === profile?.id && (
+      <ul className="profilis-menu">
+        <li>
+          <a href="/uzsakymai">Užsakymai</a>
+        </li>
+        <li>
+          <a href="/blokuotos-rekomendacijos">Blokuotos Rekomendacijos</a>
+        </li>
+        <li>
+          <a href="/megstamos-kategorijos">Mėgstamos kategorijos</a>
+        </li>
+        <li>
+          <a href="/redaguoti-profili">Redaguoti profilį</a>
+        </li>
+      </ul>
       )}
       {user?.administratorius && (
         <>
