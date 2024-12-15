@@ -86,3 +86,8 @@
   font-weight: bold;
   margin-top: 20px;
 }
+
+.expired-date {
+  color: red; 
+  font-weight: bold;
+}
