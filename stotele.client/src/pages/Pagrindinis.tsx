@@ -9,6 +9,8 @@ import {
   FaUserEdit,
   FaBox,
   FaThLarge,
+  FaInfo,
+  FaSearch,
 } from "react-icons/fa"; // Add icons from react-icons
 import { toast } from "react-toastify";
 import { Navigate, useNavigate } from "react-router-dom";
@@ -122,7 +124,7 @@ const Pagrindinis = () => {
           <button
             className="btn btn-primary btn-sm"
             onClick={() => {
-              navigate('/krepselis');
+              navigate("/krepselis");
               toast.dismiss();
             }}
           >
@@ -145,7 +147,6 @@ const Pagrindinis = () => {
       });
     }
   };
-  
 
   useEffect(() => {
     if (userId !== null) {
@@ -265,14 +266,33 @@ const Pagrindinis = () => {
                       (e.target as HTMLImageElement).src = defaultImage;
                     }}
                   />
-                  <div>
-                    <p className="fw-bold mb-2">
-                       {product.pavadinimas}
+                  <div className="border rounded p-3 mb-3 shadow-sm">
+                    <h5 className="fw-bold mb-2 text-primary">
+                      {product.pavadinimas}
+                    </h5>
+                    <p className="text-muted mb-1">
+                      <strong>Kaina:</strong> € {product.kaina.toFixed(2)}
                     </p>
-                    <p className="text-muted mb-2">€ {product.kaina.toFixed(2)}</p>
-                    <p className="text-muted mb-2">Likutis: {product.kiekis}</p>
-                    <p className="text-muted mb-2">Aprašymas: {product.aprasymas}</p>
-                    <button onClick={() => handleAddToCart(product.id.toString())} className="btn btn-primary btn-sm mt-2"><FaShoppingCart /></button>
+                    <p className="text-muted mb-1">
+                      <strong>Likutis:</strong> {product.kiekis}
+                    </p>
+                    <p className="text-muted mb-2">
+                      <strong>Aprašymas:</strong> {product.aprasymas}
+                    </p>
+                    <div className="d-flex gap-2">
+                      <button
+                        onClick={() => handleAddToCart(product.id.toString())}
+                        className="btn btn-primary btn-sm"
+                      >
+                        <FaShoppingCart /> Į krepšelį
+                      </button>
+                      <button
+                        onClick={() => navigate(`/preke?id=${product.id}`)}
+                        className="btn btn-outline-primary btn-sm"
+                      >
+                        <FaSearch /> Daugiau
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

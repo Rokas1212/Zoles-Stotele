@@ -1,1 +1,0 @@
-// Saskaitu valdiklis - invoice controller

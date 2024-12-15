@@ -21,6 +21,8 @@ namespace Stotele.Server.Controllers
         private readonly EmailService _emailService;
         private readonly string _webhookSecret;
 
+
+
         public ApmokejimuController(ApplicationDbContext dbContext, IOptions<StripeSettings> stripeSettings, EmailService emailService)
         {
             _dbContext = dbContext;
@@ -59,7 +61,6 @@ namespace Stotele.Server.Controllers
         public async Task<IActionResult> StripeWebhook()
         {
             var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
-
             try
             {
                 // Verify the webhook signature
@@ -90,6 +91,16 @@ namespace Stotele.Server.Controllers
 
                     if (payment != null)
                     {
+                        // Update item quantities
+                        foreach (var item in order.PrekesUzsakymai)
+                        {
+                            var product = _dbContext.Prekes.Find(item.PrekeId);
+                            if (product != null)
+                            {
+                                product.Kiekis -= item.Kiekis;
+                            }
+                            _dbContext.SaveChanges();
+                        }
                         // Add 5 percent of the order's total to the user's account as loyalty points
                         var pointsToAdd = (int)(order.Suma * 0.05);
 
@@ -106,9 +117,69 @@ namespace Stotele.Server.Controllers
                             _dbContext.Taskai.Add(taskai);
                         }
 
+                        var htmlMessage = $@"
+                        <html>
+                            <body style='font-family: Arial, sans-serif; color: #333; line-height: 1.6;'>
+                                <!-- Logo -->
+                                <div style='text-align: center; margin-bottom: 20px;'>
+                                    <img src='https://cdn3.iconfinder.com/data/icons/nature-emoji/50/Marijuana-512.png' alt='Stotele Logo' style='max-width: 150px;'>
+                                </div>
+
+                                <!-- Header -->
+                                <h2 style='color: #28a745; text-align: center;'>Užsakymo Patvirtinimas</h2>
+                                <p style='text-align: center;'>Užsakymas su ID: <strong>{orderId}</strong> sėkmingai apmokėtas.</p>
+                                <p style='text-align: center;'>Kurjeris susisieks telefonu. Ačiū, kad perkate pas mus!</p>
+
+                                <!-- Product Table -->
+                                <table style='width: 100%; border-collapse: collapse; margin-top: 15px;'>
+                                    <thead>
+                                        <tr>
+                                            <th style='border-bottom: 2px solid #ccc; text-align: left; padding: 8px;'>Prekė</th>
+                                            <th style='border-bottom: 2px solid #ccc; text-align: right; padding: 8px;'>Kaina (€)</th>
+                                            <th style='border-bottom: 2px solid #ccc; text-align: center; padding: 8px;'>Kiekis</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {string.Join("", payment.Uzsakymas.PrekesUzsakymai.Select(pu => $@"
+                                            <tr>
+                                                <td style='border-bottom: 1px solid #eee; padding: 8px;'>{pu.Preke.Pavadinimas}</td>
+                                                <td style='border-bottom: 1px solid #eee; padding: 8px; text-align: right;'>
+                                                    {(pu.Kaina.HasValue ? pu.Kaina.Value.ToString("0.00") : "0.00")}
+                                                </td>
+                                                <td style='border-bottom: 1px solid #eee; padding: 8px; text-align: center;'>{pu.Kiekis}</td>
+                                            </tr>
+                                        "))}
+                                    </tbody>
+                                </table>
+                                <div style='margin-top: 20px; text-align: right;'>
+                                    <p><strong>Bendra Suma:</strong> €{order.Suma.ToString("0.00")}</p>
+                                    <p><strong>Taškai už šį užsakymą:</strong> {pointsToAdd}</p>
+                                    <p><strong>Sąskaitos Faktūros Numeris:</strong> {payment.SaskaitosFakturosNumeris}</p>
+                                </div>
+                                <div style='text-align: center; margin-top: 20px;'>
+                                    <a href='https://localhost:5173/uzsakymas/{orderId}' 
+                                    style='background-color: #28a745; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-weight: bold;'>
+                                        Peržiūrėti Užsakymą
+                                    </a>
+                                </div>
+                                <footer style='margin-top: 30px; text-align: center; font-size: 12px; color: #aaa;'>
+                                    <p>&copy; {DateTime.Now.Year} Žolės Stotelė. Visos teisės saugomos.</p>
+                                    <p>Šis laiškas buvo sugeneruotas automatiškai, prašome neatsakyti.</p>
+                                </footer>
+                            </body>
+                        </html>";
+
+
                         payment.PridetiTaskai = pointsToAdd;
                         payment.MokejimoStatusas = MokejimoStatusas.Apmoketa;
                         _dbContext.SaveChanges();
+                        // Send email notification
+                        var userEmail = _dbContext.Naudotojai.Find(payment.KlientasId).ElektroninisPastas;
+                        var emailSent = await _emailService.SendEmailAsync(
+                            recipientEmail: userEmail,
+                            subject: "Užsakymo Patvirtinimas",
+                            message: htmlMessage
+                        );
                     }
                 }
 
@@ -122,7 +193,7 @@ namespace Stotele.Server.Controllers
         }
 
         [HttpPost("create-checkout-transfer")]
-        public ActionResult CreateCheckoutBank([FromQuery] int orderId, [FromQuery] string PvmMoketojoKodas)
+        public async Task<ActionResult> CreateCheckoutBank([FromQuery] int orderId, [FromQuery] string PvmMoketojoKodas)
         {
             if (!CheckUser(orderId, int.Parse(User.FindFirstValue("UserId"))))
             {
@@ -144,11 +215,93 @@ namespace Stotele.Server.Controllers
                 return NotFound($"Užsakymas su ID: {orderId} nerastas.");
             }
 
+            foreach (var item in order.PrekesUzsakymai)
+            {
+                var product = _dbContext.Prekes.Find(item.PrekeId);
+                if (product != null)
+                {
+                    product.Kiekis -= item.Kiekis;
+                }
+                _dbContext.SaveChanges();
+            }
+
             var payment = CreatePayment(orderId, ApmokejimoMetodas.Pavedimas, PvmMoketojoKodas);
-
+            var pointsToAdd = (int)(order.Suma * 0.05);
             // Send email with payment details
+            var htmlMessage = $@"
+            <html>
+                <body style='font-family: Arial, sans-serif; color: #333; line-height: 1.6;'>
+                    <div style='text-align: center; margin-bottom: 20px;'>
+                        <img src='https://cdn3.iconfinder.com/data/icons/nature-emoji/50/Marijuana-512.png' alt='Stotele Logo' style='max-width: 150px;'>
+                    </div>
 
+                    <h2 style='color: #28a745; text-align: center;'>Užsakymo Patvirtinimas</h2>
+                    <p style='text-align: center;'>Užsakymas su ID: <strong>{orderId}</strong> sėkmingai pateiktas.</p>
+                    <p style='text-align: center;'>Pasirinktas mokėjimo būdas: Bankiniu pavedimu.</p>
 
+                    <table style='width: 100%; border-collapse: collapse; margin-top: 15px;'>
+                        <thead>
+                            <tr>
+                                <th style='border-bottom: 2px solid #ccc; text-align: left; padding: 8px;'>Prekė</th>
+                                <th style='border-bottom: 2px solid #ccc; text-align: right; padding: 8px;'>Kaina (€)</th>
+                                <th style='border-bottom: 2px solid #ccc; text-align: center; padding: 8px;'>Kiekis</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {string.Join("", payment.Uzsakymas.PrekesUzsakymai.Select(pu => $@"
+                                <tr>
+                                    <td style='border-bottom: 1px solid #eee; padding: 8px;'>{pu.Preke.Pavadinimas}</td>
+                                    <td style='border-bottom: 1px solid #eee; padding: 8px; text-align: right;'>
+                                        {(pu.Kaina.HasValue ? pu.Kaina.Value.ToString("0.00") : "0.00")}
+                                    </td>
+                                    <td style='border-bottom: 1px solid #eee; padding: 8px; text-align: center;'>{pu.Kiekis}</td>
+                                </tr>
+                            "))}
+                        </tbody>
+                    </table>
+
+                    <div style='margin-top: 20px; text-align: right;'>
+                        <p><strong>Bendra Suma:</strong> €{order.Suma.ToString("0.00")}</p>
+                        <p><strong>Taškai už šį užsakymą:</strong> {pointsToAdd}</p>
+                    </div>
+
+                    <!-- Bank Transfer Instructions -->
+                    <div style='margin-top: 30px; padding: 15px; background-color: #f8f9fa; border: 1px solid #ddd; border-radius: 5px;'>
+                        <h3 style='color: #28a745; text-align: center;'>Bankinio Pavedimo Instrukcijos</h3>
+                        <p>Norėdami apmokėti užsakymą bankiniu pavedimu, atlikite pervedimą naudodami šią informaciją:</p>
+                        <ul style='list-style-type: none; padding: 0;'>
+                            <li><strong>Gavėjas:</strong> Žolės Stotelė</li>
+                            <li><strong>Banko sąskaita:</strong> LT12 3456 7890 1234 5678</li>
+                            <li><strong>Banko pavadinimas:</strong> Swedbank</li>
+                            <li><strong>Mokėjimo paskirtis:</strong> Užsakymo ID: {orderId}</li>
+                            <li><strong>Suma:</strong> €{order.Suma.ToString("0.00")}</li>
+                        </ul>
+                        <p style='color: #666; font-size: 14px; text-align: center;'>
+                            Jūsų užsakymas bus pradėtas vykdyti, kai tik gausime mokėjimą.
+                        </p>
+                    </div>
+
+                    <div style='text-align: center; margin-top: 20px;'>
+                        <a href='https://localhost:5173/uzsakymas/{orderId}' 
+                            style='background-color: #28a745; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-weight: bold;'>
+                            Peržiūrėti Užsakymą
+                        </a>
+                    </div>
+
+                    <!-- Footer -->
+                    <footer style='margin-top: 30px; text-align: center; font-size: 12px; color: #aaa;'>
+                        <p>&copy; {DateTime.Now.Year} Žolės Stotelė. Visos teisės saugomos.</p>
+                        <p>Šis laiškas buvo sugeneruotas automatiškai, prašome neatsakyti.</p>
+                    </footer>
+                </body>
+            </html>";
+
+            var userEmail = _dbContext.Naudotojai.Find(payment.KlientasId).ElektroninisPastas;
+            await _emailService.SendEmailAsync(
+                recipientEmail: userEmail,
+                subject: "Užsakymo Patvirtinimas",
+                message: htmlMessage
+            );
 
             return Ok();
         }
@@ -179,7 +332,15 @@ namespace Stotele.Server.Controllers
             {
                 return NotFound($"Užsakymas su ID: {orderId} nerastas.");
             }
-
+            foreach (var item in order.PrekesUzsakymai)
+            {
+                var product = _dbContext.Prekes.Find(item.PrekeId);
+                if (product != null)
+                {
+                    product.Kiekis -= item.Kiekis;
+                }
+                _dbContext.SaveChanges();
+            }
 
             var payment = CreatePayment(orderId, ApmokejimoMetodas.Grynaisiais, PvmMoketojoKodas);
 
