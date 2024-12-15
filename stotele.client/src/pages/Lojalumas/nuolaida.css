@@ -102,3 +102,9 @@
     font-size: 0.9rem;
   }
 }
+
+.expired-date {
+  color: red; 
+  font-weight: bold; 
+}
+

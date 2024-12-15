@@ -58,20 +58,30 @@ const Nuolaidos: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {discounts.map((discount) => (
-            <tr key={discount.id}>
-              <td>{discount.id}</td> {/* Non-clickable ID */}
-              <td>{discount.procentai}%</td>
-              <td>{new Date(discount.galiojimoPabaiga).toLocaleDateString()}</td>
-              <td>{discount.prekesPavadinimas || "N/A"}</td>
-              <td>
-                <a href={`/nuolaida?id=${discount.id}`} className="view-link">
-                  Peržiūrėti
-                </a>
-              </td>
-            </tr>
-          ))}
+          {discounts.map((discount) => {
+            const isExpired =
+              new Date(discount.galiojimoPabaiga) < new Date(); 
+
+            return (
+              <tr key={discount.id}>
+                <td>{discount.id}</td>
+                <td>{discount.procentai}%</td>
+                <td
+                  className={isExpired ? "expired-date" : ""}
+                >
+                  {new Date(discount.galiojimoPabaiga).toLocaleDateString()}
+                </td>
+                <td>{discount.prekesPavadinimas || "N/A"}</td>
+                <td>
+                  <a href={`/nuolaida?id=${discount.id}`} className="view-link">
+                    Peržiūrėti
+                  </a>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
+
       </table>
 
       {user?.administratorius && (

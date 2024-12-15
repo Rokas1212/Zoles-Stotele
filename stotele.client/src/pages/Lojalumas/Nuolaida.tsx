@@ -100,7 +100,13 @@ const Nuolaida: React.FC = () => {
       </p>
       <p>
         <strong>Galiojimo pabaiga:</strong>{" "}
-        {new Date(nuolaida.galiojimoPabaiga).toLocaleDateString()}
+        <span
+          className={
+            new Date(nuolaida.galiojimoPabaiga) < new Date() ? "expired-date" : ""
+          }
+        >
+          {new Date(nuolaida.galiojimoPabaiga).toLocaleDateString()} - nebegalioja
+        </span>
       </p>
       <p>
         <strong>Prekės pavadinimas:</strong> {nuolaida.prekesPavadinimas}
