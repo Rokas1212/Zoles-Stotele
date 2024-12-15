@@ -20,4 +20,4 @@
 cd stotele.client
 npm install
 npm run dev
-viskas
+viskas. bim bam. kas neaišku?
