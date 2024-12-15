@@ -5,6 +5,7 @@ using Stotele.Server.Models;
 using Stotele.Server.Models.ApplicationDbContexts;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Newtonsoft.Json;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -199,41 +200,112 @@ namespace Stotele.Server.Controllers
 
 
         // PUT: api/Profilis/{id}
+        // [HttpPut("{id}")]
+        // public async Task<IActionResult> UpdateProfile(int id, [FromBody] RedaguotiNaudotojaDTO dto)
+        // {
+        //     var naudotojas = await _context.Naudotojai.FirstOrDefaultAsync(n => n.Id == id);
+        //     if (naudotojas == null)
+        //     {
+        //         return NotFound("Naudotojas nerastas.");
+        //     }
+
+        //     naudotojas.Vardas = dto.Vardas ?? naudotojas.Vardas;
+        //     naudotojas.Pavarde = dto.Pavarde ?? naudotojas.Pavarde;
+        //     naudotojas.ElektroninisPastas = dto.ElektroninisPastas ?? naudotojas.ElektroninisPastas;
+
+        //     if (!string.IsNullOrWhiteSpace(dto.Slaptazodis))
+        //     {
+        //         naudotojas.Slaptazodis = HashPassword(dto.Slaptazodis);
+        //     }
+
+        //     if (dto.Administratorius.HasValue)
+        //     {
+        //         naudotojas.Administratorius = dto.Administratorius.Value;
+        //     }
+
+        //     _context.Naudotojai.Update(naudotojas);
+        //     await _context.SaveChangesAsync();
+
+        //     return Ok(new
+        //     {
+        //         naudotojas.Id,
+        //         naudotojas.Vardas,
+        //         naudotojas.Pavarde,
+        //         naudotojas.ElektroninisPastas,
+        //         naudotojas.Administratorius
+        //     });
+        // }
+
+        // PUT: api/Profilis/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateProfile(int id, [FromBody] RedaguotiNaudotojaDTO dto)
+        public async Task<IActionResult> UpdateProfile(int id, [FromBody] RedaguotiNaudotojasDTO dto)
         {
-            var naudotojas = await _context.Naudotojai.FirstOrDefaultAsync(n => n.Id == id);
-            if (naudotojas == null)
+            try
             {
-                return NotFound("Naudotojas nerastas.");
+                Console.WriteLine($"Received Payload: {JsonConvert.SerializeObject(dto)}");
+
+                var naudotojas = await _context.Naudotojai.FirstOrDefaultAsync(n => n.Id == id);
+                if (naudotojas == null)
+                {
+                    return NotFound("Naudotojas nerastas.");
+                }
+
+                // Update fields safely
+                if (!string.IsNullOrWhiteSpace(dto.Vardas))
+                    naudotojas.Vardas = dto.Vardas;
+
+                if (!string.IsNullOrWhiteSpace(dto.ElektroninisPastas))
+                    naudotojas.ElektroninisPastas = dto.ElektroninisPastas;
+
+                if (!string.IsNullOrWhiteSpace(dto.Slaptazodis))
+                    naudotojas.Slaptazodis = HashPassword(dto.Slaptazodis);
+
+                if (!string.IsNullOrWhiteSpace(dto.Lytis))
+                    naudotojas.Lytis = dto.Lytis;
+
+                if (dto.Klientas != null)
+                {
+                    var klientas = await _context.Klientai.FirstOrDefaultAsync(k => k.NaudotojasId == id);
+                    if (klientas == null)
+                    {
+                        klientas = new Klientas { NaudotojasId = id };
+                        _context.Klientai.Add(klientas);
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(dto.Klientas.Miestas))
+                        klientas.Miestas = dto.Klientas.Miestas;
+
+                    if (!string.IsNullOrWhiteSpace(dto.Klientas.Adresas))
+                        klientas.Adresas = dto.Klientas.Adresas;
+
+                    if (dto.Klientas.PastoKodas.HasValue)
+                        klientas.PastoKodas = dto.Klientas.PastoKodas.Value;
+
+                    if (dto.Klientas.GimimoData.HasValue)
+                    {
+                        klientas.GimimoData = DateTime.SpecifyKind(dto.Klientas.GimimoData.Value, DateTimeKind.Utc);
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new { Message = "Profilis sėkmingai atnaujintas!" });
             }
-
-            naudotojas.Vardas = dto.Vardas ?? naudotojas.Vardas;
-            naudotojas.Pavarde = dto.Pavarde ?? naudotojas.Pavarde;
-            naudotojas.ElektroninisPastas = dto.ElektroninisPastas ?? naudotojas.ElektroninisPastas;
-
-            if (!string.IsNullOrWhiteSpace(dto.Slaptazodis))
+            catch (Exception ex)
             {
-                naudotojas.Slaptazodis = HashPassword(dto.Slaptazodis);
+                Console.WriteLine($"Error: {ex.Message}");
+                return StatusCode(500, new { Message = "Serverio klaida. Bandykite dar kartą.", Details = ex.Message });
             }
-
-            if (dto.Administratorius.HasValue)
-            {
-                naudotojas.Administratorius = dto.Administratorius.Value;
-            }
-
-            _context.Naudotojai.Update(naudotojas);
-            await _context.SaveChangesAsync();
-
-            return Ok(new
-            {
-                naudotojas.Id,
-                naudotojas.Vardas,
-                naudotojas.Pavarde,
-                naudotojas.ElektroninisPastas,
-                naudotojas.Administratorius
-            });
         }
+
+
+
+
+
+
+
+
+
 
         // POST: api/Profilis/register-admin
         [HttpPost("register-admin")]
