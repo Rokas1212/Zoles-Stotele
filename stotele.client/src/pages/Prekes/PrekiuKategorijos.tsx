@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "./prekiuKategorijos.css";
 
 type kategorijos = {
   id: number;
@@ -8,7 +11,7 @@ type kategorijos = {
   vadybininkas: string | null;
 };
 
-const PrekiuKategorijos = () => {
+const PrekiuKategorijos: React.FC = () => {
   const [categories, setCategories] = useState<kategorijos[]>([]);
   const [userId, setUserId] = useState<number | null>(null);
   const [admin, setAdmin] = useState<boolean>(false);
@@ -47,7 +50,7 @@ const PrekiuKategorijos = () => {
       const data = await response.json();
       setCategories(data);
     } catch (error) {
-      console.error("Klaida gaunant prekes", error);
+      console.error("Klaida gaunant kategorijas", error);
     }
   };
 
@@ -67,13 +70,13 @@ const PrekiuKategorijos = () => {
       );
 
       if (response.ok) {
-        alert("Prekė pridėta prie mėgstamų");
+        alert("Kategorija pridėta prie mėgstamų");
       }
       if (response.status === 400) {
-        alert("Prekė jau yra pridėta prie mėgstamų");
+        alert("Kategorija jau yra pridėta prie mėgstamų");
       }
     } catch (error) {
-      console.error("Klaida pridedant prekę prie mėgstamų", error);
+      console.error("Klaida pridedant Kategorija prie mėgstamų", error);
     }
   };
 
@@ -115,14 +118,14 @@ const PrekiuKategorijos = () => {
   }, [userId]);
 
   return (
-    <div>
-      <h1>Prekių Kategorijos</h1>
-      <table className="table table-striped">
+    <div className="kategorijos-container">
+      <h1 className="kategorijos-title">Prekių Kategorijos</h1>
+      <table className="kategorijos-table">
         <thead>
           <tr>
             <th>ID</th>
             <th>Kategorijos pavadinimas</th>
-            <th>Aprasymas</th>
+            <th>Aprašymas</th>
             <th>Veiksmas</th>
           </tr>
         </thead>
@@ -134,13 +137,27 @@ const PrekiuKategorijos = () => {
               <td>{category.aprasymas}</td>
               <td>
                 {!admin ? (
-                  <button onClick={() => handleAddToFavorites(category.id)}>
+                  <button
+                    className="action-button add-to-favorites"
+                    onClick={() => handleAddToFavorites(category.id)}
+                  >
                     Pridėti prie mėgstamų
                   </button>
                 ) : (
-                  <button onClick={() => handleRemoveCategory(category.id)}>
-                    Pašalinti kategoriją
-                  </button>
+                  <>
+                    <button
+                      className="action-button"
+                      onClick={() => handleRemoveCategory(category.id)}
+                    >
+                      Pašalinti kategoriją
+                    </button>
+                    <button
+                      className="action-button add-to-favorites"
+                      onClick={() => handleAddToFavorites(category.id)}
+                    >
+                      Pridėti prie mėgstamų
+                    </button>
+                  </>
                 )}
               </td>
             </tr>
