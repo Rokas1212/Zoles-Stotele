@@ -8,5 +8,7 @@ namespace Stotele.Server.Models
         public Naudotojas Naudotojas { get; set; }
         public int ParduotuveId { get; set; }
         public Parduotuve Parduotuve { get; set; }
+
+        public ICollection<Kategorija> Kategorijos { get; set; }
     }
 }
