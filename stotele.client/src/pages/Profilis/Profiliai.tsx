@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Loading from "../../components/loading";
+import "./profiliai.css";
 
 interface Profile {
   id: number;
@@ -22,7 +23,6 @@ const Profiliai: React.FC = () => {
         }
         const data = await response.json();
 
-        // Sort profiles by id in ascending order
         const sortedData = data.sort((a: Profile, b: Profile) => a.id - b.id);
 
         setProfiles(sortedData);
@@ -41,35 +41,32 @@ const Profiliai: React.FC = () => {
   }
 
   if (error) {
-    return <div className="container mt-5 alert alert-danger">Klaida: {error}</div>;
+    return <div className="error-message">Klaida: {error}</div>;
   }
 
   return (
-    <div className="container mt-5 mb-5">
-      <h1 className="display-5 mb-4 text-center">Klientų profiliai</h1>
-      <div className="table-responsive shadow rounded">
-        <table className="table table-hover table-bordered align-middle">
-          <thead className="table-success">
+    <div className="profiliai-container">
+      <h1 className="title">Naudotojų profiliai</h1>
+      <div className="table-container">
+        <table className="styled-table">
+          <thead>
             <tr>
-              <th className="text-center">Naudotojo ID</th>
+              <th>Naudotojo ID</th>
               <th>Vardas</th>
               <th>Pavardė</th>
               <th>El. paštas</th>
-              <th className="text-center">Veiksmai</th>
+              <th>Veiksmai</th>
             </tr>
           </thead>
           <tbody>
             {profiles.map((profile) => (
               <tr key={profile.id}>
-                <td className="text-center">{profile.id}</td>
+                <td>{profile.id}</td>
                 <td>{profile.vardas}</td>
                 <td>{profile.pavarde}</td>
                 <td>{profile.elektroninisPastas}</td>
-                <td className="text-center">
-                  <a
-                    href={`/profilis?id=${profile.id}`}
-                    className="btn btn-sm btn-outline-success"
-                  >
+                <td>
+                  <a href={`/profilis?id=${profile.id}`} className="view-button">
                     Peržiūrėti
                   </a>
                 </td>
