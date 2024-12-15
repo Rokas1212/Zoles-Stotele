@@ -10,6 +10,13 @@ interface Profile {
   vardas: string;
   pavarde: string;
   elektroninisPastas: string;
+  lytis: string;
+  klientas?: {
+    miestas: string;
+    adresas: string;
+    pastoKodas: number;
+    gimimoData: string;
+  };
 }
 
 interface Taskai {
@@ -18,13 +25,14 @@ interface Taskai {
 }
 
 const Profilis: React.FC = () => {
-  const { user } = useAuth(); 
+  const { user } = useAuth(); // Current user details
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [taskai, setTaskai] = useState<number>(0);
   const [addPoints, setAddPoints] = useState<string>(""); 
-  const [validationError, setValidationError] = useState<string | null>(null); 
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [urlId, setUrlId] = useState<number | null>(null); // ID from URL
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -35,6 +43,8 @@ const Profilis: React.FC = () => {
       setLoading(false);
       return;
     }
+
+    setUrlId(Number(id)); // Set the ID from the URL
 
     const fetchData = async () => {
       try {
@@ -104,9 +114,9 @@ const Profilis: React.FC = () => {
       }
 
       const newTaskai: Taskai = await response.json();
-      setTaskai(taskai + newTaskai.kiekis); 
+      setTaskai(taskai + newTaskai.kiekis);
       setAddPoints("");
-      setValidationError(null); 
+      setValidationError(null);
 
       toast.success("Taškai sėkmingai pridėti!");
     } catch (e: any) {
@@ -130,24 +140,30 @@ const Profilis: React.FC = () => {
           <h2>
             {profile.vardas} {profile.pavarde}
           </h2>
-          <p>
-            <strong>Turimi taškai:</strong> {taskai}
-          </p>
+          <p><strong>El. paštas:</strong> {profile.elektroninisPastas}</p>
+          <p><strong>Lytis:</strong> {profile.lytis || "Nenurodyta"}</p>
+          {profile.klientas ? (
+            <>
+              <p><strong>Miestas:</strong> {profile.klientas.miestas}</p>
+              <p><strong>Adresas:</strong> {profile.klientas.adresas}</p>
+              <p><strong>Pašto kodas:</strong> {profile.klientas.pastoKodas}</p>
+              <p><strong>Gimimo data:</strong> {new Date(profile.klientas.gimimoData).toLocaleDateString()}</p>
+            </>
+          ) : (
+            <p><em>Kliento duomenų nėra.</em></p>
+          )}
+          <p><strong>Turimi taškai:</strong> {taskai}</p>
         </div>
       )}
       <ul className="profilis-menu">
-        <li>
-          <a href="/uzsakymai">Užsakymai</a>
-        </li>
-        <li>
-          <a href="/blokuotos-rekomendacijos">Blokuotos Rekomendacijos</a>
-        </li>
-        <li>
-          <a href="/megstamos-kategorijos">Mėgstamos kategorijos</a>
-        </li>
-        <li>
-          <a href="/redaguoti-profili">Redaguoti profilį</a>
-        </li>
+        {user?.id === urlId && (
+          <>
+            <li><a href="/uzsakymai">Užsakymai</a></li>
+            <li><a href="/blokuotos-rekomendacijos">Blokuotos Rekomendacijos</a></li>
+            <li><a href="/megstamos-kategorijos">Mėgstamos kategorijos</a></li>
+            <li><a href="/redaguoti-profili">Redaguoti profilį</a></li>
+          </>
+        )}
       </ul>
       {user?.administratorius && (
         <div className="add-points-section">

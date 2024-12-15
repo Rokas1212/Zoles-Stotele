@@ -142,25 +142,62 @@ namespace Stotele.Server.Controllers
         }
 
         // GET: api/Profilis/{id}
+        // [HttpGet("{id}")]
+        // public async Task<ActionResult<object>> GetProfile(int id)
+        // {
+        //     var naudotojas = await _context.Naudotojai.FirstOrDefaultAsync(n => n.Id == id);
+
+        //     if (naudotojas == null)
+        //     {
+        //         return NotFound("Naudotojas nerastas.");
+        //     }
+
+        //     return new
+        //     {
+        //         naudotojas.Id,
+        //         naudotojas.Vardas,
+        //         naudotojas.Pavarde,
+        //         naudotojas.ElektroninisPastas,
+        //         naudotojas.Administratorius
+        //     };
+        // }
+
+        // GET: api/Profilis/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<object>> GetProfile(int id)
         {
-            var naudotojas = await _context.Naudotojai.FirstOrDefaultAsync(n => n.Id == id);
+            // Fetch the naudotojas using its ID
+            var naudotojas = await _context.Naudotojai
+                .FirstOrDefaultAsync(n => n.Id == id);
 
             if (naudotojas == null)
             {
                 return NotFound("Naudotojas nerastas.");
             }
 
+            var klientas = await _context.Klientai
+                .FirstOrDefaultAsync(k => k.Id == naudotojas.Id);
+
+            // Return combined data with Klientas info if available
             return new
             {
                 naudotojas.Id,
                 naudotojas.Vardas,
                 naudotojas.Pavarde,
                 naudotojas.ElektroninisPastas,
-                naudotojas.Administratorius
+                naudotojas.Lytis,
+                Klientas = klientas != null
+                    ? new
+                    {
+                        klientas.Miestas,
+                        klientas.Adresas,
+                        klientas.PastoKodas,
+                        klientas.GimimoData
+                    }
+                    : null
             };
         }
+
 
         [HttpGet("klientai")]
         public async Task<ActionResult<IEnumerable<object>>> GetAllClientProfiles()
