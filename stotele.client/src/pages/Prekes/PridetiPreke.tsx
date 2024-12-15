@@ -1,17 +1,107 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+
+interface ParduotuvesList {
+  id: number;
+  adresas: string;
+}
 
 const PridetiPreke = () => {
   const [title, setTitle] = useState("");
   const [price, setPrice] = useState("");
   const [expireDate, setExpireDate] = useState("");
+  const [description, setDescription] = useState("");
+  const [measurements, setMeasurements] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [stores, setStores] = useState<ParduotuvesList[]>([]);
+  const [code, setCode] = useState("");
+  const [warrantyUntil, setWarrantyUntil] = useState("");
+  const [recommendationWeight, setRecommendationWeight] = useState("");
+  const [mass, setMass] = useState("");
+  const [selectedStores, setSelectedStores] = useState<
+    { parduotuveId: number; kiekis: number }[]
+  >([]);
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const userId = user.id;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    // Fetch list of stores from the backend
+    console.log(userId);
+    const fetchStores = async () => {
+      try {
+        const response = await axios.get(
+          "https://localhost:5210/api/Preke/parduotuvesList",
+          {
+            withCredentials: true,
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        setStores(response.data);
+      } catch (error) {
+        console.error("Klaida gaunant parduotuves:", error);
+      }
+    };
+
+    fetchStores();
+  }, []);
+
+  const handleAddStore = () => {
+    setSelectedStores([...selectedStores, { parduotuveId: 0, kiekis: 0 }]);
+  };
+
+  const handleStoreChange = (index: number, field: string, value: any) => {
+    const updatedStores = [...selectedStores];
+    updatedStores[index] = {
+      ...updatedStores[index],
+      [field]: value,
+    };
+    setSelectedStores(updatedStores);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Nauja Prekė:", { title, price, expireDate });
+
+    const newPreke = {
+      pavadinimas: title,
+      kaina: parseFloat(price),
+      galiojimoData: expireDate,
+      aprasymas: description,
+      ismatavimai: measurements,
+      nuotraukosUrl: imageUrl,
+      prekiuParduotuves: selectedStores,
+      vadybininkasId: userId,
+      kodas: code,
+      garantinisLaikotarpis: warrantyUntil,
+      rekomendacijosSvoris: parseFloat(recommendationWeight),
+      mase: parseFloat(mass),
+    };
+
+    console.log("Pridedama prekė:", newPreke);
+
+    try {
+      await axios.post(
+        "https://localhost:5210/api/Preke",
+        newPreke,
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      alert("Prekė sėkmingai pridėta!");
+      window.location.href = "/prekes";
+    } catch (error) {
+      console.error("Klaida pridedant prekę:", error);
+      alert("Nepavyko pridėti prekės.");
+    }
   };
 
   return (
-    <div>
+    <div className="container">
       <h1>Pridėti Prekę</h1>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
@@ -24,6 +114,7 @@ const PridetiPreke = () => {
             placeholder="Įveskite pavadinimą"
           />
         </div>
+
         <div className="form-group">
           <label>Kaina</label>
           <input
@@ -34,6 +125,7 @@ const PridetiPreke = () => {
             placeholder="Įveskite kainą"
           />
         </div>
+
         <div className="form-group">
           <label>Galiojimo data</label>
           <input
@@ -43,15 +135,131 @@ const PridetiPreke = () => {
             onChange={(e) => setExpireDate(e.target.value)}
           />
         </div>
-        <button
-        onClick={() => (window.location.href = "/preke?id=1")}
-        className="btn btn-primary mt-3"
-      >
-        Pridėti
-      </button>
-      </form>
 
-      
+        <div className="form-group">
+          <label>Aprašymas</label>
+          <textarea
+            className="form-control"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Įveskite aprašymą"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Išmatavimai</label>
+          <input
+            type="text"
+            className="form-control"
+            value={measurements}
+            onChange={(e) => setMeasurements(e.target.value)}
+            placeholder="Įveskite išmatavimus"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Prekės Kodas</label>
+          <input
+            type="text"
+            className="form-control"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="Įveskite kodą"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Garantinis laikotarpis</label>
+          <input
+            type="date"
+            className="form-control"
+            value={warrantyUntil}
+            onChange={(e) => setWarrantyUntil(e.target.value)}
+          />
+
+        </div>
+
+        <div className="form-group">
+          <label>Rekomendacijos svoris</label>
+          <input
+            type="text"
+            className="form-control"
+            value={recommendationWeight}
+            onChange={(e) => setRecommendationWeight(e.target.value)}
+            placeholder="Įveskite svorį"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Prekės masė</label>
+          <input
+            type="text"
+            className="form-control"
+            value={mass}
+            onChange={(e) => setMass(e.target.value)}
+            placeholder="Įveskite masę"
+          />
+        </div>
+
+
+        <div className="form-group">
+          <label>Nuotraukos URL</label>
+          <input
+            type="text"
+            className="form-control"
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            placeholder="Įveskite nuotraukos URL"
+          />
+        </div>
+
+        <h3>Parduotuvės</h3>
+        {selectedStores.map((store, index) => (
+          <div key={index} className="row mb-2">
+            <div className="col">
+              <label>Parduotuvė</label>
+              <select
+                className="form-control"
+                value={store.parduotuveId}
+                onChange={(e) =>
+                  handleStoreChange(index, "parduotuveId", Number(e.target.value))
+                }
+              >
+                <option value={0}>Pasirinkite parduotuvę</option>
+                {stores.map((store) => (
+                  <option key={store.id} value={store.id}>
+                    {store.adresas}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="col">
+              <label>Kiekis</label>
+              <input
+                type="number"
+                className="form-control"
+                value={store.kiekis}
+                onChange={(e) =>
+                  handleStoreChange(index, "kiekis", Number(e.target.value))
+                }
+                placeholder="Įveskite kiekį"
+              />
+            </div>
+          </div>
+        ))}
+
+        <button
+          type="button"
+          onClick={handleAddStore}
+          className="btn btn-secondary mb-3"
+        >
+          Pridėti parduotuvę
+        </button>
+
+        <button type="submit" className="btn btn-primary">
+          Pridėti
+        </button>
+      </form>
     </div>
   );
 };

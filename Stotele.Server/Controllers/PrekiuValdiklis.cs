@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Stotele.Server.Models;
@@ -58,11 +59,30 @@ namespace Stotele.Server.Controllers
         [HttpPost]
         public async Task<ActionResult<Preke>> CreatePreke(KurtiArKoreguotiPrekeDTO dto)
         {
+            Console.WriteLine(dto.VadybininkasId);
+            var userId = User.FindFirstValue("UserId");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("Nežinomas user ID.");
+            }
+
+            if (!int.TryParse(userId, out int parsedUserId))
+            {
+                return BadRequest("Neteisingas user ID formatas.");
+            }
+
             var vadybininkas = await _context.Vadybininkai.FindAsync(dto.VadybininkasId);
             if (vadybininkas == null)
             {
-                return BadRequest($"Vadybininkas with ID {dto.VadybininkasId} does not exist.");
+                return BadRequest($"Vadybininkas su šiuo ID {dto.VadybininkasId} neegzistuoja.");
             }
+
+            if (dto.VadybininkasId != parsedUserId && !User.IsInRole("Administratorius"))
+            {
+                return Unauthorized("Neturite teisės kurti prekę šiam vadybininkui.");
+            }
+
+            var kiekis = dto.PrekiuParduotuves.Sum(pp => pp.Kiekis);
 
             var preke = new Preke
             {
@@ -70,7 +90,7 @@ namespace Stotele.Server.Controllers
                 Pavadinimas = dto.Pavadinimas,
                 Kodas = dto.Kodas,
                 GaliojimoData = DateTime.SpecifyKind(dto.GaliojimoData, DateTimeKind.Utc),
-                Kiekis = dto.Kiekis,
+                Kiekis = kiekis,
                 Ismatavimai = dto.Ismatavimai,
                 NuotraukosUrl = dto.NuotraukosUrl,
                 GarantinisLaikotarpis = DateTime.SpecifyKind(dto.GarantinisLaikotarpis, DateTimeKind.Utc),
@@ -79,8 +99,16 @@ namespace Stotele.Server.Controllers
                 Mase = dto.Mase,
                 VadybininkasId = dto.VadybininkasId
             };
-
             _context.Prekes.Add(preke);
+            _context.SaveChanges();
+            var prekiuParduotuves = dto.PrekiuParduotuves.Select(pp => new PrekesParduotuve
+            {
+                Kiekis = pp.Kiekis,
+                ParduotuveId = pp.ParduotuveId,
+                PrekeId = preke.Id
+            }).ToList();
+
+            await _context.PrekesParduotuve.AddRangeAsync(prekiuParduotuves);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetPreke), new { id = preke.Id }, preke);
@@ -158,5 +186,11 @@ namespace Stotele.Server.Controllers
             return _context.Prekes.Any(p => p.Id == id);
         }
 
+        // GET List of Parduotuves
+        [HttpGet("ParduotuvesList")]
+        public async Task<ActionResult<IEnumerable<Parduotuve>>> GetParduotuvesList()
+        {
+            return await _context.Parduotuve.ToListAsync();
+        }
     }
 }

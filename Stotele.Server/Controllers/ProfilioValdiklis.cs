@@ -40,7 +40,7 @@ namespace Stotele.Server.Controllers
                 new Claim("UserId", naudotojas.Id.ToString()), // Custom claim for user ID
                 new Claim(JwtRegisteredClaimNames.Sub, naudotojas.Slapyvardis),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.Role, naudotojas.Administratorius ? "Administratorius" : "Vartotojas")
+                new Claim(ClaimTypes.Role, naudotojas.Administratorius ? "Administratorius" : "Naudotojas")
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:Key"]));
@@ -278,14 +278,14 @@ namespace Stotele.Server.Controllers
             _context.Klientai.Add(klientas);
             await _context.SaveChangesAsync();
 
-            var parduotuve = await _context.Parduotuves.FirstOrDefaultAsync(p => p.Id == dto.ParduotuveId);
+            var parduotuve = await _context.Parduotuve.FirstOrDefaultAsync(p => p.Id == dto.ParduotuveId);
             if (parduotuve == null)
             {
                 return BadRequest(new { message = "Parduotuvė nerasta." });
             }
 
             parduotuve.DarbuotojuKiekis++;
-            _context.Parduotuves.Update(parduotuve);
+            _context.Parduotuve.Update(parduotuve);
             await _context.SaveChangesAsync();
 
             var vadybininkas = new Vadybininkas
@@ -328,7 +328,7 @@ namespace Stotele.Server.Controllers
                 Adresas = dto.Adresas
             };
 
-            _context.Parduotuves.Add(parduotuve);
+            _context.Parduotuve.Add(parduotuve);
             await _context.SaveChangesAsync();
 
             return Ok(new { Message = "Parduotuvė sėkmingai užregistruota.", parduotuve.Id });

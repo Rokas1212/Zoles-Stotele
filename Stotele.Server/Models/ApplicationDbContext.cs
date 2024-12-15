@@ -14,7 +14,7 @@ namespace Stotele.Server.Models.ApplicationDbContexts
         public DbSet<Apmokejimas> Apmokejimai { get; set; }
         public DbSet<Klientas> Klientai { get; set; }
         public DbSet<Adresas> Adresai { get; set; }
-        public DbSet<Parduotuve> Parduotuves { get; set; }
+        public DbSet<Parduotuve> Parduotuve { get; set; }
         public DbSet<Taskai> Taskai { get; set; }
         public DbSet<Vadybininkas> Vadybininkai { get; set; }
         public DbSet<Kategorija> Kategorijos { get; set; }
@@ -24,7 +24,7 @@ namespace Stotele.Server.Models.ApplicationDbContexts
         public DbSet<Nuolaida> Nuolaidos { get; set; }
         public DbSet<PrekesPerziura> PrekesPerziuros { get; set; }
         public DbSet<PrekesKategorija> PrekesKategorijos { get; set; }
-        public DbSet<PrekesParduotuve> PrekesParduotuves { get; set; }
+        public DbSet<PrekesParduotuve> PrekesParduotuve { get; set; }
         public DbSet<PrekesUzsakymas> PrekesUzsakymai { get; set; }
         public DbSet<UzblokuotaRekomendacija> UzblokuotosRekomendacijos { get; set; }
 

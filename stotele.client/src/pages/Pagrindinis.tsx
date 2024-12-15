@@ -57,7 +57,7 @@ const Pagrindinis = () => {
         "https://localhost:5210/api/Preke/PrekesList"
       );
       const data = await response.json();
-      setAllProducts(data);
+      setAllProducts(data || []);
     } catch (error) {
       console.error("Klaida gaunant prekes", error);
     }
@@ -74,7 +74,7 @@ const Pagrindinis = () => {
         `https://localhost:5210/api/Rekomendacija/rekomendacijos/${userId}`
       );
       const data = await response.json();
-      setProducts(data.prekes);
+      setProducts(data.prekes || []);
     } catch (error) {
       console.error("Klaida gaunant rekomenduojamas prekes", error);
     }
