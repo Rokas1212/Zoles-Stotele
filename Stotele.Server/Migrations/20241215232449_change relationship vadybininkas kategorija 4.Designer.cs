@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Stotele.Server.Models.ApplicationDbContexts;
@@ -11,9 +12,11 @@ using Stotele.Server.Models.ApplicationDbContexts;
 namespace Stotele.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241215232449_change relationship vadybininkas kategorija 4")]
+    partial class changerelationshipvadybininkaskategorija4
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -556,10 +559,8 @@ namespace Stotele.Server.Migrations
             modelBuilder.Entity("Stotele.Server.Models.Kategorija", b =>
                 {
                     b.HasOne("Stotele.Server.Models.Vadybininkas", "Vadybininkas")
-                        .WithMany()
-                        .HasForeignKey("VadybininkasId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .WithMany("Kategorijos")
+                        .HasForeignKey("VadybininkasId");
 
                     b.Navigation("Vadybininkas");
                 });
@@ -767,6 +768,11 @@ namespace Stotele.Server.Migrations
             modelBuilder.Entity("Stotele.Server.Models.Uzsakymas", b =>
                 {
                     b.Navigation("PrekesUzsakymai");
+                });
+
+            modelBuilder.Entity("Stotele.Server.Models.Vadybininkas", b =>
+                {
+                    b.Navigation("Kategorijos");
                 });
 #pragma warning restore 612, 618
         }
