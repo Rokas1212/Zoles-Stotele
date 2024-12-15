@@ -33,6 +33,12 @@ namespace Stotele.Server.Models.ApplicationDbContexts
                 .HasOne(pu => pu.Uzsakymas)
                 .WithMany(u => u.PrekesUzsakymai)
                 .HasForeignKey(pu => pu.UzsakymasId);
+
+            modelBuilder.Entity<Kategorija>()
+                .HasOne(k => k.Vadybininkas)
+                .WithMany(k => k.Kategorijos)
+                .HasForeignKey(k => k.VadybininkasId)
+                .IsRequired(false);
         }
     }
 }
