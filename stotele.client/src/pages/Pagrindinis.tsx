@@ -252,21 +252,21 @@ const Pagrindinis = () => {
           <div className="row row-cols-2 g-4">
             {allProducts.map((product, index) => (
               <div key={index} className="col">
-                <div className="d-flex align-items-center border rounded p-3 shadow-sm h-100">
+                <div className="card h-100 shadow-sm">
                   <img
                     src={product.nuotraukosUrl || defaultImage}
                     alt={product.pavadinimas}
-                    className="img-fluid rounded me-3"
+                    className="card-img-top"
                     style={{
-                      width: "300px",
-                      height: "250px",
-                      objectFit: "cover",
+                      width: "100%",
+                      height: "180px", // Fixed height for all images
+                      objectFit: "cover", // Maintain aspect ratio, fill the box
                     }}
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = defaultImage;
                     }}
                   />
-                  <div className="border rounded p-3 mb-3 shadow-sm">
+                  <div className="card-body d-flex flex-column justify-content-between">
                     <h5 className="fw-bold mb-2 text-primary">
                       {product.pavadinimas}
                     </h5>
@@ -279,7 +279,7 @@ const Pagrindinis = () => {
                     <p className="text-muted mb-2">
                       <strong>Aprašymas:</strong> {product.aprasymas}
                     </p>
-                    <div className="d-flex gap-2">
+                    <div className="mt-2 d-flex justify-content-between">
                       <button
                         onClick={() => handleAddToCart(product.id.toString())}
                         className="btn btn-primary btn-sm"
