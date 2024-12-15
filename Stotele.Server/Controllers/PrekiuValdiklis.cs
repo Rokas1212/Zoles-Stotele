@@ -130,6 +130,19 @@ namespace Stotele.Server.Controllers
             await _context.PrekesParduotuve.AddRangeAsync(prekiuParduotuves);
             await _context.SaveChangesAsync();
 
+
+            var prekiuKategorijos = dto.PrekiuKategorijos.Select(pk => new PrekesKategorija
+            {
+                KategorijaId = pk.KategorijaId,
+                PrekeId = preke.Id
+            })
+            .GroupBy(pk => new { pk.KategorijaId, pk.PrekeId })
+            .Select(g => g.First())
+            .ToList();
+
+            await _context.PrekesKategorijos.AddRangeAsync(prekiuKategorijos);
+            await _context.SaveChangesAsync();
+
             return CreatedAtAction(nameof(GetPreke), new { id = preke.Id }, preke);
         }
 
