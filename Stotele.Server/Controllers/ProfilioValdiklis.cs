@@ -197,45 +197,7 @@ namespace Stotele.Server.Controllers
 
             return Ok(naudotojai);
         }
-
-
-        // PUT: api/Profilis/{id}
-        // [HttpPut("{id}")]
-        // public async Task<IActionResult> UpdateProfile(int id, [FromBody] RedaguotiNaudotojaDTO dto)
-        // {
-        //     var naudotojas = await _context.Naudotojai.FirstOrDefaultAsync(n => n.Id == id);
-        //     if (naudotojas == null)
-        //     {
-        //         return NotFound("Naudotojas nerastas.");
-        //     }
-
-        //     naudotojas.Vardas = dto.Vardas ?? naudotojas.Vardas;
-        //     naudotojas.Pavarde = dto.Pavarde ?? naudotojas.Pavarde;
-        //     naudotojas.ElektroninisPastas = dto.ElektroninisPastas ?? naudotojas.ElektroninisPastas;
-
-        //     if (!string.IsNullOrWhiteSpace(dto.Slaptazodis))
-        //     {
-        //         naudotojas.Slaptazodis = HashPassword(dto.Slaptazodis);
-        //     }
-
-        //     if (dto.Administratorius.HasValue)
-        //     {
-        //         naudotojas.Administratorius = dto.Administratorius.Value;
-        //     }
-
-        //     _context.Naudotojai.Update(naudotojas);
-        //     await _context.SaveChangesAsync();
-
-        //     return Ok(new
-        //     {
-        //         naudotojas.Id,
-        //         naudotojas.Vardas,
-        //         naudotojas.Pavarde,
-        //         naudotojas.ElektroninisPastas,
-        //         naudotojas.Administratorius
-        //     });
-        // }
-
+        
         // PUT: api/Profilis/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateProfile(int id, [FromBody] RedaguotiNaudotojasDTO dto)
