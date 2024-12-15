@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Loading from "../../components/loading";
-import useAuth from "../../hooks/useAuth"; // Import useAuth
+import useAuth from "../../hooks/useAuth";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./Profilis.css";
 
 interface Profile {
@@ -16,13 +18,13 @@ interface Taskai {
 }
 
 const Profilis: React.FC = () => {
-  const { user } = useAuth(); // Get logged-in user info
+  const { user } = useAuth(); 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [taskai, setTaskai] = useState<number>(0);
-  const [addPoints, setAddPoints] = useState<string>("");
-  const [validationError, setValidationError] = useState<string | null>(null);
+  const [addPoints, setAddPoints] = useState<string>(""); 
+  const [validationError, setValidationError] = useState<string | null>(null); 
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -69,8 +71,14 @@ const Profilis: React.FC = () => {
     }
 
     const points = parseInt(addPoints, 10);
+
     if (isNaN(points)) {
       setValidationError("Įveskite teisingą taškų skaičių.");
+      return;
+    }
+
+    if (points > 1000) {
+      setValidationError("Vienu metu galite pridėti ne daugiau kaip 1000 taškų.");
       return;
     }
 
@@ -96,9 +104,11 @@ const Profilis: React.FC = () => {
       }
 
       const newTaskai: Taskai = await response.json();
-      setTaskai(taskai + newTaskai.kiekis);
+      setTaskai(taskai + newTaskai.kiekis); 
       setAddPoints("");
-      setValidationError(null);
+      setValidationError(null); 
+
+      toast.success("Taškai sėkmingai pridėti!");
     } catch (e: any) {
       setError(e.message);
     }
@@ -139,16 +149,17 @@ const Profilis: React.FC = () => {
           <a href="/redaguoti-profili">Redaguoti profilį</a>
         </li>
       </ul>
-      {/* Reveal this section only if the logged-in user is an administrator */}
       {user?.administratorius && (
         <div className="add-points-section">
           <h3>Pridėti taškų</h3>
           <input
-            type="text"
+            type="number"
             value={addPoints}
             onChange={(e) => setAddPoints(e.target.value)}
             className="form-control mb-3"
-            placeholder="Įveskite taškų kiekį"
+            placeholder="Įveskite taškų kiekį (iki 1000)"
+            min="-1000"
+            max="1000"
           />
           {validationError && <div className="validation-error">{validationError}</div>}
           <button className="add-points-button" onClick={handleAddPoints}>

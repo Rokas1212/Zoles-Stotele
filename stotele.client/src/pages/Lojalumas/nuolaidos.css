@@ -1,100 +1,88 @@
 .nuolaidos-container {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 20px;
-  }
-  
-  .title {
-    text-align: center;
-    color: #10802c;
-    margin-bottom: 20px;
-  }
-  
-  .styled-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 16px;
-    text-align: left;
-  }
-  
-  .styled-table th,
-  .styled-table td {
-    padding: 12px 15px;
-    border: 1px solid #ddd;
-  }
-  
-  .styled-table thead {
-    background-color: #10802c;
-    color: white;
-  }
-  
-  .styled-table tr:nth-child(even) {
-    background-color: #f9f9f9;
-  }
-  
-  .styled-table tr:hover {
-    background-color: #f1f1f1;
-  }
-  
-  .link,
-  .view-link {
-    text-decoration: none;
-    font-weight: bold;
-  }
-  
-  .view-link {
-    color: #10802c;
-  }
-  
-  .add-discount-button {
-    display: block;
-    margin: 20px auto;
-    padding: 10px 20px;
-    font-size: 16px;
-    font-weight: bold;
-    color: white;
-    background-color: #10802c;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  
-  .add-discount-button:hover {
-    background-color: #086922;
-  }
-  
-  .error-message {
-    color: red;
-    text-align: center;
-  }
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0; /* Remove padding */
+}
 
-  .table {
-    border-collapse: collapse;
-    width: 100%;
-  }
-  
-  .table th, .table td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
-  }
-  
-  .table th {
-    background-color: #10802c;
-    color: white;
-  }
-  
-  .table tr:hover:not(:first-child) {
-    background-color: #f2f2f2;
-  }
-  
-  .table td a {
-    color: #10802c;
-    text-decoration: none;
-  }
-  
-  .table td a:hover {
-    text-decoration: underline;
-  }
-  
+.title {
+  text-align: center;
+  font-size: 2rem;
+  color: #10802c;
+  margin-bottom: 20px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.styled-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 16px;
+  text-align: left;
+  background-color: #ffffff; /* White table background */
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow on table only */
+}
+
+.styled-table thead {
+  background-color: #10802c;
+  color: white;
+  text-transform: uppercase;
+}
+
+.styled-table th,
+.styled-table td {
+  padding: 15px;
+  border-bottom: 1px solid #ddd;
+}
+
+.styled-table tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.styled-table tbody tr:hover {
+  background-color: #e7f1eb;
+  transition: background-color 0.3s ease;
+}
+
+.view-link {
+  color: #10802c;
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+.view-link:hover {
+  color: #086922;
+  text-decoration: underline;
+}
+
+.add-discount-button {
+  display: block;
+  margin: 20px auto 0 auto;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #ffffff;
+  background-color: #10802c;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.add-discount-button:hover {
+  background-color: #086922;
+  transform: translateY(-2px);
+}
+
+.add-discount-button:active {
+  transform: translateY(1px);
+}
+
+.error-message {
+  color: #d93025;
+  text-align: center;
+  font-weight: bold;
+  margin-top: 20px;
+}

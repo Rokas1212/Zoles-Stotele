@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./pridetinuolaida.css";
 
 interface Preke {
@@ -16,7 +18,6 @@ const PridetiNuolaida: React.FC = () => {
 
   const today = new Date().toISOString().split("T")[0];
 
-  // Fetch the list of available Prekes
   useEffect(() => {
     const fetchPrekes = async () => {
       try {
@@ -38,17 +39,23 @@ const PridetiNuolaida: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!selectedPrekeId) {
-      alert("Pasirinkite prekę.");
+    const discountValue = parseInt(amount, 10);
+
+    if (discountValue < 0 || discountValue > 100) {
+      setError("Nuolaidos dydis turi būti tarp 0 ir 100.");
       return;
     }
 
-    // Convert the end date to ISO format with UTC time
+    if (!selectedPrekeId) {
+      toast.error("Pasirinkite prekę.");
+      return;
+    }
+
     const formattedEndDate = new Date(endDate).toISOString();
 
     const newDiscount = {
-      procentai: parseInt(amount, 10),
-      galiojimoPabaiga: formattedEndDate, // Send the properly formatted date
+      procentai: discountValue,
+      galiojimoPabaiga: formattedEndDate, 
       prekeId: selectedPrekeId,
     };
 
@@ -66,16 +73,23 @@ const PridetiNuolaida: React.FC = () => {
         throw new Error(errorText || "Nepavyko pridėti nuolaidos.");
       }
 
-      // Redirect to /nuolaidos after successful submission
-      window.location.href = "/nuolaidos";
+      // Show success notification
+      toast.success("Nuolaida sėkmingai pridėta!");
+
+      // Redirect to /nuolaidos after a short delay
+      setTimeout(() => {
+        window.location.href = "/nuolaidos";
+      }, 1500);
     } catch (err: any) {
       console.error("Klaida pridedant nuolaidą:", err);
       setError(err.message || "Nepavyko pridėti nuolaidos. Bandykite dar kartą.");
+      toast.error(err.message || "Nepavyko pridėti nuolaidos.");
     }
   };
 
   return (
     <div className="form-container">
+      <ToastContainer /> 
       <h1 className="form-title">Pridėk Savo Nuolaidą</h1>
       <form onSubmit={handleSubmit} className="discount-form">
         <div className="form-group">
@@ -83,9 +97,18 @@ const PridetiNuolaida: React.FC = () => {
           <input
             type="number"
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (+value >= 0 && +value <= 100) {
+                setAmount(value);
+                setError(null);
+              } else {
+                setError("Nuolaidos dydis turi būti tarp 0 ir 100.");
+              }
+            }}
             placeholder="Įveskite nuolaidos dydį"
             min="0"
+            max="100"
             required
           />
         </div>
@@ -116,7 +139,9 @@ const PridetiNuolaida: React.FC = () => {
             ))}
           </select>
         </div>
-        <button type="submit" className="submit-button">Pridėti Nuolaidą</button>
+        <button type="submit" className="submit-button">
+          Pridėti Nuolaidą
+        </button>
       </form>
 
       {error && <p className="error-message">{error}</p>}

@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import ConfirmationModal from "../../components/confirmationModal";
-import "./nuolaida.css"; // Import the CSS file for styling
+import useAuth from "../../hooks/useAuth"; 
+import { toast, ToastContainer } from "react-toastify"; 
+import "react-toastify/dist/ReactToastify.css"; 
+import "./nuolaida.css";
+import Loading from "../../components/loading";
 
 interface INuolaida {
   id: number;
@@ -12,6 +16,7 @@ interface INuolaida {
 }
 
 const Nuolaida: React.FC = () => {
+  const { user } = useAuth(); 
   const searchParams = new URLSearchParams(window.location.search);
   const id = searchParams.get("id");
 
@@ -19,7 +24,6 @@ const Nuolaida: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState<boolean>(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) {
@@ -62,18 +66,18 @@ const Nuolaida: React.FC = () => {
         );
       }
 
-      setSuccessMessage("Nuolaida sėkmingai ištrinta!");
+      toast.success("Nuolaida sėkmingai ištrinta!");
       setTimeout(() => {
-        window.location.href = "/nuolaidos"; // Redirect after a short delay
+        window.location.href = "/nuolaidos";
       }, 2000);
     } catch (err: any) {
       console.error("Error deleting nuolaida:", err);
-      setError(err.message || "Nepavyko ištrinti nuolaidos. Bandykite dar kartą.");
+      toast.error(err.message || "Nepavyko ištrinti nuolaidos. Bandykite dar kartą.");
     }
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <Loading />;
   }
 
   if (error) {
@@ -86,6 +90,7 @@ const Nuolaida: React.FC = () => {
 
   return (
     <div className="nuolaida-container">
+      <ToastContainer />
       <h1>Nuolaida</h1>
       <p>
         <strong>Nuolaidos kodas:</strong> {nuolaida.id}
@@ -106,23 +111,23 @@ const Nuolaida: React.FC = () => {
       <p>
         <strong>Prekės kaina (po nuolaidos):</strong> {nuolaida.prekesKainaPoNuolaidos.toFixed(2)} €
       </p>
-      <button className="delete-button" onClick={() => setShowModal(true)}>
-        Ištrinti nuolaidą
-      </button>
 
-      {showModal && (
-        <ConfirmationModal
-          message="Ar tikrai norite ištrinti šią nuolaidą?"
-          onConfirm={() => {
-            setShowModal(false);
-            handleDelete();
-          }}
-          onCancel={() => setShowModal(false)}
-        />
-      )}
-
-      {successMessage && (
-        <p className="success-message">{successMessage}</p>
+      {user?.administratorius && (
+        <>
+          <button className="delete-button" onClick={() => setShowModal(true)}>
+            Ištrinti nuolaidą
+          </button>
+          {showModal && (
+            <ConfirmationModal
+              message="Ar tikrai norite ištrinti šią nuolaidą?"
+              onConfirm={() => {
+                setShowModal(false);
+                handleDelete();
+              }}
+              onCancel={() => setShowModal(false)}
+            />
+          )}
+        </>
       )}
     </div>
   );

@@ -1,13 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { addToCart } from "../../apiServices/cart";
 import Loading from "../../components/loading";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "./prekes.css";
 
-const Prekes = () => {
-  const [products, setProducts] = useState<any[]>([]); // State to hold the list of Prekes
-  const [loading, setLoading] = useState<boolean>(true); // Loading state
-  const [error, setError] = useState<string | null>(null); // Error state
+interface Product {
+  id: string;
+  pavadinimas: string;
+  kaina: number;
+}
 
-  // Fetch the list of Prekes from the backend
+const Prekes: React.FC = () => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     const fetchPrekes = async () => {
       try {
@@ -34,10 +42,16 @@ const Prekes = () => {
   const handleAddToCart = async (id: string) => {
     try {
       await addToCart(id);
-      alert(`Prekė su ID ${id} pridėta į krepšelį.`);
+      toast.success(`Prekė su ID ${id} pridėta į krepšelį!`, {
+        position: "top-right",
+        autoClose: 3000,
+      });
     } catch (error) {
       console.error("Klaida: ", error);
-      alert("Nepavyko pridėti prekės į krepšelį.");
+      toast.error("Nepavyko pridėti prekės į krepšelį.", {
+        position: "top-right",
+        autoClose: 3000,
+      });
     }
   };
 
@@ -46,41 +60,41 @@ const Prekes = () => {
   }
 
   if (error) {
-    return <div>{error}</div>;
+    return <div className="error-message">{error}</div>;
   }
 
   return (
-    <div>
-      <h1>Prekės</h1>
-      <table className="table table-striped">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Pavadinimas</th>
-            <th>Kaina</th>
-            <th>Veiksmai</th>
-          </tr>
-        </thead>
-        <tbody>
-          {products.map((product) => (
-            <tr key={product.id}>
-              <td>
-                <a href={`/preke?id=${product.id}`}>{product.id}</a>
-              </td>
-              <td>{product.pavadinimas}</td>
-              <td>€{product.kaina.toFixed(2)}</td>
-              <td>
-                <button
-                  onClick={() => handleAddToCart(product.id)}
-                  className="btn btn-primary"
-                >
-                  Add to Cart
-                </button>
-              </td>
+    <div className="prekes-container">
+      <h1 className="title">Prekės</h1>
+      <div className="table-container">
+        <table className="styled-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Pavadinimas</th>
+              <th>Kaina</th>
+              <th>Veiksmai</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {products.map((product) => (
+              <tr key={product.id}>
+                <td>{product.id}</td>
+                <td>{product.pavadinimas}</td>
+                <td>€{product.kaina.toFixed(2)}</td>
+                <td>
+                  <button
+                    onClick={() => handleAddToCart(product.id)}
+                    className="action-button"
+                  >
+                    Pridėti į krepšelį
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
