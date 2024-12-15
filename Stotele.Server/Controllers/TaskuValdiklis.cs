@@ -249,74 +249,50 @@ namespace Stotele.Server.Controllers
             return Ok(response);
         }
 
+    [HttpGet("ApplyDiscounts")]
+    public IActionResult ApplyDiscounts([FromQuery] int orderId, [FromQuery] string userId)
+    {
+        var user = _context.Naudotojai.FirstOrDefault(n => n.Id == int.Parse(userId));
+        if (user == null)
+            return Unauthorized("User not authenticated.");
 
-        // GET: api/Taskai/ApplyDiscounts?orderId={orderId}
-        [Authorize]
-        [HttpGet("ApplyDiscounts")]
-        public IActionResult ApplyDiscounts([FromQuery] int orderId, [FromQuery] string userId)
+        var order = _context.Uzsakymai
+            .Include(o => o.PrekesUzsakymai)
+            .ThenInclude(pu => pu.Preke)
+            .FirstOrDefault(o => o.Id == orderId);
+
+        if (order == null)
+            return NotFound($"Order with ID {orderId} not found.");
+
+        foreach (var orderItem in order.PrekesUzsakymai)
         {
-            var user = _context.Naudotojai.FirstOrDefault(n => n.Id == int.Parse(userId));
-            userId = user.Slapyvardis;
+            var basePrice = orderItem.Preke.Kaina; 
+            var adjustedPrice = orderItem.Kaina ?? basePrice; 
 
-            if (orderId <= 0)
+            var discount = _context.Nuolaidos
+                .Where(n => n.PrekeId == orderItem.PrekeId && n.PabaigosData > DateTime.UtcNow)
+                .FirstOrDefault();
+
+            if (discount != null)
             {
-                Console.WriteLine($"Invalid Order ID: {orderId}");
-                return BadRequest("Invalid Order ID.");
+                adjustedPrice *= (1 - (double)discount.Procentai / 100);
             }
 
-            var authenticatedUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (string.IsNullOrEmpty(authenticatedUserId))
-            {
-                Console.WriteLine("Failed to retrieve authenticated user ID from token.");
-                return Unauthorized("User is not authenticated.");
-            }
-
-            Console.WriteLine($"Authenticated User ID: {authenticatedUserId}, Provided User ID: {userId}");
-
-            if (authenticatedUserId != userId)
-            {
-                Console.WriteLine("Mismatch between authenticated and provided user IDs.");
-                return StatusCode(StatusCodes.Status403Forbidden, new { message = "Access denied: User mismatch." });
-            }
-
-            var order = _context.Uzsakymai
-                .Include(o => o.PrekesUzsakymai)
-                .ThenInclude(pu => pu.Preke)
-                .FirstOrDefault(o => o.Id == orderId);
-
-            if (order == null)
-            {
-                Console.WriteLine($"Order with ID {orderId} not found.");
-                return NotFound($"Order with ID {orderId} not found.");
-            }
-
-            Console.WriteLine($"Processing discounts for Order ID: {orderId}");
-
-            foreach (var orderItem in order.PrekesUzsakymai)
-            {
-                var discount = _context.Nuolaidos
-                    .Where(n => n.PrekeId == orderItem.PrekeId && n.PabaigosData > DateTime.UtcNow)
-                    .FirstOrDefault();
-
-                if (discount != null)
-                {
-                    orderItem.Kaina = (double)((decimal)orderItem.Preke.Kaina * (1 - (decimal)discount.Procentai / 100));
-                    _context.Entry(orderItem).State = EntityState.Modified;
-                }
-            }
-
-            order.Suma = order.PrekesUzsakymai.Sum(item => item.Kaina ?? item.Preke.Kaina * item.Kiekis);
-            _context.Entry(order).State = EntityState.Modified;
-            _context.SaveChanges();
-
-            Console.WriteLine("Discounts successfully applied.");
-            return Ok(new
-            {
-                message = "Discounts applied successfully.",
-                order
-            });
+            orderItem.Kaina = Math.Max(0, adjustedPrice);
+            _context.Entry(orderItem).State = EntityState.Modified;
         }
+
+        order.Suma = order.PrekesUzsakymai.Sum(item => (item.Kaina ?? item.Preke.Kaina) * item.Kiekis);
+
+        _context.Entry(order).State = EntityState.Modified;
+        _context.SaveChanges();
+
+        return Ok(new
+        {
+            message = "Discounts applied successfully.",
+            updatedOrder = order
+        });
+    }
 
         private List<CartItem> GetCartFromSession()
         {
@@ -331,7 +307,7 @@ namespace Stotele.Server.Controllers
         }
 
         // POST: api/Taskai/UsePoints
-        [HttpPost("UsePoints")]
+       [HttpPost("UsePoints")]
         public async Task<IActionResult> UsePoints([FromBody] NaudotiTaskusDTO dto)
         {
             var user = await _context.Klientai
@@ -339,9 +315,7 @@ namespace Stotele.Server.Controllers
                 .FirstOrDefaultAsync(k => k.Naudotojas.Id == dto.UserId);
 
             if (user == null)
-            {
                 return BadRequest("Invalid user.");
-            }
 
             var order = await _context.Uzsakymai
                 .Include(o => o.PrekesUzsakymai)
@@ -349,33 +323,31 @@ namespace Stotele.Server.Controllers
                 .FirstOrDefaultAsync(o => o.Id == dto.OrderId);
 
             if (order == null)
-            {
                 return BadRequest("Order not found.");
-            }
 
             var totalPoints = _context.Taskai
                 .Where(t => t.KlientasId == user.Id)
                 .Sum(t => t.Kiekis);
 
             if (dto.PointsToUse > totalPoints)
-            {
                 return BadRequest("Insufficient points.");
-            }
 
-            var discount = dto.PointsToUse / 10.0; 
-            var totalOrderPrice = order.PrekesUzsakymai.Sum(item => (item.Kaina ?? item.Preke.Kaina) * item.Kiekis);
+            var discount = dto.PointsToUse / 10.0; // Total discount value
+            var totalOrderPrice = order.PrekesUzsakymai.Sum(item => item.Preke.Kaina * item.Kiekis);
 
             foreach (var item in order.PrekesUzsakymai)
             {
-                var itemOriginalPrice = (item.Kaina ?? item.Preke.Kaina) * item.Kiekis;
+                var itemOriginalPrice = item.Preke.Kaina * item.Kiekis;
                 var itemProportionalDiscount = discount * (itemOriginalPrice / totalOrderPrice);
 
+                // Adjust the item's price dynamically without overwriting
                 var discountPerUnit = itemProportionalDiscount / item.Kiekis;
-                item.Kaina = Math.Max(0, (item.Kaina ?? item.Preke.Kaina) - discountPerUnit);
 
+                item.Kaina = Math.Max(0, (item.Kaina ?? item.Preke.Kaina) - discountPerUnit);
                 _context.Entry(item).State = EntityState.Modified;
             }
 
+            // Deduct points
             var remainingPoints = dto.PointsToUse;
             var userPoints = _context.Taskai.Where(t => t.KlientasId == user.Id).ToList();
 
@@ -412,6 +384,7 @@ namespace Stotele.Server.Controllers
                 remainingPoints = updatedTotalPoints
             });
         }
+
 
 
 
