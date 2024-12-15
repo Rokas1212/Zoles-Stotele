@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Stotele.Server.Models;
@@ -12,9 +13,12 @@ namespace Stotele.Server.Controllers
     {
         private readonly ApplicationDbContext _context;
 
-        public PrekeController(ApplicationDbContext context)
+        private readonly IConfiguration _configuration;
+
+        public PrekeController(ApplicationDbContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
         // GET: api/Preke
@@ -191,6 +195,19 @@ namespace Stotele.Server.Controllers
         public async Task<ActionResult<IEnumerable<Parduotuve>>> GetParduotuvesList()
         {
             return await _context.Parduotuve.ToListAsync();
+        }
+
+        // GET: api/Preke/{id}/stores
+        [HttpGet("{id}/addresses")]
+        public async Task<ActionResult<IEnumerable<string>>> GetStoreAddressesForPreke(int id)
+        {
+            var addresses = await _context.PrekesParduotuve
+                .Where(pp => pp.PrekeId == id)
+                .Include(pp => pp.Parduotuve)
+                .Select(pp => pp.Parduotuve.Adresas)
+                .ToListAsync();
+
+            return Ok(addresses);
         }
     }
 }

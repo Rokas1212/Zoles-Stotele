@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import "./preke.css";
 import Loading from "../../components/loading";
 import useAuth from "../../hooks/useAuth";
+import MapComponent from "../../components/mapComponent";
 
 interface Preke {
   id: number;
@@ -16,6 +17,7 @@ interface Preke {
 const Preke: React.FC = () => {
   const { user } = useAuth(); // Access the authenticated user
   const [product, setProduct] = useState<Preke | null>(null);
+  const [addresses, setAddresses] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -39,12 +41,26 @@ const Preke: React.FC = () => {
         setError(
           err.response?.data || "Nepavyko gauti prekės informacijos iš serverio."
         );
-      } finally {
-        setLoading(false);
       }
     };
 
-    fetchPreke();
+    const fetchAddresses = async () => {
+      if (!id) return;
+
+      try {
+        const response = await axios.get<string[]>(
+          `https://localhost:5210/api/Preke/${id}/addresses`
+        );
+        setAddresses(response.data);
+      } catch (err: any) {
+        console.error("Klaida gaunant parduotuvių adresus:", err.response?.data);
+      }
+    };
+
+    setLoading(true);
+    Promise.all([fetchPreke(), fetchAddresses()]).finally(() => {
+      setLoading(false);
+    });
   }, [id]);
 
   if (loading) {
@@ -77,6 +93,13 @@ const Preke: React.FC = () => {
         <a href={`/redaguoti-preke?id=${product.id}`}>
           <button className="edit-button">Redaguoti</button>
         </a>
+      )}
+
+      <h2>Parduotuvės</h2>
+      {addresses.length > 0 ? (
+        <MapComponent addresses={addresses} />
+      ) : (
+        <p>Šios prekės nėra parduotuvių sandėliuose.</p>
       )}
     </div>
   );
