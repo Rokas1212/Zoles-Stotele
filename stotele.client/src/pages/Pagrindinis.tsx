@@ -32,12 +32,13 @@ type Product = {
   vadybininkasId: number;
   vadybininkas: string | null;
 };
-
+const ITEMS_PER_PAGE = 6;
 const Pagrindinis = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [userId, setUserId] = useState<number | null>(null);
   const [refetch, setRefetch] = useState<boolean>(false);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -63,6 +64,20 @@ const Pagrindinis = () => {
     } catch (error) {
       console.error("Klaida gaunant prekes", error);
     }
+  };
+
+  // Pagination Logic
+  const indexOfLastProduct = currentPage * ITEMS_PER_PAGE;
+  const indexOfFirstProduct = indexOfLastProduct - ITEMS_PER_PAGE;
+  const currentProducts = allProducts.slice(
+    indexOfFirstProduct,
+    indexOfLastProduct
+  );
+
+  const totalPages = Math.ceil(allProducts.length / ITEMS_PER_PAGE);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   const fetchData = async () => {
@@ -156,7 +171,7 @@ const Pagrindinis = () => {
 
   return (
     <div className="container-fluid p-4">
-      <h1 className="mb-4 text-center">Pagrindinis</h1>
+      <h1 className="mb-4 text-center">Žolės Stotelė!</h1>
       <div className="row">
         {/* Sidebar */}
         <div className="col-md-3">
@@ -249,8 +264,28 @@ const Pagrindinis = () => {
 
         {/* Main Content */}
         <div className="col-md-9">
+          {/* Pagination */}
+          <nav aria-label="Page navigation" className="mt-4">
+            <ul className="pagination justify-content-center">
+              {Array.from({ length: totalPages }, (_, index) => (
+                <li
+                  key={index}
+                  className={`page-item ${
+                    currentPage === index + 1 ? "active" : ""
+                  }`}
+                >
+                  <button
+                    className="page-link"
+                    onClick={() => handlePageChange(index + 1)}
+                  >
+                    {index + 1}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </nav>
           <div className="row row-cols-2 g-4">
-            {allProducts.map((product, index) => (
+            {currentProducts.map((product, index) => (
               <div key={index} className="col">
                 <div className="card h-100 shadow-sm">
                   <img
