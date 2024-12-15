@@ -15,7 +15,7 @@ const LoyaltyPoints: React.FC<LoyaltyPointsProps> = ({
   onOrderUpdated,
   onPointsUpdated,
 }) => {
-  const [pointsToUse, setPointsToUse] = useState<number>(0);
+  const [pointsToUse, setPointsToUse] = useState<string>(""); // Start as empty string
   const [error, setError] = useState<string | null>(null);
   const [usedPoints, setUsedPoints] = useState<number | null>(null);
   const [remainingPoints, setRemainingPoints] = useState<number | null>(null);
@@ -55,6 +55,24 @@ const LoyaltyPoints: React.FC<LoyaltyPointsProps> = ({
     fetchUsedPoints();
   }, [orderId]);
 
+  const handleInputChange = (value: string) => {
+    // Remove leading zeros
+    const sanitizedValue = value.replace(/^0+/, "");
+
+    if (/^\d*$/.test(sanitizedValue)) {
+      // Allow only numbers and no leading zeros
+      const numberValue = Number(sanitizedValue);
+
+      if (numberValue > maxPointsAllowed) {
+        setError(`Maksimalus taškų kiekis yra ${maxPointsAllowed}.`);
+        setPointsToUse(String(maxPointsAllowed));
+      } else {
+        setPointsToUse(sanitizedValue);
+        setError(null);
+      }
+    }
+  };
+
   const handleApplyPoints = async () => {
     try {
       const user = localStorage.getItem("user");
@@ -65,13 +83,9 @@ const LoyaltyPoints: React.FC<LoyaltyPointsProps> = ({
         return;
       }
 
-      if (pointsToUse <= 0) {
+      const pointsNumber = Number(pointsToUse);
+      if (pointsNumber <= 0) {
         setError("Taškų kiekis turi būti didesnis nei 0.");
-        return;
-      }
-
-      if (pointsToUse > maxPointsAllowed) {
-        setError(`Maksimalus taškų kiekis yra ${maxPointsAllowed}.`);
         return;
       }
 
@@ -80,7 +94,7 @@ const LoyaltyPoints: React.FC<LoyaltyPointsProps> = ({
         {
           userId,
           orderId,
-          pointsToUse,
+          pointsToUse: pointsNumber,
         },
         {
           headers: {
@@ -95,9 +109,9 @@ const LoyaltyPoints: React.FC<LoyaltyPointsProps> = ({
       onOrderUpdated(updatedOrder);
       onPointsUpdated(remainingPointsAfterUse);
 
-      setUsedPoints(pointsToUse);
+      setUsedPoints(pointsNumber);
       setRemainingPoints(remainingPointsAfterUse);
-      setPointsToUse(0);
+      setPointsToUse("");
       setError(null);
     } catch (err: any) {
       console.error(err?.response?.data || err.message);
@@ -122,17 +136,17 @@ const LoyaltyPoints: React.FC<LoyaltyPointsProps> = ({
       <p className="max-points">
         Maksimalus taškų kiekis: {maxPointsAllowed} taškų (€{(maxPointsAllowed / 10).toFixed(2)})
       </p>
-      <p>Naudojama suma: €{(pointsToUse / 10).toFixed(2)}</p>
+      <p>Naudojama suma: €{(Number(pointsToUse) / 10 || 0).toFixed(2)}</p>
       <div className="input-group">
         <input
           type="number"
           className="form-control points-input"
-          placeholder="Įveskite naudojamus taškus"
+          placeholder="Įveskite taškų skaičių"
           value={pointsToUse}
-          onChange={(e) => setPointsToUse(Number(e.target.value))}
+          onChange={(e) => handleInputChange(e.target.value)}
           onBlur={() => {
-            if (pointsToUse > maxPointsAllowed) {
-              setPointsToUse(maxPointsAllowed);
+            if (Number(pointsToUse) > maxPointsAllowed) {
+              setPointsToUse(String(maxPointsAllowed));
               setError(`Maksimalus taškų kiekis yra ${maxPointsAllowed}.`);
             } else {
               setError(null);
@@ -142,7 +156,7 @@ const LoyaltyPoints: React.FC<LoyaltyPointsProps> = ({
         <button
           className="btn apply-points-btn"
           onClick={handleApplyPoints}
-          disabled={pointsToUse <= 0 || pointsToUse > maxPointsAllowed}
+          disabled={!pointsToUse || Number(pointsToUse) <= 0}
         >
           Pritaikyti taškus
         </button>

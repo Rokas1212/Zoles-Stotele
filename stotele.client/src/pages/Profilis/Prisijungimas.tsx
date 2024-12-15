@@ -37,8 +37,7 @@ const PrisijungimoLangas = () => {
       );
 
       toast.success("Sėkmingai prisijungėte", {
-        position: "bottom-center",
-        autoClose: 1000, 
+        autoClose: 1000,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: true,
@@ -47,13 +46,22 @@ const PrisijungimoLangas = () => {
 
       setTimeout(() => {
         window.location.href = "/";
-      }, 1000); 
+      }, 1000);
     } catch (error: any) {
       console.error("Login error:", error);
       setErrorMessage(
         "Prisijungimas nepavyko: " +
           (error.response?.data || error.message || "Klaida")
       );
+
+
+      toast.error("Prisijungimas nepavyko", {
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     }
   };
 
@@ -87,7 +95,7 @@ const PrisijungimoLangas = () => {
       <a href="/registracija" className="register-link">
         Registracija
       </a>
-      <ToastContainer />
+      <ToastContainer /> {/* Default Top-Right Position */}
     </div>
   );
 };
