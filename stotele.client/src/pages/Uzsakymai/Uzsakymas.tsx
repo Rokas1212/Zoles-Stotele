@@ -14,11 +14,18 @@ const Uzsakymas = () => {
   const [isPaid, setIsPaid] = useState<boolean>(false); // State to store if the order is paid
   const [isCancelled, setIsCancelled] = useState<boolean>(false); // State to store if the order is cancelled
   const [isConfirmed, setIsConfirmed] = useState<boolean>(false); // State to store if the order is confirmed
-  const [usedPoints, setUsedPoints] = useState<boolean>(false); // Whether points have been used
+  //const [usedPoints, setUsedPoints] = useState<boolean>(false); // Whether points have been used
   const navigate = useNavigate();
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const previousOrderRef = useRef<any>(null);
   const [points, setPoints] = useState<number | null>(null); // State to store user points
+  const [usedPoints, setUsedPoints] = useState<boolean>(
+    localStorage.getItem(`usedPoints_${orderId}`) === "true"
+  );
+  const [discountApplied, setDiscountApplied] = useState<boolean>(
+    localStorage.getItem(`discountApplied_${orderId}`) === "true"
+  );
+  
 
   const fetchUserPoints = async () => {
     try {
@@ -289,15 +296,18 @@ const Uzsakymas = () => {
               {points !== null ? `${points} taškų` : "Nepavyko gauti taškų"}
             </span>
           </h3>
-          <LoyaltyPoints
-            orderId={displayOrder.id}
-            totalOrderPrice={displayOrder.suma}
-            onOrderUpdated={(updatedOrder) => setOrder(updatedOrder)}
-            onPointsUpdated={(remainingPoints) => {
-              setPoints(remainingPoints);
-              setUsedPoints(true); // Mark that points have been used
-            }}
-          />
+          {!usedPoints && (
+            <LoyaltyPoints
+              orderId={displayOrder.id}
+              totalOrderPrice={displayOrder.suma}
+              onOrderUpdated={handleOrderUpdated}
+              onPointsUpdated={(remainingPoints) => {
+                setPoints(remainingPoints);
+                setUsedPoints(true);
+                localStorage.setItem(`usedPoints_${orderId}`, "true");
+              }}
+            />
+          )}
         </>
       )}
       <h2 className="mt-4">Prekės</h2>
@@ -353,7 +363,7 @@ const Uzsakymas = () => {
 
       {!isPaid && !isCancelled ? (
         <>
-          {!isCancelled && (
+          {!discountApplied && !usedPoints && !isCancelled && (
             <div className="mt-4">
               <QRCodeGenerator
                 orderId={displayOrder.id}

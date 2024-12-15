@@ -66,6 +66,8 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
         }
       );
 
+      localStorage.setItem(`discountApplied_${orderId}`, "true");
+
       onOrderUpdated(response.data.UpdatedOrder);
     } catch (error: any) {
       console.error("Failed to apply discount:", error);

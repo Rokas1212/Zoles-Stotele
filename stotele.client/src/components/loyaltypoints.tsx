@@ -103,6 +103,9 @@ const LoyaltyPoints: React.FC<LoyaltyPointsProps> = ({
         }
       );
 
+      localStorage.setItem(`usedPoints_${orderId}`, "true");
+      localStorage.setItem(`pointsApplied_${orderId}`, pointsNumber.toString());
+
       const updatedOrder = response.data.updatedOrder;
       const remainingPointsAfterUse = response.data.remainingPoints;
 
