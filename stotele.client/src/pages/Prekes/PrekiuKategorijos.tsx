@@ -13,17 +13,29 @@ const PrekiuKategorijos = () => {
   const [userId, setUserId] = useState<number | null>(null);
   const [admin, setAdmin] = useState<boolean>(false);
 
+  const fetchUserCheck = async () => {
+    try {
+      const response = await fetch(
+        `https://localhost:5210/api/Profilis/is-vadybininkas/${userId}`
+      );
+      if (response.ok) {
+        setAdmin(true);
+      }
+    } catch (error) {
+      console.error("Klaida gaunant vadybininko informaciją", error);
+    }
+  };
+
   useEffect(() => {
     const user = localStorage.getItem("user");
 
     if (user) {
       const userObject = JSON.parse(user);
       setUserId(userObject.id);
-      if (userObject.administratorius) setAdmin(true);
+      console.log(userId);
     } else {
       console.log("Naudotojas neprisijungęs");
     }
-
     fetchData();
   }, []);
 
@@ -72,6 +84,12 @@ const PrekiuKategorijos = () => {
       return;
     }
 
+    const isConfirmed = window.confirm(
+      "Ar tikrai norite pašalinti šią kategoriją?"
+    );
+
+    if (!isConfirmed) return;
+
     try {
       const response = await fetch(
         `https://localhost:5210/api/Kategorija/kategorija/istrinti/${userId}/${categoryId}`,
@@ -83,10 +101,18 @@ const PrekiuKategorijos = () => {
       if (response.ok) {
         alert("Kategorija sėkmingai ištrinta");
       }
+
+      await fetchData();
     } catch (error) {
       console.error("Klaida trinant kategoriją", error);
     }
   };
+
+  useEffect(() => {
+    if (userId !== null) {
+      fetchUserCheck();
+    }
+  }, [userId]);
 
   return (
     <div>
