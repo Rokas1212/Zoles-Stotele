@@ -1,10 +1,13 @@
-import { useState, useEffect } from 'react';
-import { loadStripe } from '@stripe/stripe-js';
-import axios from 'axios';
-import { useParams } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { loadStripe } from "@stripe/stripe-js";
+import axios from "axios";
+import { useNavigate, useParams } from "react-router-dom";
+import Loading from "../../components/loading";
 
 // Load your Stripe publishable key
-const stripePromise = loadStripe('pk_test_51BrUMKBUtGUmzKJGptzSuF8yfO5pzm83qFs6We6l7ZM7l3ko9vmbrwBdkCNlBeBWzIyMQpcmVsoslM3pFTBm7HJw00f9qd9h0J');
+const stripePromise = loadStripe(
+  "pk_test_51BrUMKBUtGUmzKJGptzSuF8yfO5pzm83qFs6We6l7ZM7l3ko9vmbrwBdkCNlBeBWzIyMQpcmVsoslM3pFTBm7HJw00f9qd9h0J"
+);
 
 const Apmokejimas = () => {
   const { orderId } = useParams();
@@ -12,17 +15,23 @@ const Apmokejimas = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isPaid, setIsPaid] = useState<boolean>(false);
-  const [PvmMoketojoKodas, setPvmMoketojoKodas] = useState<string>(''); // Added for PVM Moketojo Kodas
+  const [PvmMoketojoKodas, setPvmMoketojoKodas] = useState<string>(""); // Added for PVM Moketojo Kodas
+  const navigate = useNavigate();
+  const [selectedMethod, setSelectedMethod] = useState<string>("card");
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const response = await fetch(`https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`, {
-          credentials: "include",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
+        const response = await fetch(
+          `https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`,
+          {
+            credentials: "include",
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
         if (!response.ok) {
           throw new Error("Nepavyko gauti užsakymo informacijos.");
         }
@@ -38,16 +47,19 @@ const Apmokejimas = () => {
 
     const checkIfPaid = async () => {
       try {
-        const response = await axios.get(`https://localhost:5210/api/apmokejimu/is-paid`, {
-          params: { orderId }, 
-        });
+        const response = await axios.get(
+          `https://localhost:5210/api/apmokejimu/is-paid`,
+          {
+            params: { orderId },
+          }
+        );
         setIsPaid(response.data);
-        console.log('Is paid:', response.data);
+        console.log("Is paid:", response.data);
       } catch (error: any) {
         if (error.response.status === 404) {
           return;
         }
-        console.error('Klaida:', error);
+        console.error("Klaida:", error);
       }
     };
 
@@ -56,33 +68,54 @@ const Apmokejimas = () => {
   }, [orderId]);
 
   if (loading) {
-    return <div>Kraunama apmokėjimo informacija...</div>;
+    return <Loading />;
   }
 
   if (error) {
     return <div>{error}</div>;
   }
+  const validatePvmKodas = () => {
+    const regex = /^\d{11}$/; // 11-digit number validation
+    if (!regex.test(PvmMoketojoKodas)) {
+      setValidationError("PVM Mokėtojo Kodas turi būti 11 skaitmenų skaičius.");
+      return false;
+    }
+    setValidationError(null);
+    return true;
+  };
 
-  const handleCheckout = async () => {
-    if (!PvmMoketojoKodas) {
-      alert('Prašome įvesti PVM Mokėtojo Kodą.');
+  const handlePayment = () => {
+    if (!validatePvmKodas()) {
       return;
     }
 
+    if (selectedMethod === "card") {
+      handleCheckout();
+    } else if (selectedMethod === "cash") {
+      handleCashPayment();
+    } else if (selectedMethod === "bank") {
+      handleBankTransfer();
+    }
+  };
+
+  const handleCheckout = async () => {
     const stripe = await stripePromise;
 
     if (!stripe) {
-      console.error('Stripe klaida.');
+      console.error("Stripe klaida.");
       return;
     }
 
     try {
-      const response = await axios.post(`https://localhost:5210/api/apmokejimu/create-checkout-session/`, null, {
-        params: { orderId, PvmMoketojoKodas },
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+      const response = await axios.post(
+        `https://localhost:5210/api/apmokejimu/create-checkout-session/`,
+        null,
+        {
+          params: { orderId, PvmMoketojoKodas },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         }
-      }
       );
       const sessionId = response.data.sessionId;
 
@@ -92,117 +125,138 @@ const Apmokejimas = () => {
       });
 
       if (error) {
-        console.error('Klaida:', error.message);
+        console.error("Klaida:", error.message);
       }
     } catch (error) {
-      console.error('Klaida:', error);
+      console.error("Klaida:", error);
     }
   };
 
   const handleCashPayment = async () => {
-    if (!PvmMoketojoKodas) {
-      alert('Prašome įvesti PVM Mokėtojo Kodą.');
-      return;
-    }
-
-    const confirmPayment = window.confirm('Ar tikrai norite apmokėti grynaisiais?');
-    if (!confirmPayment) {
-      return;
-    }
-  
     try {
-      const response = await axios.post(`https://localhost:5210/api/apmokejimu/create-checkout-cash`, null, {
-        params: { orderId, PvmMoketojoKodas },
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-  
+      const response = await axios.post(
+        `https://localhost:5210/api/apmokejimu/create-checkout-cash`,
+        null,
+        {
+          params: { orderId, PvmMoketojoKodas },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+
       if (response.status === 200) {
         setIsPaid(true);
-        alert('Pasirinkote mokėti grynais, apmokėti galėsite atvykus kurjeriui. Ačiū!');
+        alert(
+          "Pasirinkote mokėti grynais, apmokėti galėsite atvykus kurjeriui. Ačiū!"
+        );
       }
     } catch (error) {
-      console.error('Klaida:', error);
+      console.error("Klaida:", error);
     }
   };
   const handleBankTransfer = () => {
-    if (!PvmMoketojoKodas) {
-      alert('Prašome įvesti PVM Mokėtojo Kodą.');
-      return;
-    }
+    axios.post(
+      `https://localhost:5210/api/apmokejimu/create-checkout-transfer`,
+      null,
+      {
+        params: { orderId, PvmMoketojoKodas },
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      }
+    );
 
-    const confirmPayment = window.confirm('Ar tikrai norite apmokėti banko pavedimu?');
-    if (!confirmPayment) {
-      return;
-    }
-
-    axios.post(`https://localhost:5210/api/apmokejimu/create-checkout-transfer`, null, {
-      params: { orderId, PvmMoketojoKodas },
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-    });
-
-    alert('Apmokėjimo instrukcijos išsiųstos į El. Paštą.');
+    alert("Apmokėjimo instrukcijos išsiųstos į El. Paštą.");
+    navigate(`/uzsakymas/${orderId}`);
   };
 
   return (
-    <div>
-      <h1>Apmokėjimas</h1>
-      {isPaid ? (
-        <div style={{ color: 'green' }}>Užsakymas apmokėtas sėkmingai!</div>
-      ) : (
-        <>
-          <p>Pasirinkite apmokėjimo būdą:</p>
+    <div className="container mt-5 d-flex justify-content-center">
+      <div
+        className="card shadow-sm p-4"
+        style={{ maxWidth: "600px", width: "100%" }}
+      >
+        <h1 className="text-center mb-4">Apmokėjimas</h1>
 
-          {/* Input field for PVM Mokėtojo Kodas */}
-          <div style={{ marginBottom: '20px' }}>
-            <label htmlFor="PvmMoketojoKodas" style={{ display: 'block', marginBottom: '5px' }}>
-              Įveskite PVM Mokėtojo Kodą:
-            </label>
-            <input
-              id="PvmMoketojoKodas"
-              type="text"
-              value={PvmMoketojoKodas}
-              onChange={(e) => setPvmMoketojoKodas(e.target.value)}
-              placeholder="123456789"
-              style={{
-                padding: '10px',
-                fontSize: '16px',
-                borderRadius: '4px',
-                border: '1px solid #ccc',
-                width: '100%',
-                maxWidth: '300px',
-              }}
-            />
+        {isPaid ? (
+          <div className="alert alert-success text-center">
+            Užsakymas apmokėtas sėkmingai!
           </div>
+        ) : (
+          <>
+            <p className="text-center mb-4">Pasirinkite apmokėjimo būdą:</p>
 
-          <div style={{ display: 'flex', gap: '10px' }}>
-            {/* Button for card payment */}
-            <button
-              onClick={handleCheckout}
-              style={{ padding: '10px 20px', fontSize: '16px', cursor: 'pointer' }}
-            >
-              Mokėti Kortele
-            </button>
+            {/* PVM Input with Label */}
+            <div className="mb-4">
+              <label htmlFor="PvmMoketojoKodas" className="form-label">
+                Įveskite PVM Mokėtojo Kodą:
+              </label>
+              <input
+                id="PvmMoketojoKodas"
+                type="text"
+                className={`form-control ${
+                  validationError ? "is-invalid" : ""
+                }`}
+                value={PvmMoketojoKodas}
+                onChange={(e) => setPvmMoketojoKodas(e.target.value)}
+                placeholder="12345678901"
+              />
+              {validationError && (
+                <div className="invalid-feedback">{validationError}</div>
+              )}
+            </div>
 
-            {/* Button for cash payment */}
-            <button
-              onClick={handleCashPayment}
-              style={{ padding: '10px 20px', fontSize: '16px', cursor: 'pointer' }}
-            >
-              Mokėti Grynaisias
-            </button>
+            {/* Radio Buttons for Payment Method */}
+            <div className="mb-4">
+              <div className="form-check">
+                <input
+                  className="form-check-input"
+                  type="radio"
+                  name="paymentMethod"
+                  id="card"
+                  value="card"
+                  onChange={() => setSelectedMethod("card")}
+                  defaultChecked
+                />
+                <label className="form-check-label" htmlFor="card">
+                  Mokėti Kortele
+                </label>
+              </div>
+              <div className="form-check">
+                <input
+                  className="form-check-input"
+                  type="radio"
+                  name="paymentMethod"
+                  id="cash"
+                  value="cash"
+                  onChange={() => setSelectedMethod("cash")}
+                />
+                <label className="form-check-label" htmlFor="cash">
+                  Mokėti Grynaisiais
+                </label>
+              </div>
+              <div className="form-check">
+                <input
+                  className="form-check-input"
+                  type="radio"
+                  name="paymentMethod"
+                  id="bank"
+                  value="bank"
+                  onChange={() => setSelectedMethod("bank")}
+                />
+                <label className="form-check-label" htmlFor="bank">
+                  Mokėti Banko Pavedimu
+                </label>
+              </div>
+            </div>
 
-            {/* Button for bank transfer */}
-            <button
-              onClick={handleBankTransfer}
-              style={{ padding: '10px 20px', fontSize: '16px', cursor: 'pointer' }}
-            >
-              Mokėti Banko Pavedimu
-            </button>
-          </div>
-        </>
-      )}
+            {/* Single Payment Button */}
+            <div className="text-center">
+              <button className="btn btn-primary w-100" onClick={handlePayment}>
+                Mokėti
+              </button>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 };
-
 export default Apmokejimas;
