@@ -1,4 +1,15 @@
 import React, { useState, useEffect } from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap/dist/js/bootstrap.bundle.min";
+import defaultImage from "../../../default_no_photo.jpg";
+import {
+  FaShoppingCart,
+  FaTags,
+  FaTruck,
+  FaUserEdit,
+  FaBox,
+  FaThLarge,
+} from "react-icons/fa"; // Add icons from react-icons
 
 type Product = {
   id: number;
@@ -21,6 +32,7 @@ const Pagrindinis = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [userId, setUserId] = useState<number | null>(null);
   const [refetch, setRefetch] = useState<boolean>(false);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     const user = localStorage.getItem("user");
@@ -31,7 +43,21 @@ const Pagrindinis = () => {
     } else {
       console.log("Naudotojas neprisijungęs");
     }
+
+    fetchAllProducts();
   }, []);
+
+  const fetchAllProducts = async () => {
+    try {
+      const response = await fetch(
+        "https://localhost:5210/api/Preke/PrekesList"
+      );
+      const data = await response.json();
+      setAllProducts(data);
+    } catch (error) {
+      console.error("Klaida gaunant prekes", error);
+    }
+  };
 
   const fetchData = async () => {
     if (userId === null) {
@@ -53,6 +79,14 @@ const Pagrindinis = () => {
   const handleBlockRecommendation = async (productId: number) => {
     if (userId === null) {
       console.log("User ID not found.");
+      return;
+    }
+
+    const isConfirmed = window.confirm(
+      "Ar tikrai norite užblokuoti šią rekomendaciją?"
+    );
+
+    if (!isConfirmed) {
       return;
     }
 
@@ -82,70 +116,136 @@ const Pagrindinis = () => {
   }, [userId, refetch]);
 
   return (
-    <div>
-      <h1>Pagrindinis</h1>
-      <ul className="list-group">
-        <li className="list-group-item">
-          <a href="/krepselis" className="nav-link">
-            Krepšelis
-          </a>
-        </li>
-        <li className="list-group-item">
-          <a href="/nuolaidos" className="nav-link">
-            Nuolaidos
-          </a>
-        </li>
-        <li className="list-group-item">
-          <a href="/uzsakymai" className="nav-link">
-            Užsakymai
-          </a>
-        </li>
-        <li className="list-group-item">
-          <a href="/" className="nav-link">
-            Redaguoti profilį
-          </a>
-        </li>
-        <li className="list-group-item">
-          <a href="/prekes" className="nav-link">
-            Prekės
-          </a>
-        </li>
-        <li className="list-group-item">
-          <a href="/prekiu-kategorijos" className="nav-link">
-            Visos kategorijos
-          </a>
-        </li>
-      </ul>
-
-      <h2>Rekomenduojamos prekės</h2>
-      <div>
-        {products.map((product, index) => (
-          <div
-            key={index}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              marginBottom: "10px",
-            }}
-          >
-            <img
-              src={product.nuotraukosUrl}
-              alt={product.pavadinimas}
-              width="30%"
-              height="30%"
-            />
-            <div style={{ marginLeft: "10px" }}>
-              <p>Pavadinimas: {product.pavadinimas}</p>
-              <p>Kaina: {product.kaina}</p>
-              <button
-                onClick={() => handleBlockRecommendation(product.id)}
-                style={{ marginTop: "5px" }}
-              >
-                Blokuoti rekomendaciją
-              </button>
+    <div className="container-fluid p-4">
+      <h1 className="mb-4 text-center">Pagrindinis</h1>
+      <div className="row">
+        {/* Sidebar */}
+        <div className="col-md-3">
+          <div className="gridbox-container mb-5">
+            {/* Grid layout for links */}
+            <div className="row row-cols-2 row-cols-md-3 g-4">
+              <div className="col">
+                <div className="d-flex flex-column align-items-center card-link-container">
+                  <FaShoppingCart
+                    size={30}
+                    className="mb-2 icon text-primary"
+                  />
+                  <a href="/krepselis" className="nav-link text-primary">
+                    Krepšelis
+                  </a>
+                </div>
+              </div>
+              <div className="col">
+                <div className="d-flex flex-column align-items-center card-link-container">
+                  <FaTags size={30} className="mb-2 icon text-success" />
+                  <a href="/nuolaidos" className="nav-link text-primary">
+                    Nuolaidos
+                  </a>
+                </div>
+              </div>
+              <div className="col">
+                <div className="d-flex flex-column align-items-center card-link-container">
+                  <FaTruck size={30} className="mb-2 icon text-info" />
+                  <a href="/uzsakymai" className="nav-link text-primary">
+                    Užsakymai
+                  </a>
+                </div>
+              </div>
+              <div className="col">
+                <div className="d-flex flex-column align-items-center card-link-container">
+                  <FaUserEdit size={30} className="mb-2 icon text-warning" />
+                  <a href="/" className="nav-link text-primary">
+                    Redaguoti profilį
+                  </a>
+                </div>
+              </div>
+              <div className="col">
+                <div className="d-flex flex-column align-items-center card-link-container">
+                  <FaBox size={30} className="mb-2 icon text-danger" />
+                  <a href="/prekes" className="nav-link text-primary">
+                    Prekės
+                  </a>
+                </div>
+              </div>
+              <div className="col">
+                <div className="d-flex flex-column align-items-center card-link-container">
+                  <FaThLarge size={30} className="mb-2 icon text-secondary" />
+                  <a
+                    href="/prekiu-kategorijos"
+                    className="nav-link text-primary"
+                  >
+                    Visos kategorijos
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
-        ))}
+
+          {/* Recommended Products */}
+          <h2 className="mb-4 text-center">Rekomenduojamos prekės</h2>
+          <div className="list-group">
+            {products.map((product, index) => (
+              <div
+                key={index}
+                className="d-flex align-items-center border rounded p-3 shadow-sm mb-3"
+              >
+                <img
+                  src={product.nuotraukosUrl || defaultImage}
+                  alt={product.pavadinimas}
+                  className="img-fluid rounded me-3"
+                  style={{
+                    width: "100px",
+                    height: "100px",
+                    objectFit: "cover",
+                  }}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = defaultImage;
+                  }}
+                />
+                <div>
+                  <p className="fw-bold mb-2">{product.pavadinimas}</p>
+                  <button
+                    onClick={() => handleBlockRecommendation(product.id)}
+                    className="btn btn-outline-danger btn-sm mt-2"
+                  >
+                    Blokuoti rekomendaciją
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="col-md-9">
+          <div className="row row-cols-2 g-4">
+            {allProducts.map((product, index) => (
+              <div key={index} className="col">
+                <div className="d-flex align-items-center border rounded p-3 shadow-sm h-100">
+                  <img
+                    src={product.nuotraukosUrl || defaultImage}
+                    alt={product.pavadinimas}
+                    className="img-fluid rounded me-3"
+                    style={{
+                      width: "300px",
+                      height: "250px",
+                      objectFit: "cover",
+                    }}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = defaultImage;
+                    }}
+                  />
+                  <div>
+                    <p className="fw-bold mb-2">
+                      Pavadinimas: {product.pavadinimas}
+                    </p>
+                    <p className="text-muted mb-2">Kaina: {product.kaina}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

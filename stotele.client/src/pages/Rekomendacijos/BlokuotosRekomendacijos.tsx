@@ -49,6 +49,14 @@ const BlokuotosRekomendacijos = () => {
       return;
     }
 
+    const isConfirmed = window.confirm(
+      "Ar tikrai norite atblokuoti šią rekomendaciją?"
+    );
+
+    if (!isConfirmed) {
+      return;
+    }
+
     try {
       const response = await fetch(
         `https://localhost:5210/api/Rekomendacija/blokuotos-rekomendacijos/atblokuoti/${userId}/${productId}`,
@@ -89,7 +97,7 @@ const BlokuotosRekomendacijos = () => {
         <tbody>
           {products.map((item, index) => (
             <tr key={item.id}>
-              <td>{item.id}</td>
+              <td>{index + 1}</td>
               <td>{item.pavadinimas}</td>
               <td>{item.aprasymas}</td>
               <td>
