@@ -13,13 +13,11 @@ namespace Stotele.Server.Models.ApplicationDbContexts
         public DbSet<Uzsakymas> Uzsakymai { get; set; }
         public DbSet<Apmokejimas> Apmokejimai { get; set; }
         public DbSet<Klientas> Klientai { get; set; }
-        public DbSet<Adresas> Adresai { get; set; }
         public DbSet<Parduotuve> Parduotuve { get; set; }
         public DbSet<Taskai> Taskai { get; set; }
         public DbSet<Vadybininkas> Vadybininkai { get; set; }
         public DbSet<Kategorija> Kategorijos { get; set; }
         public DbSet<Preke> Prekes { get; set; }
-        public DbSet<Atsiliepimas> Atsiliepimai { get; set; }
         public DbSet<MegstamaKategorija> MegstamosKategorijos { get; set; }
         public DbSet<Nuolaida> Nuolaidos { get; set; }
         public DbSet<PrekesPerziura> PrekesPerziuros { get; set; }
