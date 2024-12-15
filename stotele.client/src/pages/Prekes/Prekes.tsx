@@ -104,10 +104,16 @@ const Prekes: React.FC = () => {
                 <td>
                   <button
                     onClick={() => handleAddToCart(product.id)}
-                    className="action-button"
+                    className="action-button add-to-cart-btn"
                   >
                     Pridėti į krepšelį
                   </button>
+                  <a
+                    href={`/preke?id=${product.id}`}
+                    className="action-button view-product-btn"
+                  >
+                    Peržiūrėti prekę
+                  </a>
                 </td>
               </tr>
             ))}
