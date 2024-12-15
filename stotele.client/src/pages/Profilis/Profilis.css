@@ -150,3 +150,11 @@
     text-align: center;
   }
 }
+
+.vadybininkas-status {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #2e7d32; /* Green color */
+  text-align: center;
+  margin-top: 10px;
+}

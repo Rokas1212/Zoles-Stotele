@@ -169,6 +169,9 @@ const Profilis: React.FC = () => {
       <h1 className="profilis-title">Profilis</h1>
       {profile && (
         <div className="profilis-info">
+          {isVadybininkas && (
+        <p className="vadybininkas-status"><strong>Vadybininkas</strong></p>
+          )}
           <h2>
             {profile.vardas} {profile.pavarde}
           </h2>
