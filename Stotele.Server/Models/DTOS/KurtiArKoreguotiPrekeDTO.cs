@@ -13,10 +13,16 @@ public class KurtiArKoreguotiPrekeDTO
     public double Mase { get; set; }
     public int VadybininkasId { get; set; }
     public List<PrekesParduotuveDTO> PrekiuParduotuves { get; set; } = new List<PrekesParduotuveDTO>();
+    public List<PrekesKategorijaDTO> PrekiuKategorijos { get; set; } = new List<PrekesKategorijaDTO>();
 }
 
 public class PrekesParduotuveDTO
 {
     public int ParduotuveId { get; set; }
     public int Kiekis { get; set; }
+}
+
+public class PrekesKategorijaDTO
+{
+    public int KategorijaId { get; set; }
 }
