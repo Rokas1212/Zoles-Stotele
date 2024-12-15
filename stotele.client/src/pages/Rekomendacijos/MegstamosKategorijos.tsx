@@ -48,6 +48,14 @@ const MegstamosKategorijos = () => {
       return;
     }
 
+    const isConfirmed = window.confirm(
+      "Ar tikrai norite ištrinti šią kategoriją iš sąrašo?"
+    );
+
+    if (!isConfirmed) {
+      return;
+    }
+
     try {
       const response = await fetch(
         `https://localhost:5210/api/Rekomendacija/megstamos-kategorijos/istrinti/${userId}/${categoryId}`,
@@ -88,7 +96,7 @@ const MegstamosKategorijos = () => {
         <tbody>
           {products.map((item, index) => (
             <tr key={item.id}>
-              <td>{item.id}</td>
+              <td>{index + 1}</td>
               <td>{item.kategorijaPavadinimas}</td>
               <td>{item.kategorijaAprasymas}</td>
               <td>
