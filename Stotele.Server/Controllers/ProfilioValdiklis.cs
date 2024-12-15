@@ -298,12 +298,69 @@ namespace Stotele.Server.Controllers
         }
 
 
+        [HttpPost("add-vadybininkas")]
+        public async Task<IActionResult> MakeVadybininkas([FromBody] PridetiVadybininkaDTO dto)
+        {
+            var naudotojas = await _context.Naudotojai.FindAsync(dto.NaudotojasId);
+            if (naudotojas == null)
+            {
+                return NotFound("Naudotojas nerastas.");
+            }
 
+            var existingVadybininkas = await _context.Vadybininkai
+                .FirstOrDefaultAsync(v => v.NaudotojasId == dto.NaudotojasId);
 
+            if (existingVadybininkas != null)
+            {
+                return BadRequest("Naudotojas jau yra vadybininkas.");
+            }
 
+            var parduotuve = await _context.Parduotuve.FindAsync(dto.ParduotuveId);
+            if (parduotuve == null)
+            {
+                return NotFound("Parduotuvė nerasta.");
+            }
 
+            var vadybininkas = new Vadybininkas
+            {
+                NaudotojasId = dto.NaudotojasId,
+                Skyrius = dto.Skyrius,
+                ParduotuveId = dto.ParduotuveId
+            };
 
+            _context.Vadybininkai.Add(vadybininkas);
+            await _context.SaveChangesAsync();
 
+            return Ok(new { Message = "Naudotojas sėkmingai pridėtas kaip vadybininkas." });
+        }
+
+        [HttpGet("all-parduotuves")]
+        public async Task<IActionResult> GetAllParduotuves()
+        {
+            var parduotuves = await _context.Parduotuve
+                .Select(p => new
+                {
+                    p.Id,
+                    p.Adresas
+                })
+                .ToListAsync();
+
+            return Ok(parduotuves);
+        }
+
+        // GET: api/Profilis/is-vadybininkas/{id}
+        [HttpGet("is-vadybininkas/{id}")]
+        public async Task<IActionResult> IsVadybininkas(int id)
+        {
+            var isVadybininkas = await _context.Vadybininkai.AnyAsync(v => v.NaudotojasId == id);
+
+            if (isVadybininkas)
+            {
+                return Ok(new { Message = "Naudotojas yra vadybininkas." });
+            }
+
+            return NotFound(new { Message = "Naudotojas nėra vadybininkas." });
+        }
 
 
         // POST: api/Profilis/register-admin
