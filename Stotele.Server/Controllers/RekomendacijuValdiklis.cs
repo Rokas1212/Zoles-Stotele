@@ -57,7 +57,7 @@ namespace Stotele.Server.Controllers
             return Ok(megstamosKategorijos);
         }
 
-        [HttpPut("megstamos-kategorijos/prideti/{naudotojasId}/{kategorijosId}")]
+        [HttpPost("megstamos-kategorijos/prideti/{naudotojasId}/{kategorijosId}")]
         public async Task<IActionResult> AddMegstamaKategorija(int naudotojasId, int kategorijosId)
         {
             var klientas = await _context.Klientai.FindAsync(naudotojasId);
