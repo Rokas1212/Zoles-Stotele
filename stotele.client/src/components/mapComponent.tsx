@@ -11,7 +11,9 @@ const MapComponent: React.FC<{ addresses: string[] }> = ({ addresses }) => {
     const azureMapsKey = import.meta.env.VITE_AZURE_MAPS_API_KEY;
 
     if (!azureMapsKey) {
-      console.error("Azure Maps API key is missing. Please check your environment variables.");
+      console.error(
+        "Azure Maps API key is missing. Please check your environment variables."
+      );
       return;
     }
 
@@ -64,7 +66,9 @@ const MapComponent: React.FC<{ addresses: string[] }> = ({ addresses }) => {
         // Add hover behavior to show popups
         mapRef.current?.events.add("mouseover", pinsLayer, (e) => {
           if (e?.shapes && e.shapes[0] instanceof atlas.Shape) {
-            const properties = e.shapes[0].getProperties() as { address?: string };
+            const properties = e.shapes[0].getProperties() as {
+              address?: string;
+            };
             const coordinates = e.shapes[0].getCoordinates();
 
             if (properties?.address) {
@@ -91,7 +95,12 @@ const MapComponent: React.FC<{ addresses: string[] }> = ({ addresses }) => {
     };
   }, [addresses]);
 
-  return <div ref={mapDivRef} style={{ height: "400px", width: "100%", overflow: "auto" }} />;
+  return (
+    <div
+      ref={mapDivRef}
+      style={{ height: "400px", width: "100%", overflow: "hidden" }}
+    />
+  );
 };
 
 export default MapComponent;
