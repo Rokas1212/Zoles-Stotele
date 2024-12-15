@@ -46,16 +46,31 @@ namespace Stotele.Server.Controllers
                     Pavadinimas = p.Pavadinimas,
                     Kaina = p.Kaina,
                     Aprasymas = p.Aprasymas,
-                    NuotraukosUrl = p.NuotraukosUrl
+                    NuotraukosUrl = p.NuotraukosUrl,
+                    Kodas = p.Kodas,
+                    Ismatavimai = p.Ismatavimai,
+                    Mase = p.Mase,
+                    GarantinisLaikotarpis = p.GarantinisLaikotarpis,
+                    GaliojimoData = p.GaliojimoData
                 })
                 .FirstOrDefaultAsync(p => p.Id == id);
+
+            var categories = await _context.PrekesKategorijos
+                .Where(pk => pk.PrekeId == id)
+                .Include(pk => pk.Kategorija)
+                .Select(pk => new { pk.Kategorija.Pavadinimas, pk.Kategorija.Id })
+                .ToListAsync();
 
             if (preke == null)
             {
                 return NotFound();
             }
 
-            return preke;
+            return Ok(new
+            {
+                Preke = preke,
+                Kategorijos = categories
+            });
         }
 
 
