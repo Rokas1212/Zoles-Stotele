@@ -59,6 +59,7 @@ namespace Stotele.Server.Controllers
         [HttpPost]
         public async Task<ActionResult<Preke>> CreatePreke(KurtiArKoreguotiPrekeDTO dto)
         {
+            Console.WriteLine(dto.VadybininkasId);
             var userId = User.FindFirstValue("UserId");
             if (string.IsNullOrEmpty(userId))
             {
@@ -70,15 +71,15 @@ namespace Stotele.Server.Controllers
                 return BadRequest("Neteisingas user ID formatas.");
             }
 
-            if (dto.VadybininkasId != parsedUserId && !User.IsInRole("Administratorius"))
-            {
-                return Unauthorized("Neturite teisės kurti prekę šiam vadybininkui.");
-            }
-
             var vadybininkas = await _context.Vadybininkai.FindAsync(dto.VadybininkasId);
             if (vadybininkas == null)
             {
                 return BadRequest($"Vadybininkas su šiuo ID {dto.VadybininkasId} neegzistuoja.");
+            }
+
+            if (dto.VadybininkasId != parsedUserId && !User.IsInRole("Administratorius"))
+            {
+                return Unauthorized("Neturite teisės kurti prekę šiam vadybininkui.");
             }
 
             var preke = new Preke
