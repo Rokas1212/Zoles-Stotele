@@ -1,7 +1,7 @@
 public class KurtiArKoreguotiPrekeDTO
 {
-    public double Kaina { get; set; }
     public string Pavadinimas { get; set; }
+    public double Kaina { get; set; }
     public DateTime GaliojimoData { get; set; }
     public string Aprasymas { get; set; }
     public string Ismatavimai { get; set; }

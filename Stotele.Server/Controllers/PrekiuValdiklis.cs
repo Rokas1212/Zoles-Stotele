@@ -82,13 +82,15 @@ namespace Stotele.Server.Controllers
                 return Unauthorized("Neturite teisės kurti prekę šiam vadybininkui.");
             }
 
+            var kiekis = dto.PrekiuParduotuves.Sum(pp => pp.Kiekis);
+
             var preke = new Preke
             {
                 Kaina = dto.Kaina,
                 Pavadinimas = dto.Pavadinimas,
                 Kodas = dto.Kodas,
                 GaliojimoData = DateTime.SpecifyKind(dto.GaliojimoData, DateTimeKind.Utc),
-                Kiekis = dto.Kiekis,
+                Kiekis = kiekis,
                 Ismatavimai = dto.Ismatavimai,
                 NuotraukosUrl = dto.NuotraukosUrl,
                 GarantinisLaikotarpis = DateTime.SpecifyKind(dto.GarantinisLaikotarpis, DateTimeKind.Utc),
@@ -97,7 +99,8 @@ namespace Stotele.Server.Controllers
                 Mase = dto.Mase,
                 VadybininkasId = dto.VadybininkasId
             };
-
+            _context.Prekes.Add(preke);
+            _context.SaveChanges();
             var prekiuParduotuves = dto.PrekiuParduotuves.Select(pp => new PrekesParduotuve
             {
                 Kiekis = pp.Kiekis,
@@ -105,7 +108,6 @@ namespace Stotele.Server.Controllers
                 PrekeId = preke.Id
             }).ToList();
 
-            _context.Prekes.Add(preke);
             await _context.PrekesParduotuve.AddRangeAsync(prekiuParduotuves);
             await _context.SaveChangesAsync();
 

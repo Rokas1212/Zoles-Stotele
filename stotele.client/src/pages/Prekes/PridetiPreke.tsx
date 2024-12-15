@@ -13,7 +13,11 @@ const PridetiPreke = () => {
   const [description, setDescription] = useState("");
   const [measurements, setMeasurements] = useState("");
   const [imageUrl, setImageUrl] = useState("");
-  const [stores, setStores] = useState<ParduotuvesList[]>([]); // List of stores
+  const [stores, setStores] = useState<ParduotuvesList[]>([]);
+  const [code, setCode] = useState("");
+  const [warrantyUntil, setWarrantyUntil] = useState("");
+  const [recommendationWeight, setRecommendationWeight] = useState("");
+  const [mass, setMass] = useState("");
   const [selectedStores, setSelectedStores] = useState<
     { parduotuveId: number; kiekis: number }[]
   >([]);
@@ -68,6 +72,10 @@ const PridetiPreke = () => {
       nuotraukosUrl: imageUrl,
       prekiuParduotuves: selectedStores,
       vadybininkasId: userId,
+      kodas: code,
+      garantinisLaikotarpis: warrantyUntil,
+      rekomendacijosSvoris: parseFloat(recommendationWeight),
+      mase: parseFloat(mass),
     };
 
     console.log("Pridedama prekė:", newPreke);
@@ -148,6 +156,51 @@ const PridetiPreke = () => {
             placeholder="Įveskite išmatavimus"
           />
         </div>
+
+        <div className="form-group">
+          <label>Prekės Kodas</label>
+          <input
+            type="text"
+            className="form-control"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="Įveskite kodą"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Garantinis laikotarpis</label>
+          <input
+            type="date"
+            className="form-control"
+            value={warrantyUntil}
+            onChange={(e) => setWarrantyUntil(e.target.value)}
+          />
+
+        </div>
+
+        <div className="form-group">
+          <label>Rekomendacijos svoris</label>
+          <input
+            type="text"
+            className="form-control"
+            value={recommendationWeight}
+            onChange={(e) => setRecommendationWeight(e.target.value)}
+            placeholder="Įveskite svorį"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Prekės masė</label>
+          <input
+            type="text"
+            className="form-control"
+            value={mass}
+            onChange={(e) => setMass(e.target.value)}
+            placeholder="Įveskite masę"
+          />
+        </div>
+
 
         <div className="form-group">
           <label>Nuotraukos URL</label>
