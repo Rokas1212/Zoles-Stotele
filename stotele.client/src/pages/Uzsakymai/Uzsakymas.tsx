@@ -346,7 +346,14 @@ const Uzsakymas = () => {
         <>
           {!isCancelled && (
             <div className="mt-4">
-              <QRCodeGenerator orderId={displayOrder.id} onOrderUpdated={handleOrderUpdated} />
+              {/* <QRCodeGenerator orderId={displayOrder.id} onOrderUpdated={handleOrderUpdated} /> */}
+
+              <QRCodeGenerator
+  orderId={displayOrder.id}
+  onOrderUpdated={handleOrderUpdated}
+  usedPoints={usedPoints} // Pass usedPoints state
+/>
+
             </div>
           )
           }

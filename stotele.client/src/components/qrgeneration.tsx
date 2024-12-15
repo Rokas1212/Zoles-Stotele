@@ -5,18 +5,20 @@ import "./qrgeneration.css";
 interface QRCodeGeneratorProps {
   orderId: number;
   onOrderUpdated: (updatedOrder: any) => void;
+  usedPoints: boolean; // New prop to determine if points were used
 }
 
 const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
   orderId,
   onOrderUpdated,
+  usedPoints,
 }) => {
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const generateQRCode = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem("token");
         if (!token) {
           console.error("No token found. Please log in first.");
           return;
@@ -43,17 +45,17 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
 
   const handleScanQR = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        return; 
+        return;
       }
-  
-      const user = localStorage.getItem('user');
+
+      const user = localStorage.getItem("user");
       const userId = user ? JSON.parse(user).id : null;
       if (!userId) {
         return;
       }
-  
+
       const response = await axios.get(
         `https://localhost:5210/api/Taskai/ApplyDiscounts`,
         {
@@ -63,23 +65,46 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
           },
         }
       );
-  
+
       onOrderUpdated(response.data.UpdatedOrder);
     } catch (error: any) {
+      console.error("Failed to apply discount:", error);
     }
   };
-  
+
+  // Hide QR Code section if loyalty points are used
+  if (usedPoints) {
+    return (
+      <div className="qr-container">
+        <p className="alert alert-success">
+          Nuolaidos pritaikytos.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="qr-container">
       {qrCodeUrl ? (
-        <div className="qr-display mt-3"
-             style={{ border: "1px solid #ddd", padding: "20px", borderRadius: "10px", backgroundColor: "#f8f9fa" }}>
+        <div
+          className="qr-display mt-3"
+          style={{
+            border: "1px solid #ddd",
+            padding: "20px",
+            borderRadius: "10px",
+            backgroundColor: "#f8f9fa",
+          }}
+        >
           <img
             className="qr-image"
             src={qrCodeUrl}
             alt="Order QR Code"
-            style={{ width: "200px", height: "200px", border: "2px solid #198754", borderRadius: "8px" }}
+            style={{
+              width: "200px",
+              height: "200px",
+              border: "2px solid #198754",
+              borderRadius: "8px",
+            }}
           />
           <p className="mt-2" style={{ fontStyle: "italic" }}>
             Nuskenuokite QR kodą norint pritaikyti nuolaidas.
