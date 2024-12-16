@@ -95,7 +95,7 @@ const RegistracijosLangas = () => {
       // Optionally, redirect after success
       setTimeout(() => {
         window.location.href = "/";
-      }, 3000);
+      }, 250);
     } catch (error: any) {
       const backendMessage =
         error.response?.data?.message || "Nežinoma klaida iš serverio.";
