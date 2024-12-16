@@ -84,10 +84,7 @@ const RegistracijosLangas = () => {
     };
 
     try {
-      await axios.post(
-        "https://localhost:5210/api/Profilis/register",
-        registrationData
-      );
+      await axios.post("/api/Profilis/register", registrationData);
 
       // Show success toast message
       toast.success("Sėkminga registracija!");

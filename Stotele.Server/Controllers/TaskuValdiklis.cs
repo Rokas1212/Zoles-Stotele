@@ -127,49 +127,49 @@ namespace Stotele.Server.Controllers
             return CreatedAtAction(nameof(GetTaskai), new { id = taskai.Id }, taskai);
         }
 
-    // POST: api/Taskai/AddPoints
-    [HttpPost("AddPoints")]
-    public async Task<ActionResult<Taskai>> AddPointsToUser(PridetiTaskusDTO dto)
-    {
-        if (dto == null)
+        // POST: api/Taskai/AddPoints
+        [HttpPost("AddPoints")]
+        public async Task<ActionResult<Taskai>> AddPointsToUser(PridetiTaskusDTO dto)
         {
-            Console.WriteLine("Request body is null.");
-            return BadRequest("Request body is null.");
-        }
-
-        Console.WriteLine($"Received request to add points: NaudotojasId = {dto.NaudotojasId}, Kiekis = {dto.Kiekis}");
-
-        var klientas = await _context.Klientai
-            .Include(k => k.Naudotojas)
-            .FirstOrDefaultAsync(k => k.NaudotojasId == dto.NaudotojasId);
-
-        if (klientas == null)
-        {
-            Console.WriteLine($"No Klientas found for NaudotojasId: {dto.NaudotojasId}");
-            return BadRequest("Invalid NaudotojasId.");
-        }
-
-        try
-        {
-            Taskai taskai = new()
+            if (dto == null)
             {
-                PabaigosData = DateTime.UtcNow.AddMonths(1),
-                Kiekis = dto.Kiekis,
-                KlientasId = klientas.Id,
-            };
+                Console.WriteLine("Request body is null.");
+                return BadRequest("Request body is null.");
+            }
 
-            _context.Taskai.Add(taskai);
-            await _context.SaveChangesAsync();
+            Console.WriteLine($"Received request to add points: NaudotojasId = {dto.NaudotojasId}, Kiekis = {dto.Kiekis}");
 
-            Console.WriteLine($"Successfully added points: {taskai.Kiekis} for KlientasId: {klientas.Id}");
-            return CreatedAtAction(nameof(GetTaskai), new { id = taskai.Id }, taskai);
+            var klientas = await _context.Klientai
+                .Include(k => k.Naudotojas)
+                .FirstOrDefaultAsync(k => k.NaudotojasId == dto.NaudotojasId);
+
+            if (klientas == null)
+            {
+                Console.WriteLine($"No Klientas found for NaudotojasId: {dto.NaudotojasId}");
+                return BadRequest("Invalid NaudotojasId.");
+            }
+
+            try
+            {
+                Taskai taskai = new()
+                {
+                    PabaigosData = DateTime.UtcNow.AddMonths(1),
+                    Kiekis = dto.Kiekis,
+                    KlientasId = klientas.Id,
+                };
+
+                _context.Taskai.Add(taskai);
+                await _context.SaveChangesAsync();
+
+                Console.WriteLine($"Successfully added points: {taskai.Kiekis} for KlientasId: {klientas.Id}");
+                return CreatedAtAction(nameof(GetTaskai), new { id = taskai.Id }, taskai);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error adding points: {ex.Message}");
+                return StatusCode(500, "Internal server error occurred.");
+            }
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error adding points: {ex.Message}");
-            return StatusCode(500, "Internal server error occurred.");
-        }
-    }
 
 
 
@@ -234,7 +234,7 @@ namespace Stotele.Server.Controllers
                 return Unauthorized("User is not authenticated.");
             }
 
-            var qrData = $"https://localhost:5210/api/Taskai/ApplyDiscounts?orderId={request.OrderId}&userId={userId}";
+            var qrData = $"/api/Taskai/ApplyDiscounts?orderId={request.OrderId}&userId={userId}";
 
             var baseUrl = "https://api.qrserver.com/v1/create-qr-code/";
             var size = "200x200";
@@ -249,50 +249,50 @@ namespace Stotele.Server.Controllers
             return Ok(response);
         }
 
-    [HttpGet("ApplyDiscounts")]
-    public IActionResult ApplyDiscounts([FromQuery] int orderId, [FromQuery] string userId)
-    {
-        var user = _context.Naudotojai.FirstOrDefault(n => n.Id == int.Parse(userId));
-        if (user == null)
-            return Unauthorized("User not authenticated.");
-
-        var order = _context.Uzsakymai
-            .Include(o => o.PrekesUzsakymai)
-            .ThenInclude(pu => pu.Preke)
-            .FirstOrDefault(o => o.Id == orderId);
-
-        if (order == null)
-            return NotFound($"Order with ID {orderId} not found.");
-
-        foreach (var orderItem in order.PrekesUzsakymai)
+        [HttpGet("ApplyDiscounts")]
+        public IActionResult ApplyDiscounts([FromQuery] int orderId, [FromQuery] string userId)
         {
-            var basePrice = orderItem.Preke.Kaina; 
-            var adjustedPrice = orderItem.Kaina ?? basePrice; 
+            var user = _context.Naudotojai.FirstOrDefault(n => n.Id == int.Parse(userId));
+            if (user == null)
+                return Unauthorized("User not authenticated.");
 
-            var discount = _context.Nuolaidos
-                .Where(n => n.PrekeId == orderItem.PrekeId && n.PabaigosData > DateTime.UtcNow)
-                .FirstOrDefault();
+            var order = _context.Uzsakymai
+                .Include(o => o.PrekesUzsakymai)
+                .ThenInclude(pu => pu.Preke)
+                .FirstOrDefault(o => o.Id == orderId);
 
-            if (discount != null)
+            if (order == null)
+                return NotFound($"Order with ID {orderId} not found.");
+
+            foreach (var orderItem in order.PrekesUzsakymai)
             {
-                adjustedPrice *= (1 - (double)discount.Procentai / 100);
+                var basePrice = orderItem.Preke.Kaina;
+                var adjustedPrice = orderItem.Kaina ?? basePrice;
+
+                var discount = _context.Nuolaidos
+                    .Where(n => n.PrekeId == orderItem.PrekeId && n.PabaigosData > DateTime.UtcNow)
+                    .FirstOrDefault();
+
+                if (discount != null)
+                {
+                    adjustedPrice *= (1 - (double)discount.Procentai / 100);
+                }
+
+                orderItem.Kaina = Math.Max(0, adjustedPrice);
+                _context.Entry(orderItem).State = EntityState.Modified;
             }
 
-            orderItem.Kaina = Math.Max(0, adjustedPrice);
-            _context.Entry(orderItem).State = EntityState.Modified;
+            order.Suma = order.PrekesUzsakymai.Sum(item => (item.Kaina ?? item.Preke.Kaina) * item.Kiekis);
+
+            _context.Entry(order).State = EntityState.Modified;
+            _context.SaveChanges();
+
+            return Ok(new
+            {
+                message = "Discounts applied successfully.",
+                updatedOrder = order
+            });
         }
-
-        order.Suma = order.PrekesUzsakymai.Sum(item => (item.Kaina ?? item.Preke.Kaina) * item.Kiekis);
-
-        _context.Entry(order).State = EntityState.Modified;
-        _context.SaveChanges();
-
-        return Ok(new
-        {
-            message = "Discounts applied successfully.",
-            updatedOrder = order
-        });
-    }
 
         private List<CartItem> GetCartFromSession()
         {
@@ -307,7 +307,7 @@ namespace Stotele.Server.Controllers
         }
 
         // POST: api/Taskai/UsePoints
-       [HttpPost("UsePoints")]
+        [HttpPost("UsePoints")]
         public async Task<IActionResult> UsePoints([FromBody] NaudotiTaskusDTO dto)
         {
             var user = await _context.Klientai

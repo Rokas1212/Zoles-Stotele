@@ -25,7 +25,7 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
         }
 
         const response = await axios.post(
-          "https://localhost:5210/api/Taskai/GenerateQR",
+          "/api/Taskai/GenerateQR",
           { orderId },
           {
             headers: {
@@ -56,15 +56,12 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
         return;
       }
 
-      const response = await axios.get(
-        `https://localhost:5210/api/Taskai/ApplyDiscounts`,
-        {
-          params: { orderId, userId },
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axios.get(`/api/Taskai/ApplyDiscounts`, {
+        params: { orderId, userId },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       localStorage.setItem(`discountApplied_${orderId}`, "true");
 
@@ -78,9 +75,7 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
   if (usedPoints) {
     return (
       <div className="qr-container">
-        <p className="alert alert-success">
-          Nuolaidos pritaikytos.
-        </p>
+        <p className="alert alert-success">Nuolaidos pritaikytos.</p>
       </div>
     );
   }
@@ -111,10 +106,7 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
           <p className="mt-2" style={{ fontStyle: "italic" }}>
             Nuskenuokite QR kodą norint pritaikyti nuolaidas.
           </p>
-          <button
-            className="qr-btn btn btn-success"
-            onClick={handleScanQR}
-          >
+          <button className="qr-btn btn btn-success" onClick={handleScanQR}>
             Simuliuoti QR nuskaitymą
           </button>
         </div>

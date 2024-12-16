@@ -6,6 +6,7 @@ using Stripe;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace Stotele.Server
 {
@@ -13,53 +14,55 @@ namespace Stotele.Server
     {
         public static void Main(string[] args)
         {
+            // Load environment variables from .env if present
             Env.Load();
-
 
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-
             builder.Services.AddControllers();
-            // For session state
+
+            builder.Services.AddDataProtection()
+            .PersistKeysToFileSystem(new DirectoryInfo("/keys"))
+            .SetApplicationName("ZolesStotele");
+
+            // Session state configuration
             builder.Services.AddDistributedMemoryCache();
             builder.Services.AddSession(options =>
             {
-                options.Cookie.HttpOnly = true; // Keeps the cookie secure from client-side JavaScript
-                options.Cookie.IsEssential = true; // Required for GDPR compliance
-                options.Cookie.SameSite = SameSiteMode.None; // Allows cross-origin cookies
-                options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Ensures cookies are sent only over HTTPS
-                options.IdleTimeout = TimeSpan.FromMinutes(30); // Set session timeout
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+                options.Cookie.SameSite = SameSiteMode.Lax; // or Strict if no cross-site needed
+                options.Cookie.SecurePolicy = CookieSecurePolicy.None; // allow HTTP
+                options.IdleTimeout = TimeSpan.FromMinutes(30);
             });
 
 
-            builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("AllowReactApp",
-                    builder => builder.WithOrigins("https://localhost:5173", "https://localhost:5210")
-                        .AllowAnyMethod()
-                        .AllowAnyHeader()
-                        .AllowCredentials());
-            });
 
+            // If your frontend and backend are served from the same domain in production,
+            // you can remove or simplify CORS entirely:
+            // builder.Services.AddCors(options =>
+            // {
+            //     options.AddPolicy("AllowAll",
+            //         policy => policy
+            //             .AllowAnyOrigin()
+            //             .AllowAnyMethod()
+            //             .AllowAnyHeader());
+            // });
 
-            // Read the environment variable
             var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
             if (string.IsNullOrEmpty(dbPassword))
             {
                 throw new InvalidOperationException("DB_PASSWORD environment variable is not set.");
             }
 
-            // Build the connection string dynamically
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
                 .Replace("${DB_PASSWORD}", dbPassword);
 
-            // Register ApplicationDbContext
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseNpgsql(connectionString).EnableSensitiveDataLogging());
+                options.UseNpgsql(connectionString));
 
-
-            // Configure Stripe
+            // Stripe configuration
             var stripeSecretKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY");
             if (string.IsNullOrEmpty(stripeSecretKey))
             {
@@ -68,11 +71,7 @@ namespace Stotele.Server
 
             builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
             StripeConfiguration.ApiKey = stripeSecretKey;
-
-
-            // Replace placeholder in configuration
             builder.Configuration["Stripe:SecretKey"] = stripeSecretKey;
-
 
             var stripeWebhookSecret = Environment.GetEnvironmentVariable("STRIPE_WEBHOOK_SECRET");
             if (string.IsNullOrEmpty(stripeWebhookSecret))
@@ -82,15 +81,16 @@ namespace Stotele.Server
 
             builder.Configuration["Stripe:WebhookSecret"] = stripeWebhookSecret;
 
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            // Swagger (optional)
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddControllers()
-            .AddJsonOptions(options =>
-            {
-                options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
-            });
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+                });
+
             // JWT Authentication
             var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET");
             if (string.IsNullOrEmpty(jwtSecret) || jwtSecret.Length < 16)
@@ -118,14 +118,16 @@ namespace Stotele.Server
 
             var app = builder.Build();
 
-            // Test the database connection
+            // Test the database connection (optional)
             using (var scope = app.Services.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 try
                 {
-                    dbContext.Database.CanConnect();
-                    Console.WriteLine("Database connection successful.");
+                    if (dbContext.Database.CanConnect())
+                        Console.WriteLine("Database connection successful.");
+                    else
+                        Console.WriteLine("Database connection could not be established.");
                 }
                 catch (Exception ex)
                 {
@@ -136,24 +138,25 @@ namespace Stotele.Server
             app.UseDefaultFiles();
             app.UseStaticFiles();
 
-            if (app.Environment.IsDevelopment())
+            app.UseSwagger();
+            app.UseSwaggerUI(options =>
             {
-                app.UseSwagger();
-                app.UseSwaggerUI(options =>
-                {
-                    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Stotele API V1");
-                    options.RoutePrefix = "swagger"; // Serve Swagger UI at /swagger/
-                });
-            }
-            app.UseHttpsRedirection();
-            app.UseCors("AllowReactApp");
+                options.SwaggerEndpoint("/swagger/v1/swagger.json", "Stotele API V1");
+                options.RoutePrefix = "swagger";
+            });
+
+            // Comment out UseHttpsRedirection if not terminating TLS at the container level
+            // app.UseHttpsRedirection();
+
+            // If you removed CORS, you don't need app.UseCors("AllowAll")
+            // If needed (different domain scenario), configure cors with specific origin and allow credentials.
+            // app.UseCors("AllowAll");
+
             app.UseSession();
             app.UseAuthentication();
             app.UseAuthorization();
 
-
             app.MapControllers();
-
             app.MapFallbackToFile("/index.html");
 
             app.Run();

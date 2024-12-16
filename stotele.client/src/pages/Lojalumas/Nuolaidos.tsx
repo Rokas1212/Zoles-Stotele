@@ -19,7 +19,7 @@ const Nuolaidos: React.FC = () => {
   useEffect(() => {
     const fetchDiscounts = async () => {
       try {
-        const response = await fetch("https://localhost:5210/api/Nuolaida");
+        const response = await fetch("/api/Nuolaida");
         if (!response.ok) {
           throw new Error(
             `Failed to fetch discounts: ${response.status} - ${response.statusText}`
@@ -59,16 +59,13 @@ const Nuolaidos: React.FC = () => {
         </thead>
         <tbody>
           {discounts.map((discount) => {
-            const isExpired =
-              new Date(discount.galiojimoPabaiga) < new Date(); 
+            const isExpired = new Date(discount.galiojimoPabaiga) < new Date();
 
             return (
               <tr key={discount.id}>
                 <td>{discount.id}</td>
                 <td>{discount.procentai}%</td>
-                <td
-                  className={isExpired ? "expired-date" : ""}
-                >
+                <td className={isExpired ? "expired-date" : ""}>
                   {new Date(discount.galiojimoPabaiga).toLocaleDateString()}
                 </td>
                 <td>{discount.prekesPavadinimas || "N/A"}</td>
@@ -81,7 +78,6 @@ const Nuolaidos: React.FC = () => {
             );
           })}
         </tbody>
-
       </table>
 
       {user?.administratorius && (

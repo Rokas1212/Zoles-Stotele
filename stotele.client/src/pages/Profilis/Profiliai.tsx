@@ -17,7 +17,7 @@ const Profiliai: React.FC = () => {
   useEffect(() => {
     const fetchProfiles = async () => {
       try {
-        const response = await fetch("https://localhost:5210/api/Profilis/klientai");
+        const response = await fetch("/api/Profilis/klientai");
         if (!response.ok) {
           throw new Error("Klaida gaunant klientų profilius");
         }
@@ -66,7 +66,10 @@ const Profiliai: React.FC = () => {
                 <td>{profile.pavarde}</td>
                 <td>{profile.elektroninisPastas}</td>
                 <td>
-                  <a href={`/profilis?id=${profile.id}`} className="view-button">
+                  <a
+                    href={`/profilis?id=${profile.id}`}
+                    className="view-button"
+                  >
                     Peržiūrėti
                   </a>
                 </td>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "./LoyaltyPoints.css";
+import "./loyaltypoints.css";
 
 interface LoyaltyPointsProps {
   orderId: number;
@@ -33,15 +33,12 @@ const LoyaltyPoints: React.FC<LoyaltyPointsProps> = ({
           return;
         }
 
-        const response = await axios.get(
-          `https://localhost:5210/api/Taskai/GetUsedPointsForOrder`,
-          {
-            params: { userId, orderId },
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
+        const response = await axios.get(`/api/Taskai/GetUsedPointsForOrder`, {
+          params: { userId, orderId },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
 
         const pointsUsed = response.data.usedPoints;
         if (pointsUsed > 0) {
@@ -90,7 +87,7 @@ const LoyaltyPoints: React.FC<LoyaltyPointsProps> = ({
       }
 
       const response = await axios.post(
-        `https://localhost:5210/api/Taskai/UsePoints`,
+        `/api/Taskai/UsePoints`,
         {
           userId,
           orderId,
@@ -137,7 +134,8 @@ const LoyaltyPoints: React.FC<LoyaltyPointsProps> = ({
     <div className="loyalty-points-container">
       <h4>Lojalumo taškai</h4>
       <p className="max-points">
-        Maksimalus taškų kiekis: {maxPointsAllowed} taškų (€{(maxPointsAllowed / 10).toFixed(2)})
+        Maksimalus taškų kiekis: {maxPointsAllowed} taškų (€
+        {(maxPointsAllowed / 10).toFixed(2)})
       </p>
       <p>Naudojama suma: €{(Number(pointsToUse) / 10 || 0).toFixed(2)}</p>
       <div className="input-group">

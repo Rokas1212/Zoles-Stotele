@@ -35,7 +35,7 @@ const MegstamosKategorijos: React.FC = () => {
     setLoading(true);
     try {
       const response = await fetch(
-        `https://localhost:5210/api/Rekomendacija/megstamos-kategorijos/${userId}`
+        `/api/Rekomendacija/megstamos-kategorijos/${userId}`
       );
       if (!response.ok) throw new Error("Sąrašas tuščias.");
 
@@ -59,7 +59,7 @@ const MegstamosKategorijos: React.FC = () => {
     setDeleting(categoryId);
     try {
       const response = await fetch(
-        `https://localhost:5210/api/Rekomendacija/megstamos-kategorijos/istrinti/${userId}/${categoryId}`,
+        `/api/Rekomendacija/megstamos-kategorijos/istrinti/${userId}/${categoryId}`,
         { method: "DELETE" }
       );
 

@@ -25,7 +25,6 @@ const Uzsakymas = () => {
   const [discountApplied, setDiscountApplied] = useState<boolean>(
     localStorage.getItem(`discountApplied_${orderId}`) === "true"
   );
-  
 
   const fetchUserPoints = async () => {
     try {
@@ -37,14 +36,11 @@ const Uzsakymas = () => {
         return;
       }
 
-      const response = await axios.get(
-        `https://localhost:5210/api/Taskai/Naudotojas/${userId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const response = await axios.get(`/api/Taskai/Naudotojas/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
 
       const totalPoints = response.data.reduce(
         (sum: number, taskai: any) => sum + taskai.kiekis,
@@ -59,15 +55,12 @@ const Uzsakymas = () => {
   // Function to fetch order details
   const fetchOrder = async () => {
     try {
-      const response = await fetch(
-        `https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`,
-        {
-          credentials: "include",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const response = await fetch(`/api/uzsakymu/uzsakymas/${orderId}`, {
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
       if (!response.ok) {
         throw new Error("Nepavyko gauti užsakymo informacijos.");
       }
@@ -87,15 +80,12 @@ const Uzsakymas = () => {
   // Function to check if order is paid
   const checkIfPaid = async () => {
     try {
-      const response = await axios.get(
-        `https://localhost:5210/api/apmokejimu/is-paid`,
-        {
-          params: { orderId },
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const response = await axios.get(`/api/apmokejimu/is-paid`, {
+        params: { orderId },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
       setIsPaid(response.data);
       console.log("Is paid:", response.data);
     } catch (error) {
@@ -106,15 +96,12 @@ const Uzsakymas = () => {
   // Function to check if order is cancelled
   const checkIfCancelled = async () => {
     try {
-      const response = await axios.get(
-        `https://localhost:5210/api/uzsakymu/is-cancelled`,
-        {
-          params: { orderId },
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const response = await axios.get(`/api/uzsakymu/is-cancelled`, {
+        params: { orderId },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
       setIsCancelled(response.data);
     } catch (error) {
       console.error("Klaida:", error);
@@ -124,15 +111,12 @@ const Uzsakymas = () => {
   // Function to check if order is confirmed
   const checkIfConfirmed = async () => {
     try {
-      const response = await axios.get(
-        `https://localhost:5210/api/uzsakymu/is-confirmed`,
-        {
-          params: { orderId },
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const response = await axios.get(`/api/uzsakymu/is-confirmed`, {
+        params: { orderId },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
       setIsConfirmed(response.data);
       console.log("Is confirmed:", response.data);
     } catch (error) {
@@ -178,7 +162,7 @@ const Uzsakymas = () => {
     // Delete the created order only if not confirmed
     if (!isConfirmed) {
       axios
-        .delete(`https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`, {
+        .delete(`/api/uzsakymu/uzsakymas/${orderId}`, {
           withCredentials: true,
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -200,30 +184,29 @@ const Uzsakymas = () => {
         return;
       }
       //Get order info
-      const response = await axios.get(
-        `https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const response = await axios.get(`/api/uzsakymu/uzsakymas/${orderId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
 
       //Get order data
       const orderData = response.data;
-      
+
       //If order date is more than 24 hours, don't allow to cancel
       const orderDate = new Date(orderData.data);
       const currentDate = new Date();
       const diffInMs = currentDate.getTime() - orderDate.getTime();
       const diffInHours = diffInMs / (1000 * 60 * 60);
       if (diffInHours > 24) {
-        alert('Užsakymą galima atšaukti tik per 24 valandas nuo užsakymo datos.');
+        alert(
+          "Užsakymą galima atšaukti tik per 24 valandas nuo užsakymo datos."
+        );
         return;
       }
 
       //Cancel order
-      await axios.put(`https://localhost:5210/api/uzsakymu/cancel-order`, null, {
+      await axios.put(`/api/uzsakymu/cancel-order`, null, {
         params: { orderId },
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -231,7 +214,7 @@ const Uzsakymas = () => {
       });
       navigate("/uzsakymai");
     } catch (error) {
-      console.error('Klaida:', error);
+      console.error("Klaida:", error);
     }
   };
 
@@ -257,20 +240,16 @@ const Uzsakymas = () => {
 
   const handleConfirmOrder = async () => {
     try {
-      const response = await axios.put(
-        `https://localhost:5210/api/uzsakymu/confirm-order/`,
-        null,
-        {
-          params: { orderId },
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const response = await axios.put(`/api/uzsakymu/confirm-order/`, null, {
+        params: { orderId },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
       console.log("Order confirmed:", response.data);
       setIsConfirmed(true);
 
-      await fetch("https://localhost:5210/api/krepselio/clear", {
+      await fetch("/api/krepselio/clear", {
         method: "POST",
         credentials: "include",
       });
@@ -286,7 +265,8 @@ const Uzsakymas = () => {
       <h1>Užsakymo ID: {displayOrder.id}</h1>
       <p>Data: {new Date(displayOrder.data).toLocaleDateString()}</p>
       <h3 className="mt-3">
-        Bendra suma: <span className="text-success">€{displayOrder.suma.toFixed(2)}</span>
+        Bendra suma:{" "}
+        <span className="text-success">€{displayOrder.suma.toFixed(2)}</span>
       </h3>
       {!isCancelled && !isPaid && (
         <>
@@ -341,7 +321,9 @@ const Uzsakymas = () => {
                 <td>€{originalPrice.toFixed(2)}</td>
                 <td>
                   {discountAmount > 0 ? (
-                    <span className="text-success">€{discountedPrice.toFixed(2)}</span>
+                    <span className="text-success">
+                      €{discountedPrice.toFixed(2)}
+                    </span>
                   ) : (
                     <span>€{discountedPrice.toFixed(2)}</span>
                   )}
@@ -350,7 +332,9 @@ const Uzsakymas = () => {
                 <td>€{totalLine.toFixed(2)}</td>
                 <td>
                   {discountAmount > 0 ? (
-                    <span className="badge bg-success">-{discountPercentage}%</span>
+                    <span className="badge bg-success">
+                      -{discountPercentage}%
+                    </span>
                   ) : (
                     <span className="badge bg-secondary">Nėra nuolaidos</span>
                   )}
@@ -389,17 +373,17 @@ const Uzsakymas = () => {
                 Apmokėti
               </button>
             ) : (
-              <button className="custom-btn confirm-btn" onClick={handleConfirmOrder}>
+              <button
+                className="custom-btn confirm-btn"
+                onClick={handleConfirmOrder}
+              >
                 Patvirtinti užsakymą
               </button>
             )}
           </div>
         </>
       ) : !isCancelled ? (
-        <button 
-          onClick={handleCancelOrder}
-          className="btn btn-danger mt-3"
-        >
+        <button onClick={handleCancelOrder} className="btn btn-danger mt-3">
           Atšaukti užsakymą
         </button>
       ) : (

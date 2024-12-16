@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import "./RedaguotiPreke.css";
+import "./redaguotiPreke.css";
 
 interface Kategorija {
   id: number;
@@ -35,7 +35,7 @@ const RedaguotiPreke = () => {
       try {
         setLoading(true);
 
-        const response = await fetch(`https://localhost:5210/api/Preke/${id}`);
+        const response = await fetch(`/api/Preke/${id}`);
         const data = await response.json();
 
         if (response.ok) {
@@ -65,9 +65,7 @@ const RedaguotiPreke = () => {
 
     const fetchCategories = async () => {
       try {
-        const response = await fetch(
-          "https://localhost:5210/api/Kategorija/kategorijos"
-        );
+        const response = await fetch("/api/Kategorija/kategorijos");
         const data = await response.json();
         setAvailableCategories(data);
       } catch (err) {
@@ -114,7 +112,7 @@ const RedaguotiPreke = () => {
       })),
     };
     try {
-      const response = await fetch(`https://localhost:5210/api/Preke/${id}`, {
+      const response = await fetch(`/api/Preke/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

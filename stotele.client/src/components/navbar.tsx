@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Navbar, Nav, NavDropdown } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import "./Navbar.css";
+import "./navbar.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import useAuth from "../hooks/useAuth";
 import { ToastContainer, toast } from "react-toastify";
@@ -19,7 +19,7 @@ const CustomNavbar: React.FC = () => {
       if (user?.id) {
         try {
           const response = await fetch(
-            `https://localhost:5210/api/Profilis/is-vadybininkas/${user.id}`
+            `/api/Profilis/is-vadybininkas/${user.id}`
           );
           setIsVadybininkas(response.ok); // Sets true if user is a vadybininkas
         } catch (error) {

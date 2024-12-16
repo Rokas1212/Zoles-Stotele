@@ -23,15 +23,12 @@ const Apmokejimas = () => {
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const response = await fetch(
-          `https://localhost:5210/api/uzsakymu/uzsakymas/${orderId}`,
-          {
-            credentials: "include",
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
+        const response = await fetch(`/api/uzsakymu/uzsakymas/${orderId}`, {
+          credentials: "include",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
         if (!response.ok) {
           throw new Error("Nepavyko gauti užsakymo informacijos.");
         }
@@ -47,12 +44,9 @@ const Apmokejimas = () => {
 
     const checkIfPaid = async () => {
       try {
-        const response = await axios.get(
-          `https://localhost:5210/api/apmokejimu/is-paid`,
-          {
-            params: { orderId },
-          }
-        );
+        const response = await axios.get(`/api/apmokejimu/is-paid`, {
+          params: { orderId },
+        });
         setIsPaid(response.data);
         console.log("Is paid:", response.data);
       } catch (error: any) {
@@ -108,7 +102,7 @@ const Apmokejimas = () => {
 
     try {
       const response = await axios.post(
-        `https://localhost:5210/api/apmokejimu/create-checkout-session/`,
+        `/api/apmokejimu/create-checkout-session/`,
         null,
         {
           params: { orderId, PvmMoketojoKodas },
@@ -135,7 +129,7 @@ const Apmokejimas = () => {
   const handleCashPayment = async () => {
     try {
       const response = await axios.post(
-        `https://localhost:5210/api/apmokejimu/create-checkout-cash`,
+        `/api/apmokejimu/create-checkout-cash`,
         null,
         {
           params: { orderId, PvmMoketojoKodas },
@@ -154,14 +148,10 @@ const Apmokejimas = () => {
     }
   };
   const handleBankTransfer = () => {
-    axios.post(
-      `https://localhost:5210/api/apmokejimu/create-checkout-transfer`,
-      null,
-      {
-        params: { orderId, PvmMoketojoKodas },
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      }
-    );
+    axios.post(`/api/apmokejimu/create-checkout-transfer`, null, {
+      params: { orderId, PvmMoketojoKodas },
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    });
 
     alert("Apmokėjimo instrukcijos išsiųstos į El. Paštą.");
     navigate(`/uzsakymas/${orderId}`);

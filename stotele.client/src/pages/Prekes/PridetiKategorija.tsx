@@ -28,7 +28,7 @@ const PridetiKategorija = () => {
 
     try {
       const response = await fetch(
-        `https://localhost:5210/api/Kategorija/kategorija/prideti/${userId}`,
+        `/api/Kategorija/kategorija/prideti/${userId}`,
         {
           method: "POST",
           headers: {

@@ -40,15 +40,12 @@ const PridetiPreke = () => {
     console.log(userId);
     const fetchStores = async () => {
       try {
-        const response = await axios.get(
-          "https://localhost:5210/api/Preke/parduotuvesList",
-          {
-            withCredentials: true,
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
+        const response = await axios.get("/api/Preke/parduotuvesList", {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
         setStores(response.data);
       } catch (error) {
         console.error("Klaida gaunant parduotuves:", error);
@@ -61,9 +58,7 @@ const PridetiPreke = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch(
-        "https://localhost:5210/api/Kategorija/kategorijos"
-      );
+      const response = await fetch("/api/Kategorija/kategorijos");
       const data = await response.json();
       const categories = data.map(
         (category: { id: number; pavadinimas: string }) => ({
@@ -125,7 +120,7 @@ const PridetiPreke = () => {
     console.log("Pridedama prekė:", newPreke);
 
     try {
-      await axios.post("https://localhost:5210/api/Preke", newPreke, {
+      await axios.post("/api/Preke", newPreke, {
         withCredentials: true,
         headers: {
           "Content-Type": "application/json",

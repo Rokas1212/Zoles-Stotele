@@ -8,7 +8,7 @@ import MapComponent from "../../components/mapComponent";
 import { FaEdit, FaShoppingCart, FaTrash } from "react-icons/fa";
 import { addToCart } from "../../apiServices/cart";
 import { toast } from "react-toastify";
-import defaultImage from "/../default_no_photo.jpg";
+import defaultImage from "/default_no_photo.jpg";
 
 interface Preke {
   id: number;
@@ -52,9 +52,7 @@ const Preke: React.FC = () => {
       }
 
       try {
-        const response = await axios.get(
-          `https://localhost:5210/api/Preke/${id}`
-        );
+        const response = await axios.get(`/api/Preke/${id}`);
         console.log(response.data);
         setProduct(response.data.preke);
         setCategories(response.data.kategorijos);
@@ -71,7 +69,7 @@ const Preke: React.FC = () => {
 
       try {
         const response = await axios.get<string[]>(
-          `https://localhost:5210/api/Preke/${id}/addresses`
+          `/api/Preke/${id}/addresses`
         );
         setAddresses(response.data);
       } catch (err: any) {
@@ -139,7 +137,7 @@ const Preke: React.FC = () => {
         "Ar tikrai norite ištrinti prekę?"
       );
       if (!getConfirmation) return;
-      const response = await axios.delete(`https://localhost:5210/api/Preke/`, {
+      const response = await axios.delete(`/api/Preke/`, {
         params: { id },
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -162,16 +160,12 @@ const Preke: React.FC = () => {
         PrekeId: product.id,
         KlientasId: user?.id,
       };
-      await axios.put(
-        `https://localhost:5210/api/Preke/perziura`,
-        prekesPerziuraDTO,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      await axios.put(`/api/Preke/perziura`, prekesPerziuraDTO, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
     } catch (error) {
       console.error("Klaida: ", error);
     }

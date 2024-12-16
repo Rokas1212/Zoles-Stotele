@@ -19,7 +19,7 @@ const RedaguotiProfili = () => {
 
   useEffect(() => {
     axios
-      .get(`https://localhost:5210/api/Profilis/${userId}`)
+      .get(`/api/Profilis/${userId}`)
       .then((response) => {
         const data = response.data;
         setName(data.vardas || "");
@@ -51,17 +51,13 @@ const RedaguotiProfili = () => {
     if (Object.keys(klientas).length > 0) payload.klientas = klientas;
 
     try {
-      await axios.put(
-        `https://localhost:5210/api/Profilis/${userId}`,
-        payload,
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      await axios.put(`/api/Profilis/${userId}`, payload, {
+        headers: { "Content-Type": "application/json" },
+      });
 
       toast.success("Profilis sėkmingai atnaujintas!");
       setTimeout(() => {
-        window.location.href = `https://localhost:5173/profilis?id=${userId}`;
+        window.location.href = `/profilis?id=${userId}`;
       }, 2000);
     } catch (error) {
       setError("Nepavyko atnaujinti profilio. Bandykite dar kartą.");

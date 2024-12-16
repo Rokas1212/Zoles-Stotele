@@ -48,37 +48,43 @@ const Profilis: React.FC = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
-  
+
     if (!id) {
       setError("Nenurodytas naudotojo ID.");
       setLoading(false);
       return;
     }
-  
+
     setUrlId(Number(id));
-  
+
     const fetchData = async () => {
       try {
         // Fetch Profile
-        const profileRes = await fetch(`https://localhost:5210/api/Profilis/${id}`);
-        if (!profileRes.ok) throw new Error("Nepavyko gauti naudotojo profilio duomenų.");
+        const profileRes = await fetch(`/api/Profilis/${id}`);
+        if (!profileRes.ok)
+          throw new Error("Nepavyko gauti naudotojo profilio duomenų.");
         const profileData: Profile = await profileRes.json();
         setProfile(profileData);
-  
+
         // Fetch Taskai
-        const taskaiRes = await fetch(`https://localhost:5210/api/Taskai/Naudotojas/${profileData.id}`);
+        const taskaiRes = await fetch(
+          `/api/Taskai/Naudotojas/${profileData.id}`
+        );
         if (!taskaiRes.ok) throw new Error("Nepavyko gauti naudotojo taškų.");
         const taskaiData: Taskai[] = await taskaiRes.json();
         const totalTaskai = taskaiData.reduce((sum, t) => sum + t.kiekis, 0);
         setTaskai(totalTaskai);
-  
+
         // Fetch Vadybininkas status from DB
-        const vadybininkasRes = await fetch(`https://localhost:5210/api/Profilis/is-vadybininkas/${id}`);
+        const vadybininkasRes = await fetch(
+          `/api/Profilis/is-vadybininkas/${id}`
+        );
         setIsVadybininkas(vadybininkasRes.ok);
-  
+
         // Fetch Parduotuve list
-        const parduotuveRes = await fetch(`https://localhost:5210/api/Profilis/all-parduotuves`);
-        if (!parduotuveRes.ok) throw new Error("Nepavyko gauti parduotuvių sąrašo.");
+        const parduotuveRes = await fetch(`/api/Profilis/all-parduotuves`);
+        if (!parduotuveRes.ok)
+          throw new Error("Nepavyko gauti parduotuvių sąrašo.");
         const parduotuves: Parduotuve[] = await parduotuveRes.json();
         setParduotuveList(parduotuves);
       } catch (e: any) {
@@ -87,17 +93,15 @@ const Profilis: React.FC = () => {
         setLoading(false);
       }
     };
-  
+
     fetchData();
   }, []);
-  
 
   const handleAddPoints = async () => {
     if (!profile) {
       setError("Profilio duomenys nerasti.");
       return;
     }
-
 
     const points = parseInt(addPoints, 10);
 
@@ -107,7 +111,9 @@ const Profilis: React.FC = () => {
     }
 
     if (points > 1000) {
-      setValidationError("Vienu metu galite pridėti ne daugiau kaip 1000 taškų.");
+      setValidationError(
+        "Vienu metu galite pridėti ne daugiau kaip 1000 taškų."
+      );
       return;
     }
 
@@ -117,7 +123,7 @@ const Profilis: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`https://localhost:5210/api/Taskai/AddPoints`, {
+      const response = await fetch(`/api/Taskai/AddPoints`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -142,23 +148,28 @@ const Profilis: React.FC = () => {
       setError("Profilio duomenys nerasti.");
       return;
     }
-  
-    if (!window.confirm("Ar tikrai norite ištrinti šį naudotoją? Šis veiksmas yra negrįžtamas.")) {
+
+    if (
+      !window.confirm(
+        "Ar tikrai norite ištrinti šį naudotoją? Šis veiksmas yra negrįžtamas."
+      )
+    ) {
       return;
     }
-  
+
     try {
       const token = localStorage.getItem("jwt"); // Assuming token is stored in localStorage
-  
-      const response = await fetch(`https://localhost:5210/api/Profilis/delete/${profile.id}`, {
+
+      const response = await fetch(`/api/Profilis/delete/${profile.id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`, // Include the JWT token
         },
       });
-  
-      if (!response.ok) throw new Error("Nepavyko ištrinti naudotojo paskyros.");
-  
+
+      if (!response.ok)
+        throw new Error("Nepavyko ištrinti naudotojo paskyros.");
+
       toast.success("Naudotojo paskyra sėkmingai ištrinta.");
       setProfile(null);
     } catch (e: any) {
@@ -166,8 +177,6 @@ const Profilis: React.FC = () => {
       toast.error("Įvyko klaida bandant ištrinti paskyrą.");
     }
   };
-  
-
 
   const handleMakeVadybininkas = async () => {
     if (!selectedParduotuve || !skyrius) {
@@ -176,7 +185,7 @@ const Profilis: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`https://localhost:5210/api/Profilis/add-vadybininkas`, {
+      const response = await fetch(`/api/Profilis/add-vadybininkas`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -202,43 +211,62 @@ const Profilis: React.FC = () => {
       <h1 className="profilis-title">Profilis</h1>
       {profile && (
         <div className="profilis-info">
-          {isVadybininkas &&  (
-        <p className="vadybininkas-status"><strong>Vadybininkas</strong></p>
+          {isVadybininkas && (
+            <p className="vadybininkas-status">
+              <strong>Vadybininkas</strong>
+            </p>
           )}
           <h2>
             {profile.vardas} {profile.pavarde}
           </h2>
-          <p><strong>El. paštas:</strong> {profile.elektroninisPastas}</p>
-          <p><strong>Lytis:</strong> {profile.lytis || "Nenurodyta"}</p>
+          <p>
+            <strong>El. paštas:</strong> {profile.elektroninisPastas}
+          </p>
+          <p>
+            <strong>Lytis:</strong> {profile.lytis || "Nenurodyta"}
+          </p>
           {profile.klientas ? (
             <>
-              <p><strong>Miestas:</strong> {profile.klientas.miestas}</p>
-              <p><strong>Adresas:</strong> {profile.klientas.adresas}</p>
-              <p><strong>Pašto kodas:</strong> {profile.klientas.pastoKodas}</p>
-              <p><strong>Gimimo data:</strong> {new Date(profile.klientas.gimimoData).toLocaleDateString()}</p>
+              <p>
+                <strong>Miestas:</strong> {profile.klientas.miestas}
+              </p>
+              <p>
+                <strong>Adresas:</strong> {profile.klientas.adresas}
+              </p>
+              <p>
+                <strong>Pašto kodas:</strong> {profile.klientas.pastoKodas}
+              </p>
+              <p>
+                <strong>Gimimo data:</strong>{" "}
+                {new Date(profile.klientas.gimimoData).toLocaleDateString()}
+              </p>
             </>
           ) : (
-            <p><em>Kliento duomenų nėra.</em></p>
+            <p>
+              <em>Kliento duomenų nėra.</em>
+            </p>
           )}
-          <p><strong>Turimi taškai:</strong> {taskai}</p>
+          <p>
+            <strong>Turimi taškai:</strong> {taskai}
+          </p>
         </div>
       )}
-      
-      { user?.id === profile?.id && (
-      <ul className="profilis-menu">
-        <li>
-          <a href="/uzsakymai">Užsakymai</a>
-        </li>
-        <li>
-          <a href="/blokuotos-rekomendacijos">Blokuotos Rekomendacijos</a>
-        </li>
-        <li>
-          <a href="/megstamos-kategorijos">Mėgstamos kategorijos</a>
-        </li>
-        <li>
-          <a href="/redaguoti-profili">Redaguoti profilį</a>
-        </li>
-      </ul>
+
+      {user?.id === profile?.id && (
+        <ul className="profilis-menu">
+          <li>
+            <a href="/uzsakymai">Užsakymai</a>
+          </li>
+          <li>
+            <a href="/blokuotos-rekomendacijos">Blokuotos Rekomendacijos</a>
+          </li>
+          <li>
+            <a href="/megstamos-kategorijos">Mėgstamos kategorijos</a>
+          </li>
+          <li>
+            <a href="/redaguoti-profili">Redaguoti profilį</a>
+          </li>
+        </ul>
       )}
       {user?.administratorius && (
         <>
@@ -251,53 +279,62 @@ const Profilis: React.FC = () => {
               className="form-control mb-3"
               placeholder="Įveskite taškų kiekį (iki 1000)"
             />
-            {validationError && <div className="validation-error">{validationError}</div>}
+            {validationError && (
+              <div className="validation-error">{validationError}</div>
+            )}
             <button className="add-points-button" onClick={handleAddPoints}>
               Pridėti taškų
             </button>
           </div>
-          {!isVadybininkas && parduotuveList.length > 0 &&  user?.id !== profile?.id && (
-            <div className="add-vadybininkas-section mt-4">
-              <h3>Pridėti vadybininko informaciją</h3>
-              <input
-                type="text"
-                placeholder="Skyrius"
-                value={skyrius}
-                onChange={(e) => setSkyrius(e.target.value)}
-                className="form-control mb-2"
-              />
-              <select
-                value={selectedParduotuve}
-                onChange={(e) => setSelectedParduotuve(e.target.value)}
-                className="form-control mb-2"
-              >
-                <option value="">Pasirinkite parduotuvę</option>
-                {parduotuveList.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.adresas}
-                  </option>
-                ))}
-              </select>
-              <button className="add-points-button" onClick={handleMakeVadybininkas}>
-                Patvirtinti vadybininką
-              </button>
-            </div>
-          )}
+          {!isVadybininkas &&
+            parduotuveList.length > 0 &&
+            user?.id !== profile?.id && (
+              <div className="add-vadybininkas-section mt-4">
+                <h3>Pridėti vadybininko informaciją</h3>
+                <input
+                  type="text"
+                  placeholder="Skyrius"
+                  value={skyrius}
+                  onChange={(e) => setSkyrius(e.target.value)}
+                  className="form-control mb-2"
+                />
+                <select
+                  value={selectedParduotuve}
+                  onChange={(e) => setSelectedParduotuve(e.target.value)}
+                  className="form-control mb-2"
+                >
+                  <option value="">Pasirinkite parduotuvę</option>
+                  {parduotuveList.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.adresas}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  className="add-points-button"
+                  onClick={handleMakeVadybininkas}
+                >
+                  Patvirtinti vadybininką
+                </button>
+              </div>
+            )}
           {isVadybininkas && (
-            <p className="alert alert-success mt-3">Šis naudotojas yra vadybininkas.</p>
+            <p className="alert alert-success mt-3">
+              Šis naudotojas yra vadybininkas.
+            </p>
           )}
         </>
-
-        
       )}
       {user?.administratorius && profile && (
         <>
-          <button className="delete-account-button btn btn-danger" onClick={handleDeleteAccount}>
+          <button
+            className="delete-account-button btn btn-danger"
+            onClick={handleDeleteAccount}
+          >
             Ištrinti paskyrą
           </button>
         </>
       )}
-
     </div>
   );
 };

@@ -18,9 +18,7 @@ const PrekiuKategorijos: React.FC = () => {
 
   const fetchUserCheck = async () => {
     try {
-      const response = await fetch(
-        `https://localhost:5210/api/Profilis/is-vadybininkas/${userId}`
-      );
+      const response = await fetch(`/api/Profilis/is-vadybininkas/${userId}`);
       if (response.ok) {
         setAdmin(true);
       }
@@ -44,9 +42,7 @@ const PrekiuKategorijos: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      const response = await fetch(
-        "https://localhost:5210/api/Kategorija/kategorijos"
-      );
+      const response = await fetch("/api/Kategorija/kategorijos");
       const data = await response.json();
       setCategories(data);
     } catch (error) {
@@ -63,7 +59,7 @@ const PrekiuKategorijos: React.FC = () => {
 
     try {
       const response = await fetch(
-        `https://localhost:5210/api/Rekomendacija/megstamos-kategorijos/prideti/${userId}/${categoryId}`,
+        `/api/Rekomendacija/megstamos-kategorijos/prideti/${userId}/${categoryId}`,
         {
           method: "POST",
         }
@@ -95,7 +91,7 @@ const PrekiuKategorijos: React.FC = () => {
 
     try {
       const response = await fetch(
-        `https://localhost:5210/api/Kategorija/kategorija/istrinti/${userId}/${categoryId}`,
+        `/api/Kategorija/kategorija/istrinti/${userId}/${categoryId}`,
         {
           method: "DELETE",
         }

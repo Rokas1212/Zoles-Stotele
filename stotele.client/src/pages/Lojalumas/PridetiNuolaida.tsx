@@ -28,8 +28,8 @@ const PridetiNuolaida: React.FC = () => {
     const fetchPrekesAndNuolaidos = async () => {
       try {
         const [prekesResponse, nuolaidosResponse] = await Promise.all([
-          fetch("https://localhost:5210/api/Preke"),
-          fetch("https://localhost:5210/api/Nuolaida/active"),
+          fetch("/api/Preke"),
+          fetch("/api/Nuolaida/active"),
         ]);
 
         if (!prekesResponse.ok || !nuolaidosResponse.ok) {
@@ -73,7 +73,7 @@ const PridetiNuolaida: React.FC = () => {
     };
 
     try {
-      const response = await fetch("https://localhost:5210/api/Nuolaida", {
+      const response = await fetch("/api/Nuolaida", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newDiscount),

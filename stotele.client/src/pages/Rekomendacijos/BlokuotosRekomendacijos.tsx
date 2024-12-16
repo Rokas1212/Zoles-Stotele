@@ -36,7 +36,7 @@ const BlokuotosRekomendacijos: React.FC = () => {
     setLoading(true);
     try {
       const response = await fetch(
-        `https://localhost:5210/api/Rekomendacija/blokuotos-rekomendacijos/${userId}`
+        `/api/Rekomendacija/blokuotos-rekomendacijos/${userId}`
       );
       if (!response.ok) throw new Error("Nėra blokuotų rekomendacijų.");
 
@@ -54,7 +54,7 @@ const BlokuotosRekomendacijos: React.FC = () => {
     setUnblocking(productId);
     try {
       const response = await fetch(
-        `https://localhost:5210/api/Rekomendacija/blokuotos-rekomendacijos/atblokuoti/${userId}/${productId}`,
+        `/api/Rekomendacija/blokuotos-rekomendacijos/atblokuoti/${userId}/${productId}`,
         { method: "DELETE" }
       );
 

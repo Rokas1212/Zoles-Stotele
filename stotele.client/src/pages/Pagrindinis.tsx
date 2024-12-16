@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min";
-import defaultImage from "../../../default_no_photo.jpg";
+import defaultImage from "/default_no_photo.jpg";
 import {
   FaShoppingCart,
   FaTags,
@@ -56,9 +56,7 @@ const Pagrindinis = () => {
 
   const fetchAllProducts = async () => {
     try {
-      const response = await fetch(
-        "https://localhost:5210/api/Preke/PrekesList"
-      );
+      const response = await fetch("/api/Preke/PrekesList");
       const data = await response.json();
       setAllProducts(data || []);
     } catch (error) {
@@ -88,7 +86,7 @@ const Pagrindinis = () => {
 
     try {
       const response = await fetch(
-        `https://localhost:5210/api/Rekomendacija/rekomendacijos/${userId}`
+        `/api/Rekomendacija/rekomendacijos/${userId}`
       );
       const data = await response.json();
       setProducts(data.prekes || []);
@@ -113,7 +111,7 @@ const Pagrindinis = () => {
 
     try {
       const response = await fetch(
-        `https://localhost:5210/api/Rekomendacija/blokuotos-rekomendacijos/uzblokuoti/${userId}/${productId}`,
+        `/api/Rekomendacija/blokuotos-rekomendacijos/uzblokuoti/${userId}/${productId}`,
         {
           method: "PUT",
         }

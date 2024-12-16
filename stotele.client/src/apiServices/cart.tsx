@@ -1,4 +1,4 @@
-const apiUrl = "https://localhost:5210/api/krepselio";
+const apiUrl = "/api/krepselio";
 
 export interface CartItem {
   id: string;
@@ -16,7 +16,7 @@ export async function fetchCart() {
 
 export async function addToCart(id: string) {
   try {
-    const response = await fetch("https://localhost:5210/api/krepselio/add", {
+    const response = await fetch("/api/krepselio/add", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id: id.toString() }),
@@ -54,18 +54,15 @@ export async function clearCart() {
 }
 
 export async function createOrder(cartItems: CartItem[]) {
-  const response = await fetch(
-    "https://localhost:5210/api/uzsakymu/sukurti-uzsakyma",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-      body: JSON.stringify(cartItems),
-      credentials: "include",
-    }
-  );
+  const response = await fetch("/api/uzsakymu/sukurti-uzsakyma", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+    body: JSON.stringify(cartItems),
+    credentials: "include",
+  });
 
   if (!response.ok) {
     throw new Error("Nepavyko sukurti užsakymo.");

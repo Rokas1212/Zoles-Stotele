@@ -21,7 +21,7 @@ const Prekes: React.FC = () => {
   useEffect(() => {
     const fetchPrekes = async () => {
       try {
-        const response = await fetch("https://localhost:5210/api/Preke/PrekesList", {
+        const response = await fetch("/api/Preke/PrekesList", {
           credentials: "include",
         });
 
@@ -50,7 +50,7 @@ const Prekes: React.FC = () => {
           <button
             className="btn btn-primary btn-sm"
             onClick={() => {
-              navigate('/krepselis');
+              navigate("/krepselis");
               toast.dismiss();
             }}
           >

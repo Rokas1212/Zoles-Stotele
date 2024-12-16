@@ -9,7 +9,7 @@ const Uzsakymai = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await fetch("https://localhost:5210/api/uzsakymu/uzsakymai", {
+        const response = await fetch("/api/uzsakymu/uzsakymai", {
           credentials: "include",
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -64,7 +64,9 @@ const Uzsakymai = () => {
                   <a href={`/uzsakymas/${order.id}`}>{order.id}</a>
                 </td>
                 <td>{new Date(order.data).toLocaleDateString()}</td>
-                <td>{payment?.mokejimoStatusas || "Nepasirinktas mokėjimo būdas"}</td>
+                <td>
+                  {payment?.mokejimoStatusas || "Nepasirinktas mokėjimo būdas"}
+                </td>
                 <td>€{order.suma.toFixed(2)}</td>
               </tr>
             );

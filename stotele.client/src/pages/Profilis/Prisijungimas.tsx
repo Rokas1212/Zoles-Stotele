@@ -18,10 +18,7 @@ const PrisijungimoLangas = () => {
     };
 
     try {
-      const response = await axios.post(
-        "https://localhost:5210/api/Profilis/login",
-        loginData
-      );
+      const response = await axios.post("/api/Profilis/login", loginData);
       console.log("Login response:", response.data);
 
       localStorage.setItem("token", response.data.token);
