@@ -14,6 +14,7 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
   usedPoints,
 }) => {
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
+  const [isScanDisabled, setIsScanDisabled] = useState<boolean>(false);
 
   useEffect(() => {
     const generateQRCode = async () => {
@@ -44,6 +45,9 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
   }, [orderId]);
 
   const handleScanQR = async () => {
+    if (isScanDisabled) return;
+    setIsScanDisabled(true); 
+
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -106,8 +110,12 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
           <p className="mt-2" style={{ fontStyle: "italic" }}>
             Nuskenuokite QR kodą norint pritaikyti nuolaidas.
           </p>
-          <button className="qr-btn btn btn-success" onClick={handleScanQR}>
-            Simuliuoti QR nuskaitymą
+          <button
+            className="qr-btn btn btn-success"
+            onClick={handleScanQR}
+            disabled={isScanDisabled}
+          >
+            {isScanDisabled ? "QR nuskaitymas atliktas" : "Simuliuoti QR nuskaitymą"}
           </button>
         </div>
       ) : (
