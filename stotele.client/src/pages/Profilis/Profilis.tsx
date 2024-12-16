@@ -137,6 +137,38 @@ const Profilis: React.FC = () => {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (!profile) {
+      setError("Profilio duomenys nerasti.");
+      return;
+    }
+  
+    if (!window.confirm("Ar tikrai norite ištrinti šį naudotoją? Šis veiksmas yra negrįžtamas.")) {
+      return;
+    }
+  
+    try {
+      const token = localStorage.getItem("jwt"); // Assuming token is stored in localStorage
+  
+      const response = await fetch(`https://localhost:5210/api/Profilis/delete/${profile.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`, // Include the JWT token
+        },
+      });
+  
+      if (!response.ok) throw new Error("Nepavyko ištrinti naudotojo paskyros.");
+  
+      toast.success("Naudotojo paskyra sėkmingai ištrinta.");
+      setProfile(null);
+    } catch (e: any) {
+      setError(e.message);
+      toast.error("Įvyko klaida bandant ištrinti paskyrą.");
+    }
+  };
+  
+
+
   const handleMakeVadybininkas = async () => {
     if (!selectedParduotuve || !skyrius) {
       toast.error("Prašome užpildyti visus laukus.");
@@ -255,7 +287,17 @@ const Profilis: React.FC = () => {
             <p className="alert alert-success mt-3">Šis naudotojas yra vadybininkas.</p>
           )}
         </>
+
+        
       )}
+      {user?.administratorius && profile && (
+        <>
+          <button className="delete-account-button btn btn-danger" onClick={handleDeleteAccount}>
+            Ištrinti paskyrą
+          </button>
+        </>
+      )}
+
     </div>
   );
 };

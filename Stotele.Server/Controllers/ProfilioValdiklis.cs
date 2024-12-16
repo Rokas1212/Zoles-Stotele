@@ -441,5 +441,58 @@ namespace Stotele.Server.Controllers
 
             return Ok(new { Message = "Parduotuvė sėkmingai užregistruota.", parduotuve.Id });
         }
+
+        // DELETE: api/Profilis/delete/{id}
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> DeleteAccount(int id)
+        {
+            try
+            {
+                // Log the deletion attempt
+                Console.WriteLine($"Attempting to delete user with ID: {id}");
+
+                // Find the user in the database
+                var naudotojas = await _context.Naudotojai.FindAsync(id);
+                if (naudotojas == null)
+                {
+                    Console.WriteLine("User not found.");
+                    return NotFound("Naudotojas nerastas.");
+                }
+
+                // Delete associated "Klientas" data if it exists
+                var klientas = await _context.Klientai.FirstOrDefaultAsync(k => k.NaudotojasId == id);
+                if (klientas != null)
+                {
+                    Console.WriteLine($"Deleting associated client data for user ID: {id}");
+                    _context.Klientai.Remove(klientas);
+                }
+
+                // If the user is a Vadybininkas, remove the record from the Vadybininkai table
+                var vadybininkas = await _context.Vadybininkai.FirstOrDefaultAsync(v => v.NaudotojasId == id);
+                if (vadybininkas != null)
+                {
+                    Console.WriteLine($"Deleting associated Vadybininkas data for user ID: {id}");
+                    _context.Vadybininkai.Remove(vadybininkas);
+                }
+
+                // Finally, remove the user
+                Console.WriteLine($"Deleting user ID: {id}");
+                _context.Naudotojai.Remove(naudotojas);
+
+                // Save changes to the database
+                await _context.SaveChangesAsync();
+                Console.WriteLine("User and related data successfully deleted.");
+
+                return Ok(new { Message = "Naudotojo paskyra ir susiję duomenys sėkmingai ištrinti." });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during deletion: {ex.Message}");
+                return StatusCode(500, new { Message = "Įvyko serverio klaida.", Details = ex.Message });
+            }
+        }
+
+
+
     }
 }

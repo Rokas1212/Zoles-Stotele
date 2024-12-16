@@ -158,3 +158,34 @@
   text-align: center;
   margin-top: 10px;
 }
+
+.alert {
+  text-align: center; /* Centers text horizontally */
+  color: #b71c1c;
+  background-color: #ffebee;
+  border: 1px solid #ffcdd2;
+  border-radius: 5px;
+  padding: 10px;
+  margin: 10px auto; /* Centers the alert box itself */
+  max-width: 500px; /* Limits width for better appearance */
+}
+
+.delete-account-button {
+  display: block; /* Makes the button a block element */
+  margin: 20px auto; /* Centers the button horizontally */
+  padding: 10px 15px;
+  background-color: #dc3545 !important;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 1rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+.delete-account-button:hover {
+  background-color: #c82333 !important;
+}
+
