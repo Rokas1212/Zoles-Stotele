@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import ConfirmationModal from "../../components/confirmationModal";
-import useAuth from "../../hooks/useAuth"; 
-import { toast, ToastContainer } from "react-toastify"; 
-import "react-toastify/dist/ReactToastify.css"; 
+import useAuth from "../../hooks/useAuth";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./nuolaida.css";
 import Loading from "../../components/loading";
 
@@ -16,7 +16,7 @@ interface INuolaida {
 }
 
 const Nuolaida: React.FC = () => {
-  const { user } = useAuth(); 
+  const { user } = useAuth();
   const searchParams = new URLSearchParams(window.location.search);
   const id = searchParams.get("id");
 
@@ -34,7 +34,9 @@ const Nuolaida: React.FC = () => {
 
     const fetchNuolaida = async () => {
       try {
-        const response = await fetch(`https://localhost:5210/api/Nuolaida/${id}`);
+        const response = await fetch(
+          `https://localhost:5210/api/Nuolaida/${id}`
+        );
         if (!response.ok) {
           throw new Error(
             `Failed to fetch nuolaida: ${response.status} - ${response.statusText}`
@@ -56,9 +58,12 @@ const Nuolaida: React.FC = () => {
 
   const handleDelete = async () => {
     try {
-      const response = await fetch(`https://localhost:5210/api/Nuolaida/${id}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `https://localhost:5210/api/Nuolaida/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (!response.ok) {
         throw new Error(
@@ -72,7 +77,9 @@ const Nuolaida: React.FC = () => {
       }, 2000);
     } catch (err: any) {
       console.error("Error deleting nuolaida:", err);
-      toast.error(err.message || "Nepavyko ištrinti nuolaidos. Bandykite dar kartą.");
+      toast.error(
+        err.message || "Nepavyko ištrinti nuolaidos. Bandykite dar kartą."
+      );
     }
   };
 
@@ -102,20 +109,24 @@ const Nuolaida: React.FC = () => {
         <strong>Galiojimo pabaiga:</strong>{" "}
         <span
           className={
-            new Date(nuolaida.galiojimoPabaiga) < new Date() ? "expired-date" : ""
+            new Date(nuolaida.galiojimoPabaiga) < new Date()
+              ? "expired-date"
+              : ""
           }
         >
-          {new Date(nuolaida.galiojimoPabaiga).toLocaleDateString()} - nebegalioja
+          {new Date(nuolaida.galiojimoPabaiga).toLocaleDateString()}
         </span>
       </p>
       <p>
         <strong>Prekės pavadinimas:</strong> {nuolaida.prekesPavadinimas}
       </p>
       <p>
-        <strong>Prekės kaina (prieš nuolaidą):</strong> {nuolaida.prekesKaina.toFixed(2)} €
+        <strong>Prekės kaina (prieš nuolaidą):</strong>{" "}
+        {nuolaida.prekesKaina.toFixed(2)} €
       </p>
       <p>
-        <strong>Prekės kaina (po nuolaidos):</strong> {nuolaida.prekesKainaPoNuolaidos.toFixed(2)} €
+        <strong>Prekės kaina (po nuolaidos):</strong>{" "}
+        {nuolaida.prekesKainaPoNuolaidos.toFixed(2)} €
       </p>
 
       {user?.administratorius && (
