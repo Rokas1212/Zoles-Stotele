@@ -46,14 +46,13 @@ const PrisijungimoLangas = () => {
 
       setTimeout(() => {
         window.location.href = "/";
-      }, 1000);
+      }, 250);
     } catch (error: any) {
       console.error("Login error:", error);
       setErrorMessage(
         "Prisijungimas nepavyko: " +
           (error.response?.data || error.message || "Klaida")
       );
-
 
       toast.error("Prisijungimas nepavyko", {
         autoClose: 3000,
