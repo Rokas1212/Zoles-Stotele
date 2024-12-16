@@ -283,5 +283,42 @@ namespace Stotele.Server.Controllers
 
             return Ok(addresses);
         }
+        [HttpPut("perziura")]
+        public async Task<IActionResult> UpdatePrekesPerziura(PrekesPerziuraDTO dto)
+        {
+            var prekesPerziura = await _context.PrekesPerziuros
+                .Where(pp => pp.PrekeId == dto.PrekeId && pp.KlientasId == dto.KlientasId)
+                .FirstOrDefaultAsync();
+
+            // jei perziura neegzistuoja, sukuriam nauja
+            if (prekesPerziura == null)
+            {
+                var naujaPerziura = new PrekesPerziura
+                {
+                    Data = dto.Data.ToUniversalTime(),
+                    Kiekis = 1,
+                    PrekeId = dto.PrekeId,
+                    Preke = await _context.Prekes.FindAsync(dto.PrekeId),
+                    KlientasId = dto.KlientasId,
+                    Klientas = await _context.Klientai.FindAsync(dto.KlientasId)
+                };
+
+                _context.PrekesPerziuros.Add(naujaPerziura);
+                await _context.SaveChangesAsync();
+
+                return CreatedAtAction(nameof(UpdatePrekesPerziura), new { message = "sukurta nauja perziura", id = naujaPerziura.Id }, naujaPerziura);
+            }
+            // jei perziura egzistuoja, padidinam kieki
+            else
+            {
+                prekesPerziura.Data = dto.Data.ToUniversalTime();
+                prekesPerziura.Kiekis++;
+
+                _context.Entry(prekesPerziura).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = "prekes perziura paupdatinta", prekesPerziura });
+            }
+        }
     }
 }

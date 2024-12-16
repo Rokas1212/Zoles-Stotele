@@ -155,6 +155,30 @@ const Preke: React.FC = () => {
     }
   };
 
+  const addView = async () => {
+    try {
+      const prekesPerziuraDTO = {
+        Data: new Date(),
+        PrekeId: product.id,
+        KlientasId: user?.id,
+      };
+      await axios.put(
+        `https://localhost:5210/api/Preke/perziura`,
+        prekesPerziuraDTO,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+    } catch (error) {
+      console.error("Klaida: ", error);
+    }
+  };
+
+  addView();
+
   return (
     <div className="container py-4">
       {/* Product Title */}

@@ -114,8 +114,7 @@ const Nuolaida: React.FC = () => {
               : ""
           }
         >
-          {new Date(nuolaida.galiojimoPabaiga).toLocaleDateString()} -
-          nebegalioja
+          {new Date(nuolaida.galiojimoPabaiga).toLocaleDateString()}
         </span>
       </p>
       <p>
