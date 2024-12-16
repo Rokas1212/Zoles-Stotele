@@ -207,7 +207,7 @@ namespace Stotele.Server.Controllers
                             <p><strong>Sąskaitos Faktūros Numeris:</strong> {payment.SaskaitosFakturosNumeris}</p>
                         </div>
                         <div style='text-align: center; margin-top: 20px;'>
-                            <a href='/uzsakymas/{orderId}' 
+                            <a href='http://http://74.234.45.63/uzsakymas/{orderId}' 
                             style='background-color: #28a745; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-weight: bold;'>
                                 Peržiūrėti Užsakymą
                             </a>
@@ -352,7 +352,7 @@ namespace Stotele.Server.Controllers
                     </div>
 
                     <div style='text-align: center; margin-top: 20px;'>
-                        <a href='/uzsakymas/{orderId}' 
+                        <a href='http://http://74.234.45.63/uzsakymas/{orderId}' 
                             style='background-color: #28a745; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-weight: bold;'>
                             Peržiūrėti Užsakymą
                         </a>
@@ -417,12 +417,84 @@ namespace Stotele.Server.Controllers
             payment.MokejimoStatusas = MokejimoStatusas.Apmoketa;
             _dbContext.SaveChanges();
 
+            
+
+            var pointsToAdd = (int)(order.Suma * 0.05);
+            var htmlMessage = $@"
+            <html>
+                <body style='font-family: Arial, sans-serif; color: #333; line-height: 1.6;'>
+                    <div style='text-align: center; margin-bottom: 20px;'>
+                        <img src='https://cdn3.iconfinder.com/data/icons/nature-emoji/50/Marijuana-512.png' alt='Stotele Logo' style='max-width: 150px;'>
+                    </div>
+
+                    <h2 style='color: #28a745; text-align: center;'>Užsakymo Patvirtinimas</h2>
+                    <p style='text-align: center;'>Užsakymas su ID: <strong>{orderId}</strong> sėkmingai pateiktas.</p>
+                    <p style='text-align: center;'>Pasirinktas mokėjimo būdas: Grynaisiais.</p>
+
+                    <table style='width: 100%; border-collapse: collapse; margin-top: 15px;'>
+                        <thead>
+                            <tr>
+                                <th style='border-bottom: 2px solid #ccc; text-align: left; padding: 8px;'>Prekė</th>
+                                <th style='border-bottom: 2px solid #ccc; text-align: right; padding: 8px;'>Kaina (€)</th>
+                                <th style='border-bottom: 2px solid #ccc; text-align: center; padding: 8px;'>Kiekis</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {string.Join("", payment.Uzsakymas.PrekesUzsakymai.Select(pu => $@"
+                                <tr>
+                                    <td style='border-bottom: 1px solid #eee; padding: 8px;'>{pu.Preke.Pavadinimas}</td>
+                                    <td style='border-bottom: 1px solid #eee; padding: 8px; text-align: right;'>
+                                        {(pu.Kaina.HasValue ? pu.Kaina.Value.ToString("0.00") : "0.00")}
+                                    </td>
+                                    <td style='border-bottom: 1px solid #eee; padding: 8px; text-align: center;'>{pu.Kiekis}</td>
+                                </tr>
+                            "))}
+                        </tbody>
+                    </table>
+
+                    <div style='margin-top: 20px; text-align: right;'>
+                        <p><strong>Bendra Suma:</strong> €{order.Suma.ToString("0.00")}</p>
+                        <p><strong>Taškai už šį užsakymą:</strong> {pointsToAdd}</p>
+                    </div>
+
+                    <!-- Cash Payment Instructions -->
+                    <div style='margin-top: 30px; padding: 15px; background-color: #f8f9fa; border: 1px solid #ddd; border-radius: 5px;'>
+                        <h3 style='color: #28a745; text-align: center;'>Mokėjimas Grynaisiais</h3>
+                        <p>
+                            Jūsų užsakymas buvo patvirtintas, ir mokėjimas bus atliekamas kurjeriui pristatymo metu.
+                            Prašome užtikrinti, kad turėsite paruoštą reikiamą sumą: <strong>€{order.Suma.ToString("0.00")}</strong>.
+                        </p>
+                        <p>
+                            Kurjeris susisieks su Jumis telefonu prieš pristatydamas prekes. Pristatymo adresas ir kita
+                            susijusi informacija buvo sėkmingai užregistruota.
+                        </p>
+                        <p style='color: #666; font-size: 14px; text-align: center;'>
+                            Jei turite klausimų dėl užsakymo, susisiekite su mumis telefonu arba el. paštu.
+                        </p>
+                    </div>
+
+                    <div style='text-align: center; margin-top: 20px;'>
+                        <a href='http://http://74.234.45.63/uzsakymas/{orderId}' 
+                            style='background-color: #28a745; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-weight: bold;'>
+                            Peržiūrėti Užsakymą
+                        </a>
+                    </div>
+
+                    <!-- Footer -->
+                    <footer style='margin-top: 30px; text-align: center; font-size: 12px; color: #aaa;'>
+                        <p>&copy; {DateTime.Now.Year} Žolės Stotelė. Visos teisės saugomos.</p>
+                        <p>Šis laiškas buvo sugeneruotas automatiškai, prašome neatsakyti.</p>
+                    </footer>
+                </body>
+            </html>";
+
+
             // Send email notification
             var userEmail = _dbContext.Naudotojai.Find(UserId).ElektroninisPastas;
             var emailSent = await _emailService.SendEmailAsync(
                 recipientEmail: userEmail,
                 subject: "Užsakymo Patvirtinimas",
-                message: $"Užsakymas su ID: {orderId} sėkmingai pateiktas. Kurjeris susisieks telefonu. Ačiū, kad perkate pas mus!"
+                message: htmlMessage
             );
             return Ok();
         }
