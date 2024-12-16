@@ -255,12 +255,22 @@ namespace Stotele.Server.Controllers
             return Ok(response);
         }
 
+        private static readonly HashSet<int> DiscountedOrders = new();
+
         [HttpGet("ApplyDiscounts")]
         public IActionResult ApplyDiscounts([FromQuery] int orderId, [FromQuery] string userId)
         {
             var user = _context.Naudotojai.FirstOrDefault(n => n.Id == int.Parse(userId));
             if (user == null)
                 return Unauthorized("User not authenticated.");
+
+            if (DiscountedOrders.Contains(orderId))
+            {
+                return BadRequest(new
+                {
+                    message = "Discounts have already been applied for this order."
+                });
+            }
 
             var order = _context.Uzsakymai
                 .Include(o => o.PrekesUzsakymai)
@@ -303,6 +313,8 @@ namespace Stotele.Server.Controllers
 
             _context.Entry(order).State = EntityState.Modified;
             _context.SaveChanges();
+
+            DiscountedOrders.Add(orderId);
 
             return Ok(new
             {
