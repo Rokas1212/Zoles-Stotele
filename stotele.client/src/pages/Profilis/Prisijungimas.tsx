@@ -75,6 +75,7 @@ const PrisijungimoLangas = () => {
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            placeholder="Įveskite savo naudotojo vardą"
             required
           />
         </div>
@@ -83,6 +84,7 @@ const PrisijungimoLangas = () => {
           <input
             type="password"
             value={password}
+            placeholder="Įveskite savo slaptažodį"
             onChange={(e) => setPassword(e.target.value)}
             required
           />
@@ -94,7 +96,7 @@ const PrisijungimoLangas = () => {
       <a href="/registracija" className="register-link">
         Registracija
       </a>
-      <ToastContainer /> {/* Default Top-Right Position */}
+      <ToastContainer />
     </div>
   );
 };

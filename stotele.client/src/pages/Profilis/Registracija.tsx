@@ -3,6 +3,8 @@ import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./registracija.css";
+import "rc-slider/assets/index.css";
+import Slider from "rc-slider";
 
 const RegistracijosLangas = () => {
   const [username, setUsername] = useState("");
@@ -102,6 +104,12 @@ const RegistracijosLangas = () => {
       setErrorMessage(`Registracija nepavyko: ${backendMessage}`);
     }
   };
+  const [genderValue, setGenderValue] = useState(0.5);
+
+  const handleSliderChange = (value: any) => {
+    setGenderValue(value);
+    setGender(value >= 0.5 ? "Vyras" : "Moteris");
+  };
 
   return (
     <div className="registration-container">
@@ -116,6 +124,7 @@ const RegistracijosLangas = () => {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
+              placeholder="Įveskite norimą naudotojo vardą"
             />
           </div>
           <div className="form-group">
@@ -124,6 +133,7 @@ const RegistracijosLangas = () => {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              placeholder="Įveskite savo el. paštą"
               required
             />
           </div>
@@ -134,7 +144,10 @@ const RegistracijosLangas = () => {
             <input
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+              }}
+              placeholder="Įveskite slaptažodį"
               required
             />
           </div>
@@ -143,7 +156,13 @@ const RegistracijosLangas = () => {
             <input
               type="text"
               value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
+              onChange={(e) => {
+                const regex = /^[a-zA-ZÀ-ž\s]*$/;
+                if (regex.test(e.target.value)) {
+                  setFirstName(e.target.value);
+                }
+              }}
+              placeholder="Įveskite vardą"
               required
             />
           </div>
@@ -154,17 +173,28 @@ const RegistracijosLangas = () => {
             <input
               type="text"
               value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
+              onChange={(e) => {
+                const regex = /^[a-zA-ZÀ-ž\s]*$/;
+                if (regex.test(e.target.value)) {
+                  setLastName(e.target.value);
+                }
+              }}
+              placeholder="Įveskite pavardę"
               required
             />
           </div>
           <div className="form-group">
             <label>Lytis:</label>
-            <select value={gender} onChange={(e) => setGender(e.target.value)}>
-              <option value="Vyras">Vyras</option>
-              <option value="Moteris">Moteris</option>
-              <option value="Kita">Kita</option>
-            </select>
+            <Slider
+              min={0}
+              max={1}
+              step={0.01}
+              value={genderValue}
+              onChange={handleSliderChange}
+            />
+            <div className="text-center mt-2">
+              <strong>{gender}</strong>
+            </div>
           </div>
         </div>
         <div className="form-row">
@@ -173,15 +203,23 @@ const RegistracijosLangas = () => {
             <input
               type="text"
               value={city}
-              onChange={(e) => setCity(e.target.value)}
+              onChange={(e) => {
+                const regex = /^[a-zA-ZÀ-ž\s]*$/;
+                if (regex.test(e.target.value)) {
+                  setCity(e.target.value);
+                }
+              }}
+              placeholder="Įveskite miesto pavadinimą"
               required
             />
           </div>
+
           <div className="form-group">
             <label>Adresas:</label>
             <input
               type="text"
               value={address}
+              placeholder="Įveskite adresą"
               onChange={(e) => setAddress(e.target.value)}
               required
             />
@@ -193,16 +231,42 @@ const RegistracijosLangas = () => {
             <input
               type="text"
               value={postalCode}
-              onChange={(e) => setPostalCode(e.target.value)}
+              onChange={(e) => {
+                const regex = /^\d{0,5}$/; // Allows up to 5 digits
+                if (regex.test(e.target.value)) {
+                  setPostalCode(e.target.value); // Update only if it matches the regex
+                }
+              }}
+              placeholder="12345"
               required
             />
+            {/* Inline validation message */}
+            {postalCode && !/^\d{5}$/.test(postalCode) && (
+              <small className="text-danger">
+                Pašto kodas privalo būti 5 skaičių formate.
+              </small>
+            )}
           </div>
           <div className="form-group">
             <label>Gimimo data:</label>
             <input
               type="date"
               value={birthDate}
-              onChange={(e) => setBirthDate(e.target.value)}
+              onChange={(e) => {
+                const selectedDate = new Date(e.target.value);
+                const today = new Date();
+                const oneYearAgo = new Date(
+                  today.getFullYear() - 1,
+                  today.getMonth(),
+                  today.getDate()
+                );
+
+                if (selectedDate > oneYearAgo) {
+                  alert("Gimimo data turi būti bent prieš vienerius metus.");
+                } else {
+                  setBirthDate(e.target.value);
+                }
+              }}
               required
             />
           </div>
