@@ -149,7 +149,7 @@ namespace Stotele.Server.Controllers
 
         // PUT: api/Preke/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdatePreke(int id, KurtiArKoreguotiPrekeDTO dto)
+        public async Task<IActionResult> UpdatePreke(int id, RedaguotiPrekeDTO dto)
         {
             var preke = await _context.Prekes.FindAsync(id);
 
@@ -160,16 +160,29 @@ namespace Stotele.Server.Controllers
 
             preke.Kaina = dto.Kaina;
             preke.Pavadinimas = dto.Pavadinimas;
-            preke.Kodas = dto.Kodas;
-            preke.GaliojimoData = dto.GaliojimoData;
-            preke.Kiekis = dto.Kiekis;
-            preke.Ismatavimai = dto.Ismatavimai;
+            preke.GaliojimoData = dto.GaliojimoData.ToUniversalTime();
             preke.NuotraukosUrl = dto.NuotraukosUrl;
-            preke.GarantinisLaikotarpis = dto.GarantinisLaikotarpis;
+            preke.GarantinisLaikotarpis = dto.GarantinisLaikotarpis.ToUniversalTime();
             preke.Aprasymas = dto.Aprasymas;
-            preke.RekomendacijosSvoris = dto.RekomendacijosSvoris;
-            preke.Mase = dto.Mase;
-            preke.VadybininkasId = dto.VadybininkasId;
+            preke.Ismatavimai = preke.Ismatavimai;
+
+            if (dto.PrekiuKategorijos != null)
+            {
+                var naujosKategorijos = dto.PrekiuKategorijos
+                    .Select(pk => new PrekesKategorija
+                    {
+                        KategorijaId = pk.KategorijaId,
+                        PrekeId = preke.Id
+                    })
+                    .ToList();
+
+                var senosKategorijos = await _context.PrekesKategorijos
+                    .Where(pk => pk.PrekeId == preke.Id)
+                    .ToListAsync();
+
+                _context.PrekesKategorijos.RemoveRange(senosKategorijos);
+                await _context.PrekesKategorijos.AddRangeAsync(naujosKategorijos);
+            }
 
             _context.Entry(preke).State = EntityState.Modified;
 
