@@ -162,13 +162,7 @@ namespace Stotele.Server.Controllers
                 return BadRequest("Neteisingas user ID formatas.");
             }
 
-            var vadybininkas = await _context.Vadybininkai.FindAsync(int.Parse(UserId));
-            if (vadybininkas == null)
-            {
-                return BadRequest("Vadybininkas su šiuo ID neegzistuoja.");
-            }
-
-            if (!User.IsInRole("Administratorius") && vadybininkas.Id != parsedUserId)
+            if (!User.IsInRole("Administratorius"))
             {
                 return Unauthorized("Neturite teisės redaguoti prekių.");
             }
