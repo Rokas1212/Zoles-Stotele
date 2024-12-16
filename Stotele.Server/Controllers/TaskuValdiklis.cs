@@ -219,6 +219,7 @@ namespace Stotele.Server.Controllers
         }
 
 
+
         // POST: api/Taskai/GenerateQR
         [HttpPost("GenerateQR")]
         public IActionResult GenerateQRCode(ProcessQRDTO request)
@@ -268,6 +269,17 @@ namespace Stotele.Server.Controllers
 
             if (order == null)
                 return NotFound($"Order with ID {orderId} not found.");
+
+            bool discountAlreadyApplied = order.PrekesUzsakymai.All(item =>
+                    item.Kaina != null && item.Kaina < item.Preke.Kaina);
+
+            if (discountAlreadyApplied)
+            {
+                return BadRequest(new
+                {
+                    message = "Discounts have already been applied for this order."
+                });
+            }
 
             foreach (var orderItem in order.PrekesUzsakymai)
             {
