@@ -237,9 +237,8 @@ namespace Stotele.Server.Controllers
             var perziuretosPrekesIds = await _context.PrekesPerziuros
                 .Where(pp => pp.KlientasId == naudotojasId)
                 .OrderByDescending(pp => pp.Data)
-                .Select(pp => pp.PrekeId)
+                .Select(pp => new { pp.PrekeId, pp.Kiekis })
                 .Distinct()
-                .Take(5)
                 .ToListAsync();
 
             // Gauti prekes ids, kurias vartotojas yra nupirkes
@@ -266,9 +265,9 @@ namespace Stotele.Server.Controllers
                         p.RekomendacijosSvoris += 0.15;
                     }
 
-                    if (perziuretosPrekesIds.Contains(p.Id))
+                    if (perziuretosPrekesIds.Any(pp => pp.PrekeId == p.Id))
                     {
-                        p.RekomendacijosSvoris += 0.05;
+                        p.RekomendacijosSvoris += 0.01 * perziuretosPrekesIds.First(pp => pp.PrekeId == p.Id).Kiekis;
                     }
 
                     if (nupirktosPrekesIds.Contains(p.Id))
