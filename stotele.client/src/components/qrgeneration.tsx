@@ -110,13 +110,6 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
           <p className="mt-2" style={{ fontStyle: "italic" }}>
             Nuskenuokite QR kodą norint pritaikyti nuolaidas.
           </p>
-          <button
-            className="qr-btn btn btn-success"
-            onClick={handleScanQR}
-            disabled={isScanDisabled}
-          >
-            {isScanDisabled ? "QR nuskaitymas atliktas" : "Simuliuoti QR nuskaitymą"}
-          </button>
         </div>
       ) : (
         <p className="mt-3">QR kodas generuojamas...</p>
