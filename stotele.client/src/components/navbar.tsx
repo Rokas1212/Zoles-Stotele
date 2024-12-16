@@ -44,9 +44,7 @@ const CustomNavbar: React.FC = () => {
       draggable: true,
     });
 
-    setTimeout(() => {
-      navigate("/");
-    }, 1000);
+    window.location.reload();
   };
 
   return (
@@ -63,7 +61,9 @@ const CustomNavbar: React.FC = () => {
               </>
             ) : (
               <>
-                <Nav.Link href={`/profilis?id=${user?.id || ""}`}>Profilis</Nav.Link>
+                <Nav.Link href={`/profilis?id=${user?.id || ""}`}>
+                  Profilis
+                </Nav.Link>
                 <Nav.Link onClick={handleLogout}>Atsijungti</Nav.Link>
 
                 {user?.administratorius && (
@@ -82,7 +82,10 @@ const CustomNavbar: React.FC = () => {
 
                 {/* Conditional display of Vadybininko Meniu */}
                 {isVadybininkas && (
-                  <NavDropdown title="Vadybininko Meniu" id="vadybininkas-dropdown">
+                  <NavDropdown
+                    title="Vadybininko Meniu"
+                    id="vadybininkas-dropdown"
+                  >
                     <NavDropdown.Item href="/vadybininkas/prideti-preke">
                       Pridėti prekę
                     </NavDropdown.Item>

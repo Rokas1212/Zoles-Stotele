@@ -1,4 +1,9 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import Navbar from "./components/navbar";
 import Pagrindinis from "./pages/Pagrindinis";
 import Prisijungimas from "./pages/Profilis/Prisijungimas";
@@ -24,46 +29,183 @@ import RedaguotiPreke from "./pages/Prekes/RedaguotiPreke";
 import Cancel from "./pages/Uzsakymai/Neapmoketa";
 import Success from "./pages/Uzsakymai/Apmoketa";
 
+const isAuthenticated = () => {
+  return !!localStorage.getItem("token");
+};
+
 function App() {
   return (
     <Router>
       <Navbar />
       <Routes>
-        <Route path="/" element={<Pagrindinis />} />
-        <Route path="/success/" element={<Success />} />
-        <Route path="/cancel" element={<Cancel />} />
-        <Route path="/profilis" element={<Profilis />} />
         <Route path="/prisijungimas" element={<Prisijungimas />} />
         <Route path="/registracija" element={<Registracija />} />
-        <Route path="/uzsakymai" element={<Uzsakymai />} />
-        <Route path="/uzsakymas/:orderId" element={<Uzsakymas />} />
-        <Route path="/krepselis" element={<Krepselis />} />
-        <Route path="/apmokejimas/:orderId" element={<Apmokejimas />} />
-        <Route path="/nuolaida" element={<Nuolaida />} />
-        <Route path="/nuolaidos" element={<Nuolaidos />} />
-        <Route path="/administratorius/profiliai" element={<Profiliai />} />
+        <Route
+          path="/"
+          element={
+            isAuthenticated() ? (
+              <Pagrindinis />
+            ) : (
+              <Navigate to="/prisijungimas" />
+            )
+          }
+        />
+        <Route
+          path="/success/"
+          element={
+            isAuthenticated() ? <Success /> : <Navigate to="/prisijungimas" />
+          }
+        />
+        <Route
+          path="/cancel"
+          element={
+            isAuthenticated() ? <Cancel /> : <Navigate to="/prisijungimas" />
+          }
+        />
+        <Route
+          path="/profilis"
+          element={
+            isAuthenticated() ? <Profilis /> : <Navigate to="/prisijungimas" />
+          }
+        />
+        <Route
+          path="/uzsakymai"
+          element={
+            isAuthenticated() ? <Uzsakymai /> : <Navigate to="/prisijungimas" />
+          }
+        />
+        <Route
+          path="/uzsakymas/:orderId"
+          element={
+            isAuthenticated() ? <Uzsakymas /> : <Navigate to="/prisijungimas" />
+          }
+        />
+        <Route
+          path="/krepselis"
+          element={
+            isAuthenticated() ? <Krepselis /> : <Navigate to="/prisijungimas" />
+          }
+        />
+        <Route
+          path="/apmokejimas/:orderId"
+          element={
+            isAuthenticated() ? (
+              <Apmokejimas />
+            ) : (
+              <Navigate to="/prisijungimas" />
+            )
+          }
+        />
+        <Route
+          path="/nuolaida"
+          element={
+            isAuthenticated() ? <Nuolaida /> : <Navigate to="/prisijungimas" />
+          }
+        />
+        <Route
+          path="/nuolaidos"
+          element={
+            isAuthenticated() ? <Nuolaidos /> : <Navigate to="/prisijungimas" />
+          }
+        />
+        <Route
+          path="/administratorius/profiliai"
+          element={
+            isAuthenticated() ? <Profiliai /> : <Navigate to="/prisijungimas" />
+          }
+        />
         <Route
           path="/administratorius/prideti-nuolaida"
-          element={<PridetiNuolaida />}
+          element={
+            isAuthenticated() ? (
+              <PridetiNuolaida />
+            ) : (
+              <Navigate to="/prisijungimas" />
+            )
+          }
         />
-        <Route path="/preke" element={<Preke />} />
-        <Route path="/prekes" element={<Prekes />} />
-        <Route path="/prekiu-kategorijos" element={<PrekiuKategorijos />} />
-        <Route path="/redaguoti-profili" element={<RedaguotiProfili />} />
-        <Route path="/redaguoti-preke" element={<RedaguotiPreke />} />
+        <Route
+          path="/preke"
+          element={
+            isAuthenticated() ? <Preke /> : <Navigate to="/prisijungimas" />
+          }
+        />
+        <Route
+          path="/prekes"
+          element={
+            isAuthenticated() ? <Prekes /> : <Navigate to="/prisijungimas" />
+          }
+        />
+        <Route
+          path="/prekiu-kategorijos"
+          element={
+            isAuthenticated() ? (
+              <PrekiuKategorijos />
+            ) : (
+              <Navigate to="/prisijungimas" />
+            )
+          }
+        />
+        <Route
+          path="/redaguoti-profili"
+          element={
+            isAuthenticated() ? (
+              <RedaguotiProfili />
+            ) : (
+              <Navigate to="/prisijungimas" />
+            )
+          }
+        />
+        <Route
+          path="/redaguoti-preke"
+          element={
+            isAuthenticated() ? (
+              <RedaguotiPreke />
+            ) : (
+              <Navigate to="/prisijungimas" />
+            )
+          }
+        />
         <Route
           path="/blokuotos-rekomendacijos"
-          element={<BlokuotosRekomendacijos />}
+          element={
+            isAuthenticated() ? (
+              <BlokuotosRekomendacijos />
+            ) : (
+              <Navigate to="/prisijungimas" />
+            )
+          }
         />
         <Route
           path="/megstamos-kategorijos"
-          element={<MegstamosKategorijos />}
+          element={
+            isAuthenticated() ? (
+              <MegstamosKategorijos />
+            ) : (
+              <Navigate to="/prisijungimas" />
+            )
+          }
         />
         <Route
           path="vadybininkas/prideti-kategorija"
-          element={<PridetiKategorija />}
+          element={
+            isAuthenticated() ? (
+              <PridetiKategorija />
+            ) : (
+              <Navigate to="/prisijungimas" />
+            )
+          }
         />
-        <Route path="vadybininkas/prideti-preke" element={<PridetiPreke />} />
+        <Route
+          path="vadybininkas/prideti-preke"
+          element={
+            isAuthenticated() ? (
+              <PridetiPreke />
+            ) : (
+              <Navigate to="/prisijungimas" />
+            )
+          }
+        />
       </Routes>
     </Router>
   );

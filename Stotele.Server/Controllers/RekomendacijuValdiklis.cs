@@ -263,17 +263,17 @@ namespace Stotele.Server.Controllers
                 {
                     if (megstamosPrekesIds.Contains(p.Id))
                     {
-                        p.RekomendacijosSvoris += 0.08;
+                        p.RekomendacijosSvoris += 0.15;
                     }
 
                     if (perziuretosPrekesIds.Contains(p.Id))
                     {
-                        p.RekomendacijosSvoris += 0.04;
+                        p.RekomendacijosSvoris += 0.05;
                     }
 
                     if (nupirktosPrekesIds.Contains(p.Id))
                     {
-                        p.RekomendacijosSvoris += 0.12;
+                        p.RekomendacijosSvoris += 0.45;
                     }
 
                     return p;
@@ -282,6 +282,7 @@ namespace Stotele.Server.Controllers
                 .Take(4)
                 .ToList();
 
+            rekomendacijosPrekes.ForEach(p => Console.WriteLine(p.Pavadinimas + " " + p.RekomendacijosSvoris));
             if (prekes.Count == 0)
             {
                 return NotFound(new { Message = "Nera prekiu" });

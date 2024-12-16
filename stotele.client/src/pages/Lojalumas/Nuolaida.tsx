@@ -74,7 +74,7 @@ const Nuolaida: React.FC = () => {
       toast.success("Nuolaida sėkmingai ištrinta!");
       setTimeout(() => {
         window.location.href = "/nuolaidos";
-      }, 2000);
+      }, 1000);
     } catch (err: any) {
       console.error("Error deleting nuolaida:", err);
       toast.error(
