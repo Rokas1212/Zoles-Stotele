@@ -228,13 +228,18 @@ namespace Stotele.Server.Controllers
                 return BadRequest("Invalid Order ID.");
             }
 
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = User.FindFirstValue("UserId");
             if (string.IsNullOrEmpty(userId))
             {
                 return Unauthorized("User is not authenticated.");
             }
 
-            var qrData = $"/api/Taskai/ApplyDiscounts?orderId={request.OrderId}&userId={userId}";
+            if (int.TryParse(userId, out int userIdInt) == false)
+            {
+                return Unauthorized("Invalid user ID.");
+            }
+
+            var qrData = $"http://74.234.45.63:8080/api/Taskai/ApplyDiscounts?orderId={request.OrderId}&userId={userIdInt}";
 
             var baseUrl = "https://api.qrserver.com/v1/create-qr-code/";
             var size = "200x200";

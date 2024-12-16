@@ -130,7 +130,7 @@ const Uzsakymas = () => {
       checkIfPaid();
       checkIfConfirmed();
       fetchOrder(); // Also fetch the order details to reflect any changes (like discounts)
-    }, 1000); // Poll every 1 second
+    }, 10000); // Poll every 1 second
   };
 
   // Stop polling mechanism

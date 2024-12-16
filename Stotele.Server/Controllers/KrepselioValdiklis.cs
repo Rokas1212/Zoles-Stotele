@@ -51,6 +51,10 @@ public class KrepselioController : ControllerBase
         var existingItem = cart.FirstOrDefault(i => i.id == productId);
         if (existingItem != null)
         {
+            if (existingItem.kiekis >= product.Kiekis)
+            {
+                return BadRequest("Pasiektas maksimalus produktų kiekis.");
+            }
             existingItem.kiekis++;
         }
         else
