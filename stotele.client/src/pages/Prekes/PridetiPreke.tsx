@@ -251,79 +251,80 @@ const PridetiPreke = () => {
           />
         </div>
 
-
         <div className="form-section">
-  {/* Kategorijos Section */}
-  <h3 className="section-title">Kategorijos</h3>
-<div className="button-container">
-  <button type="button" onClick={handleAddCategory} className="btn">
-    Pridėti kategoriją
-  </button>
-</div>
-{selectedCategories.map((category, index) => (
-  <div key={index} className="form-row mb-3">
-    <label className="form-label">Kategorija</label>
-    <select
-      className="form-select"
-      value={category.kategorijaId}
-      onChange={(e) => handleCategoryChange(index, Number(e.target.value))}
-    >
-      <option value={0}>Pasirinkite kategoriją</option>
-      {categories.map((category) => (
-        <option key={category.id} value={category.id}>
-          {category.pavadinimas}
-        </option>
-      ))}
-    </select>
-  </div>
-))}
+          {/* Kategorijos Section */}
+          <h3 className="section-title">Kategorijos</h3>
+          <div className="button-container">
+            <button type="button" onClick={handleAddCategory} className="btn">
+              Pridėti kategoriją
+            </button>
+          </div>
+          {selectedCategories.map((category, index) => (
+            <div key={index} className="form-row mb-3">
+              <label className="form-label">Kategorija</label>
+              <select
+                className="form-select"
+                value={category.kategorijaId}
+                onChange={(e) =>
+                  handleCategoryChange(index, Number(e.target.value))
+                }
+              >
+                <option value={0}>Pasirinkite kategoriją</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.pavadinimas}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ))}
 
-<h3 className="section-title">Parduotuvės</h3>
-<div className="button-container">
-  <button type="button" onClick={handleAddStore} className="btn">
-    Pridėti parduotuvę
-  </button>
-</div>
-{selectedStores.map((store, index) => (
-  <div key={index} className="form-row mb-3">
-    <label className="form-label">Parduotuvė</label>
-    <select
-      className="form-select"
-      value={store.parduotuveId}
-      onChange={(e) =>
-        handleStoreChange(index, "parduotuveId", Number(e.target.value))
-      }
-    >
-      <option value={0}>Pasirinkite parduotuvę</option>
-      {stores.map((store) => (
-        <option key={store.id} value={store.id}>
-          {store.adresas}
-        </option>
-      ))}
-    </select>
-    <label className="form-label">Kiekis</label>
-    <input
-      type="number"
-      className="form-input"
-      value={store.kiekis}
-      onChange={(e) =>
-        handleStoreChange(index, "kiekis", Number(e.target.value))
-      }
-      placeholder="Įveskite kiekį"
-    />
-  </div>
-))}
+          <h3 className="section-title">Parduotuvės</h3>
+          <div className="button-container">
+            <button type="button" onClick={handleAddStore} className="btn">
+              Pridėti parduotuvę
+            </button>
+          </div>
+          {selectedStores.map((store, index) => (
+            <div key={index} className="form-row mb-3">
+              <label className="form-label">Parduotuvė</label>
+              <select
+                className="form-select"
+                value={store.parduotuveId}
+                onChange={(e) =>
+                  handleStoreChange(
+                    index,
+                    "parduotuveId",
+                    Number(e.target.value)
+                  )
+                }
+              >
+                <option value={0}>Pasirinkite parduotuvę</option>
+                {stores.map((store) => (
+                  <option key={store.id} value={store.id}>
+                    {store.adresas}
+                  </option>
+                ))}
+              </select>
+              <label className="form-label">Kiekis</label>
+              <input
+                type="number"
+                className="form-input"
+                value={store.kiekis}
+                onChange={(e) =>
+                  handleStoreChange(index, "kiekis", Number(e.target.value))
+                }
+                placeholder="Įveskite kiekį"
+              />
+            </div>
+          ))}
 
-<div className="button-container">
-  <button type="submit" className="btn">
-    Pridėti
-  </button>
-</div>
-
-
-
-</div>
-
+          <div className="button-container">
+            <button type="submit" className="btn">
+              Pridėti
+            </button>
+          </div>
+        </div>
       </form>
     </div>
   );
