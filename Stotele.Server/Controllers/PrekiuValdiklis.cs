@@ -151,6 +151,28 @@ namespace Stotele.Server.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdatePreke(int id, RedaguotiPrekeDTO dto)
         {
+            var UserId = User.FindFirstValue("UserId");
+            if (string.IsNullOrEmpty(UserId))
+            {
+                return Unauthorized("Nežinomas user ID.");
+            }
+
+            if (!int.TryParse(UserId, out int parsedUserId))
+            {
+                return BadRequest("Neteisingas user ID formatas.");
+            }
+
+            var vadybininkas = await _context.Vadybininkai.FindAsync(int.Parse(UserId));
+            if (vadybininkas == null)
+            {
+                return BadRequest("Vadybininkas su šiuo ID neegzistuoja.");
+            }
+
+            if (!User.IsInRole("Administratorius") && vadybininkas.Id != parsedUserId)
+            {
+                return Unauthorized("Neturite teisės redaguoti prekių.");
+            }
+
             var preke = await _context.Prekes.FindAsync(id);
 
             if (preke == null)
@@ -202,10 +224,21 @@ namespace Stotele.Server.Controllers
             return NoContent();
         }
 
-        // DELETE: api/Preke/{id}
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePreke(int id)
+        // DELETE: api/Preke/
+        [HttpDelete]
+        public async Task<IActionResult> DeletePreke([FromQuery] int id)
         {
+            var UserId = User.FindFirstValue("UserId");
+            if (string.IsNullOrEmpty(UserId))
+            {
+                return Unauthorized("Nežinomas user ID.");
+            }
+
+            if (!User.IsInRole("Administratorius"))
+            {
+                return Unauthorized("Neturite teisės trinti prekių.");
+            }
+
             var preke = await _context.Prekes.FindAsync(id);
 
             if (preke == null)

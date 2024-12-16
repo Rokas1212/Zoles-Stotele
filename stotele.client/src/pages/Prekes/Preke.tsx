@@ -8,6 +8,7 @@ import MapComponent from "../../components/mapComponent";
 import { FaShoppingCart } from "react-icons/fa";
 import { addToCart } from "../../apiServices/cart";
 import { toast } from "react-toastify";
+import ConfirmationModal from "../../components/confirmationModal";
 
 interface Preke {
   id: number;
@@ -132,6 +133,28 @@ const Preke: React.FC = () => {
     }
   };
 
+  const handleDeleteProduct = async () => {
+    try {
+      const getConfirmation = window.confirm(
+        "Ar tikrai norite ištrinti prekę?"
+      );
+      if (!getConfirmation) return;
+      const response = await axios.delete(`https://localhost:5210/api/Preke/`, {
+        params: { id },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      if (response.status === 204) {
+        toast.success("Prekė ištrinta.");
+        navigate("/prekes");
+      }
+    } catch (error: any) {
+      console.error("Klaida trinant prekę:", error.response?.data);
+      toast.error("Nepavyko ištrinti prekės.");
+    }
+  };
+
   return (
     <div className="container py-4">
       {/* Product Title */}
@@ -217,6 +240,12 @@ const Preke: React.FC = () => {
           <a href={`/redaguoti-preke?id=${product.id}`}>
             <button className="btn btn-warning btn-lg">Redaguoti</button>
           </a>
+          <button
+            onClick={handleDeleteProduct}
+            className="btn btn-warning btn-lg"
+          >
+            Ištrinti prekę
+          </button>
         </div>
       )}
 
