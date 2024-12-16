@@ -5,10 +5,10 @@ import "./preke.css";
 import Loading from "../../components/loading";
 import useAuth from "../../hooks/useAuth";
 import MapComponent from "../../components/mapComponent";
-import { FaShoppingCart } from "react-icons/fa";
+import { FaEdit, FaShoppingCart, FaTrash } from "react-icons/fa";
 import { addToCart } from "../../apiServices/cart";
 import { toast } from "react-toastify";
-import ConfirmationModal from "../../components/confirmationModal";
+import defaultImage from "/../default_no_photo.jpg";
 
 interface Preke {
   id: number;
@@ -190,9 +190,12 @@ const Preke: React.FC = () => {
       <div className="row mb-4">
         <div className="col-md-6">
           <img
-            src={product.nuotraukosUrl}
+            src={product.nuotraukosUrl || defaultImage}
             alt={product.pavadinimas}
             className="img-fluid rounded shadow-sm"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = defaultImage;
+            }}
           />
         </div>
         <div className="col-md-6 d-flex flex-column justify-content-center">
@@ -207,7 +210,7 @@ const Preke: React.FC = () => {
               onClick={() => handleAddToCart(product.id.toString())}
               className="btn btn-primary btn-lg"
             >
-              <FaShoppingCart />
+              <FaShoppingCart /> Į krepšelį
             </button>
           </div>
         </div>
@@ -262,12 +265,16 @@ const Preke: React.FC = () => {
       {user?.administratorius && (
         <div className="text-center mb-4">
           <a href={`/redaguoti-preke?id=${product.id}`}>
-            <button className="btn btn-warning btn-lg">Redaguoti</button>
+            <button className="btn btn-warning btn-lg">
+              <FaEdit />
+              Redaguoti
+            </button>
           </a>
           <button
             onClick={handleDeleteProduct}
             className="btn btn-warning btn-lg"
           >
+            <FaTrash />
             Ištrinti prekę
           </button>
         </div>
