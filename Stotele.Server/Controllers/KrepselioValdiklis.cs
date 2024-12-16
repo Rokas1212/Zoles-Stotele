@@ -44,6 +44,11 @@ public class KrepselioController : ControllerBase
         {
             return BadRequest("Produktas yra išparduotas.");
         }
+        if (product.Kiekis < 0)
+        {
+            product.Kiekis = 0;
+            _dbContext.SaveChanges();
+        }
         // Retrieve the current cart from session
         var cart = GetCartFromSession();
 

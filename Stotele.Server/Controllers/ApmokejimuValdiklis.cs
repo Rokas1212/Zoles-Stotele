@@ -113,7 +113,20 @@ namespace Stotele.Server.Controllers
                         if (product != null)
                         {
                             product.Kiekis -= item.Kiekis;
+
                             Console.WriteLine($"Reduced quantity of '{product.Pavadinimas}' by {item.Kiekis}. New quantity: {product.Kiekis}");
+
+                            //get PrekesParduotuve
+                            var store = _dbContext.PrekesParduotuve.FirstOrDefault(p => p.PrekeId == product.Id && p.Kiekis > 0);
+                            if (store != null)
+                            {
+                                store.Kiekis -= item.Kiekis;
+                                _dbContext.SaveChanges();
+                            }
+                            //recalculate quantity of item in product table
+                            var quantity = _dbContext.PrekesParduotuve.Where(p => p.PrekeId == product.Id).Sum(p => p.Kiekis);
+                            product.Kiekis = quantity;
+                            _dbContext.SaveChanges();
                         }
                         else
                         {
@@ -151,6 +164,7 @@ namespace Stotele.Server.Controllers
                     payment.MokejimoStatusas = MokejimoStatusas.Apmoketa;
                     _dbContext.SaveChanges();
                     Console.WriteLine($"Payment status updated to 'Apmoketa' for orderId: {orderId}");
+
 
                     // Construct email message using 'order.PrekesUzsakymai'
                     var htmlMessage = $@"
